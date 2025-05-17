@@ -9,19 +9,21 @@ public class UserRowMapper implements RowMapper<User> {
     @Override
     public User mapRow(ResultSet rs, int rowNum) throws SQLException {
         User user = new User();
-        user.setUserId(rs.getInt("UserId"));
-        user.setAccount(rs.getString("UserEmail"));
-        user.setPassword(rs.getString("UserPwd"));
-        user.setName(rs.getString("UserName"));
-        user.setDepartment(rs.getString("Location"));
-        user.setAvatarPath(rs.getString("avatarUrl"));
+        user.setUserId(rs.getInt("user_id"));
+        user.setName(rs.getString("name"));
+        user.setAccount(rs.getString("account"));
+        user.setPassword(rs.getString("password"));
+        user.setRole(rs.getString("role"));
         
-        // 如果数据库中有这些字段，也需要设置
-        if (hasColumn(rs, "role")) {
-            user.setRole(rs.getString("role"));
+        // 这些字段可能为空，使用hasColumn方法检查
+        if (hasColumn(rs, "department")) {
+            user.setDepartment(rs.getString("department"));
         }
         if (hasColumn(rs, "contact")) {
             user.setContact(rs.getString("contact"));
+        }
+        if (hasColumn(rs, "avatar_path")) {
+            user.setAvatarPath(rs.getString("avatar_path"));
         }
         
         return user;

@@ -71,10 +71,12 @@ public class AppConfig  implements WebMvcConfigurer {
     @Bean
     WebMvcConfigurer createWebMvcConfigurer_Interceptor(@Autowired HandlerInterceptor[] interceptors) {
         return new WebMvcConfigurer() {
+            @Override
             public void addInterceptors(InterceptorRegistry registry) {
-                for (var interceptor : interceptors) {
-                    registry.addInterceptor(interceptor);
-                }
+                // 添加JWT拦截器，拦截所有需要认证的API路径
+                registry.addInterceptor(interceptors[0])
+                        .addPathPatterns("/api/v1/**")
+                        .excludePathPatterns("/api/v1/auth/login");
             }
         };
     }

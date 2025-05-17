@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -30,20 +31,32 @@ public class UserService {
     RowMapper<User> userRowMapper = new BeanPropertyRowMapper<>(User.class);
 
     public List<User> getUsers(){
-        return jdbcTemplate.query("select * from User", new UserRowMapper());
+        return jdbcTemplate.query("SELECT * FROM User", new UserRowMapper());
     }
 
     public User getUserById(long id) {
-        return jdbcTemplate.queryForObject("SELECT * FROM User WHERE UserId = ?", new Object[] { id }, new UserRowMapper());
+        try {
+            return jdbcTemplate.queryForObject("SELECT * FROM User WHERE user_id = ?", 
+                new UserRowMapper(), id);
+        } catch (EmptyResultDataAccessException e) {
+            logger.error("User not found with id: {}", id);
+            throw new RuntimeException("用户不存在");
+        }
     }
 
-    public User getUserByEmail(String email) {
-        return jdbcTemplate.queryForObject("SELECT * FROM User WHERE UserEmail = ?", new Object[]{email}, new UserRowMapper());
+    public User getUserByAccount(String account) {
+        try {
+            return jdbcTemplate.queryForObject("SELECT * FROM User WHERE account = ?", 
+                new UserRowMapper(), account);
+        } catch (EmptyResultDataAccessException e) {
+            logger.error("User not found with account: {}", account);
+            throw new RuntimeException("用户不存在");
+        }
     }
 
     public User signin(String email, String password) {
         logger.info("try login by {}...", email);
-        User user = getUserByEmail(email);
+        User user = getUserByAccount(email);
         System.out.println("User found: " + user);
         if (user.getPassword().equals(password)) {
             System.out.println("Password is correct");
@@ -52,24 +65,30 @@ public class UserService {
         throw new RuntimeException("login failed.");
     }
 
-    public User register(String email, String password, String name) {
-        logger.info("try register by {}...", email);
+    public User register(String account, String password, String name, String role, 
+                         String department, String contact) {
+        logger.info("Attempting to register user with account: {}", account);
         User user = new User();
-        user.setAccount(email);
+        user.setAccount(account);
         user.setPassword(password);
         user.setName(name);
-        // 默认角色设置，根据您的业务需要
-        user.setRole("s"); // 默认为学生角色
+        user.setRole(role != null ? role : "s"); // 默认为学生角色
+        user.setDepartment(department);
+        user.setContact(contact);
         
         KeyHolder holder = new GeneratedKeyHolder();
         try {
             if (1 != jdbcTemplate.update((conn) -> {
-                var ps = conn.prepareStatement("INSERT INTO User(UserEmail, UserPwd, UserName, role) VALUES(?, ?, ?, ?)",
-                        Statement.RETURN_GENERATED_KEYS);
-                ps.setObject(1, user.getAccount());
-                ps.setObject(2, user.getPassword());
-                ps.setObject(3, user.getName());
+                var ps = conn.prepareStatement(
+                    "INSERT INTO User(name, account, password, role, department, contact) " +
+                    "VALUES(?, ?, ?, ?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS);
+                ps.setObject(1, user.getName());
+                ps.setObject(2, user.getAccount());
+                ps.setObject(3, user.getPassword());
                 ps.setObject(4, user.getRole());
+                ps.setObject(5, user.getDepartment());
+                ps.setObject(6, user.getContact());
                 return ps;
             }, holder)) {
                 throw new RuntimeException("Insert failed.");
@@ -84,10 +103,35 @@ public class UserService {
     }
 
     public void updateUser(User user) {
-        if (1 != jdbcTemplate.update("UPDATE User SET UserName = ? WHERE UserId=?", user.getName(), user.getUserId())) {
+        if (1 != jdbcTemplate.update(
+                "UPDATE User SET name = ?, department = ?, contact = ? WHERE user_id = ?", 
+                user.getName(), user.getDepartment(), user.getContact(), user.getUserId())) {
             throw new RuntimeException("User not found by id");
         }
     }
+    
+    public void updatePassword(String account, String newPassword) {
+        int rowsAffected = jdbcTemplate.update(
+            "UPDATE User SET password = ? WHERE account = ?", 
+            newPassword, account);
+            
+        if (rowsAffected <= 0) {
+            throw new RuntimeException("Failed to update password for user with account: " + account);
+        }
+    }
+    
+    public User updateAvatar(String account, String avatarPath) {
+        int rowsAffected = jdbcTemplate.update(
+            "UPDATE User SET avatar_path = ? WHERE account = ?", 
+            avatarPath, account);
+            
+        if (rowsAffected <= 0) {
+            throw new RuntimeException("Failed to update avatar for user with account: " + account);
+        }
+        
+        return getUserByAccount(account);
+    }
+
     public User ChangeUserPwd(String newpassword, String email) {
         // 增强日志，记录尝试修改密码的详细信息
         logger.info("Attempting to change password for user with email: {}", email);
@@ -209,5 +253,64 @@ public class UserService {
     }
     public void ChangePassword(String email, String password) {
         jdbcTemplate.update("UPDATE User SET UserPwd = ? WHERE UserEmail = ?", password, email);
+    }
+
+    /**
+     * 更新用户信息
+     * @param userId 用户ID
+     * @param name 姓名
+     * @param department 部门/院系
+     * @param contact 联系方式
+     * @return 更新后的用户信息
+     */
+    public User updateUserProfile(Integer userId, String name, String department, String contact) {
+        logger.info("更新用户信息: userId={}", userId);
+        
+        // 构建SQL
+        StringBuilder sql = new StringBuilder("UPDATE User SET ");
+        boolean needComma = false;
+        java.util.List<Object> params = new java.util.ArrayList<>();
+        
+        // 动态添加要更新的字段
+        if (name != null && !name.isEmpty()) {
+            sql.append("name = ?");
+            params.add(name);
+            needComma = true;
+        }
+        
+        if (department != null) {
+            if (needComma) sql.append(", ");
+            sql.append("department = ?");
+            params.add(department);
+            needComma = true;
+        }
+        
+        if (contact != null) {
+            if (needComma) sql.append(", ");
+            sql.append("contact = ?");
+            params.add(contact);
+        }
+        
+        // 添加WHERE条件
+        sql.append(" WHERE user_id = ?");
+        params.add(userId);
+        
+        // 执行更新操作
+        int rows = jdbcTemplate.update(sql.toString(), params.toArray());
+        if (rows == 0) {
+            logger.error("用户不存在或更新失败: userId={}", userId);
+            throw new RuntimeException("更新失败：用户不存在");
+        }
+        
+        // 返回更新后的用户信息
+        return getUserById(userId);
+    }
+
+    /**
+     * 获取JdbcTemplate
+     * @return jdbcTemplate实例
+     */
+    public JdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
     }
 }
