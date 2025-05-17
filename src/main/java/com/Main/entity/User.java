@@ -3,11 +3,11 @@ package com.Main.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class User {
-    
+
     private int userId;
     private String name;
     private String account;
-    
+
     @JsonIgnore
     private String password;
     
@@ -39,20 +39,20 @@ public class User {
     
     public void setUserId(int userId) {
         this.userId = userId;
-    }
+            }
     
     public String getName() {
         return name;
-    }
+        }
     
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public String getAccount() {
         return account;
     }
-    
+
     public void setAccount(String account) {
         this.account = account;
     }
@@ -60,19 +60,19 @@ public class User {
     public String getPassword() {
         return password;
     }
-    
+
     public void setPassword(String password) {
         this.password = password;
     }
-    
+
     public String getRole() {
         return role;
     }
-    
+
     public void setRole(String role) {
         this.role = role;
     }
-    
+
     public String getDepartment() {
         return department;
     }
@@ -88,15 +88,15 @@ public class User {
     public void setContact(String contact) {
         this.contact = contact;
     }
-    
+
     public String getAvatarPath() {
         return avatarPath;
     }
-    
+
     public void setAvatarPath(String avatarPath) {
         this.avatarPath = avatarPath;
     }
-    
+
     @Override
     public String toString() {
         return String.format("User[id=%d, account='%s', name='%s', role='%s', department='%s', contact='%s']",
