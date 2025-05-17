@@ -9,14 +9,31 @@ public class UserRowMapper implements RowMapper<User> {
     @Override
     public User mapRow(ResultSet rs, int rowNum) throws SQLException {
         User user = new User();
-        user.setId(rs.getInt("UserId"));
-        user.setEmail(rs.getString("UserEmail"));
+        user.setUserId(rs.getInt("UserId"));
+        user.setAccount(rs.getString("UserEmail"));
         user.setPassword(rs.getString("UserPwd"));
         user.setName(rs.getString("UserName"));
-        user.setLocation(rs.getString("Location"));
-        user.setAvatarUrl(rs.getString("avatarUrl"));
-        user.setMember(rs.getBoolean("Member"));
-        user.setCreatedAt(rs.getTimestamp("CreateTime").getTime());
+        user.setDepartment(rs.getString("Location"));
+        user.setAvatarPath(rs.getString("avatarUrl"));
+        
+        // 如果数据库中有这些字段，也需要设置
+        if (hasColumn(rs, "role")) {
+            user.setRole(rs.getString("role"));
+        }
+        if (hasColumn(rs, "contact")) {
+            user.setContact(rs.getString("contact"));
+        }
+        
         return user;
+    }
+    
+    // 辅助方法：检查ResultSet是否包含特定列
+    private boolean hasColumn(ResultSet rs, String columnName) {
+        try {
+            rs.findColumn(columnName);
+            return true;
+        } catch (SQLException e) {
+            return false;
+        }
     }
 }
