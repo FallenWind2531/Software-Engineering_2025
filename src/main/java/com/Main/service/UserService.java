@@ -55,19 +55,21 @@ public class UserService {
     public User register(String email, String password, String name) {
         logger.info("try register by {}...", email);
         User user = new User();
-        user.setEmail(email);
+        user.setAccount(email);
         user.setPassword(password);
         user.setName(name);
-        user.setCreatedAt(System.currentTimeMillis());
+        // 默认角色设置，根据您的业务需要
+        user.setRole("s"); // 默认为学生角色
+        
         KeyHolder holder = new GeneratedKeyHolder();
         try {
             if (1 != jdbcTemplate.update((conn) -> {
-                var ps = conn.prepareStatement("INSERT INTO User(UserEmail, UserPwd, UserName, CreateTime) VALUES(?, ?, ?, ?)",
+                var ps = conn.prepareStatement("INSERT INTO User(UserEmail, UserPwd, UserName, role) VALUES(?, ?, ?, ?)",
                         Statement.RETURN_GENERATED_KEYS);
-                ps.setObject(1, user.getEmail());
+                ps.setObject(1, user.getAccount());
                 ps.setObject(2, user.getPassword());
                 ps.setObject(3, user.getName());
-                ps.setObject(4, new Timestamp(user.getCreatedAt()));  // 转换为 Timestamp
+                ps.setObject(4, user.getRole());
                 return ps;
             }, holder)) {
                 throw new RuntimeException("Insert failed.");
@@ -77,12 +79,12 @@ public class UserService {
             throw new RuntimeException("Insert failed due to SQL error.", e);
         }
 
-        user.setId(holder.getKey().intValue());
+        user.setUserId(holder.getKey().intValue());
         return user;
     }
 
     public void updateUser(User user) {
-        if (1 != jdbcTemplate.update("UPDATE User SET UserName = ? WHERE UserId=?", user.getName(), user.getId())) {
+        if (1 != jdbcTemplate.update("UPDATE User SET UserName = ? WHERE UserId=?", user.getName(), user.getUserId())) {
             throw new RuntimeException("User not found by id");
         }
     }
