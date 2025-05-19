@@ -7,6 +7,7 @@ public class Course {
     private int teacherId;
     private float credit;
     private String category;
+    private int hours_per_week;
 
     public int getId() {
         return courseId;
@@ -54,6 +55,14 @@ public class Course {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public int getHours_per_week() {
+        return hours_per_week;
+    }
+
+    public void setHours_per_week(int hours_per_week) {
+        this.hours_per_week = hours_per_week;
     }
 
     @Override

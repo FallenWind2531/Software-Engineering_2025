@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/v1/account")
+@RequestMapping("/information/api/v1/account")
 public class AccountController {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
