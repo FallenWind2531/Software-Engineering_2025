@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/admin")
+@RequestMapping("/information/api/v1/admin")
 public class AdminUserController {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
