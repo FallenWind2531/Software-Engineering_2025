@@ -8,6 +8,7 @@ public class Section {
     private String semester; // 春夏，秋冬
     private int secYear;
     private String secTime; //开课时间，格式暂定为"Monday 1,2; Wednesday 6,7,8"
+    private int available_capacity;
 
     public int getId() {
         return sectionId;
@@ -65,8 +66,14 @@ public class Section {
         this.secTime = secTime;
     }
 
+    public void setAvailableCapacity(int available_capacity) {
+        this.available_capacity = available_capacity;
+    }
+
+    public int getAvailableCapacity() { return available_capacity; }
+
     @Override
     public String toString() {
-        return String.format("Section[id=%d, courseId=%d, classroomId=%d, capacity=%d, semester='%s', year=%d, time='%s']", getId(), getCourseId(), getClassroomId(), getCapacity(), getSemester(), getSecYear(), getSecTime());
+        return String.format("Section[id=%d, courseId=%d, classroomId=%d, capacity=%d, semester='%s', year=%d, time='%s', available_capacity='%d']", getId(), getCourseId(), getClassroomId(), getCapacity(), getSemester(), getSecYear(), getSecTime(), getAvailableCapacity());
     }
 }

@@ -1,0 +1,72 @@
+package com.Main.web.information;
+
+import com.Main.dto.ApiResponseDTO;
+import com.Main.dto.PageResponseDTO;
+import com.Main.entity.Course;
+import com.Main.service.information.CourseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/information/api/v1/courses")
+public class CourseInformationController {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Autowired
+    private CourseService courseService;
+
+    /**
+     * 获取课程列表（支持分页和筛选）
+     * @param page 页码
+     * @param size 每页数量
+     * @param course_name 按课程名字模糊查询
+     * @param teacher_id 按教师查询
+     * @param teacher_name 按教师名字模糊筛选
+     * @param category 按课程类别筛选
+     * @return 分页课程列表
+     */
+    @GetMapping
+    public ResponseEntity<ApiResponseDTO<PageResponseDTO<Course>>> getCourseList(
+            @RequestParam(required = false, defaultValue = "1") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size,
+            @RequestParam(required = false) String course_name,
+            @RequestParam(required = false) Integer teacher_id,
+            @RequestParam(required = false) String teacher_name,
+            @RequestParam(required = false) String category)
+    {
+
+            try{
+                PageResponseDTO<Course> courses = courseService.getCourses(page, size, course_name, teacher_id, teacher_name, category);
+                return ResponseEntity.ok(ApiResponseDTO.success("获取成功",courses));
+            }catch (Exception e){
+                logger.error("获取课程列表失败: {}", e.getMessage());
+                return ResponseEntity.ok(ApiResponseDTO.error(500, "服务器内部错误: " + e.getMessage()));
+            }
+    }
+
+    /**
+     * 获取课程列表（支持分页和筛选）
+     * @param course_id 页码
+     * @return 分页课程列表
+     */
+    @GetMapping("/course_id")
+    public ResponseEntity<ApiResponseDTO<Course>> getCourseById(
+            @RequestParam Integer course_id)
+    {
+        try{
+            Course course = courseService.getCourseById(course_id);
+            return ResponseEntity.ok(ApiResponseDTO.success("获取成功",course));
+        }catch (RuntimeException e) {
+            logger.error("获取课程信息失败: {}", e.getMessage());
+            return ResponseEntity.ok(ApiResponseDTO.error(404, e.getMessage()));
+        } catch (Exception e){
+            logger.error("获取课程列表失败: {}", e.getMessage());
+            return ResponseEntity.ok(ApiResponseDTO.error(500, "服务器内部错误: " + e.getMessage()));
+        }
+    }
+
+}
