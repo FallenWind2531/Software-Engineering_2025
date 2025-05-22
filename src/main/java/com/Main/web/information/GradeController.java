@@ -78,7 +78,7 @@ public class GradeController {
      * @param request 请求对象
      * @param semester 学期
      * @param sec_year 学年
-     * @param course_id 课程ID
+     * @param course_name 课程名称
      * @return 成绩列表
      */
     @GetMapping("/student/grades")
@@ -86,14 +86,14 @@ public class GradeController {
             HttpServletRequest request,
             @RequestParam(value = "semester", required = false) String semester,
             @RequestParam(value = "sec_year", required = false) Integer sec_year,
-            @RequestParam(value = "course_id", required = false) Integer course_id
+            @RequestParam(value = "course_name", required = false) String course_name
     ) {
-        logger.info("获取学生成绩列表, semester: {}, sec_year: {}, course_id: {}", semester, sec_year, course_id);
+        logger.info("获取学生成绩列表, semester: {}, sec_year: {}, course_name: {}", semester, sec_year, course_name);
 
         // 获取学生成绩列表
         try {
             int student_id = (int) request.getAttribute("userId");
-            StudentGradeListDTO gradeListDTO = gradeService.getStudentGradeList(student_id, semester, sec_year, course_id);
+            StudentGradeListDTO gradeListDTO = gradeService.getStudentGradeList(student_id, semester, sec_year, course_name);
 
             // 补充每个成绩的详细信息
             for (StudentGradeDTO gradeDTO : gradeListDTO.getStudentGradeList()) {
@@ -101,7 +101,6 @@ public class GradeController {
                 Course course = courseService.getCourseById(gradeDTO.getCourse_id());
                 User user = userService.getUserById(course.getTeacherId());
 
-                String course_name = course.getName();
                 String teacher_name = user.getName();
                 String semesterValue = sectionDTO.getSection().getSemester();
                 int sec_yearValue = sectionDTO.getSection().getSecYear();
