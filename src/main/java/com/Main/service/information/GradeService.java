@@ -31,10 +31,10 @@ public class GradeService{
      * @param studentId 学生ID
      * @param semester 学期
      * @param secYear 学年
-     * @param courseId 课程ID
+     * @param courseName 课程名字
      * @return StudentGradeListDTO
      */
-    public StudentGradeListDTO getStudentGradeList(int studentId, String semester, int secYear, int courseId) {
+    public StudentGradeListDTO getStudentGradeList(int studentId, String semester, int secYear, String courseName) {
         List<Object> params = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT gb.* FROM GradeBase gb WHERE gb.student_id = ?");
         params.add(studentId);
@@ -49,9 +49,9 @@ public class GradeService{
             params.add(secYear);
         }
 
-        if (courseId > 0 ) {
-            sql.append(" AND gb.course_id = ?");
-            params.add(courseId);
+        if (courseName != null && !courseName.isEmpty()) {
+            sql.append(" AND EXISTS (SELECT 1 FROM Course c WHERE gb.course_id = c.course_id AND c.course_name LIKE ?)");
+            params.add("%" + courseName + "%");
         }
 
         logger.info("SQL: {}, Params: {}", sql.toString(), params);
@@ -266,7 +266,7 @@ public class GradeService{
         }
 
         // 获取学生所有成绩记录
-        StudentGradeListDTO gradeListDTO = getStudentGradeList(studentId, null, 0, 0);
+        StudentGradeListDTO gradeListDTO = getStudentGradeList(studentId, null, 0, null);
 
         // 初始化总 GPA、总分数和课程计数
         double totalGpa = 0.0;
