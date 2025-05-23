@@ -1,9 +1,6 @@
 package com.Main.web.information;
 
-import com.Main.dto.ApiResponseDTO;
-import com.Main.dto.PageResponseDTO;
-import com.Main.dto.SectionSearchDTO;
-import com.Main.dto.SectionSearchListDTO;
+import com.Main.dto.*;
 import com.Main.entity.Course;
 import com.Main.entity.Section;
 import com.Main.service.information.ClassroomService;
@@ -15,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/information/api/v1/teacher")
@@ -148,7 +147,7 @@ public class CourseAndSectionManagerController {
      * @return 新创建的开课信息
      */
     @PostMapping("/courses/{course_id}/sections")
-    public ResponseEntity<ApiResponseDTO<SectionSearchDTO>> createSection(
+    public ResponseEntity<ApiResponseDTO<Section>> createSection(
             HttpServletRequest request,
             @PathVariable("course_id") Integer course_id,
             @RequestParam("section_id") Integer section_id,
@@ -179,9 +178,7 @@ public class CourseAndSectionManagerController {
             }
             // 创建开课信息
             Section section = sectionService.createSection(section_id, classroom_id, capacity, semester, sec_year, sec_time);
-            String location = classroomService.getClassroomInfo(classroom_id);
-            SectionSearchDTO sectionSearchDTO = new SectionSearchDTO(section, location);
-            return ResponseEntity.ok(ApiResponseDTO.success("开课信息创建成功", sectionSearchDTO));
+            return ResponseEntity.ok(ApiResponseDTO.success("开课信息创建成功", section));
         } catch (Exception e) {
             logger.error("创建开课信息过程中发生未知错误", e);
             return ResponseEntity.ok(ApiResponseDTO.error(500, "服务器内部错误"));
@@ -197,7 +194,7 @@ public class CourseAndSectionManagerController {
      * @return 修改后的开课信息
      */
     @PutMapping("/sections/{section_id}")
-    public ResponseEntity<ApiResponseDTO<SectionSearchDTO>> updateSection(
+    public ResponseEntity<ApiResponseDTO<Section>> updateSection(
             HttpServletRequest request,
             @PathVariable("section_id") Integer section_id,
             @RequestParam("classroom_id") Integer classroom_id,
@@ -217,7 +214,7 @@ public class CourseAndSectionManagerController {
             }
             // 检查课程是否存在
             SectionSearchDTO oldsection = sectionService.getSectionById(section_id);
-            int course_id = oldsection.getSection().getCourseId();
+            int course_id = oldsection.getCourseId();
             Course course = courseService.getCourseById(course_id);
             if( course == null) {
                 logger.warn("课程不存在，无法修改开课信息: course_id={}", course_id);
@@ -228,13 +225,11 @@ public class CourseAndSectionManagerController {
                 return ResponseEntity.ok(ApiResponseDTO.error(403, "无权限修改开课信息"));
             }
             // 计算容量变化
-            int offset = capacity - oldsection.getSection().getCapacity();
-            int available_capacity = oldsection.getSection().getAvailableCapacity() + offset;
+            int offset = capacity - oldsection.getCapacity();
+            int available_capacity = oldsection.getAvailable_capacity() + offset;
             // 修改开课信息
             Section section = sectionService.updateSection(section_id, classroom_id, capacity, semester, sec_year, sec_time, available_capacity);
-            String location = classroomService.getClassroomInfo(classroom_id);
-            SectionSearchDTO sectionSearchDTO = new SectionSearchDTO(section, location);
-            return ResponseEntity.ok(ApiResponseDTO.success("开课信息更新成功", sectionSearchDTO));
+            return ResponseEntity.ok(ApiResponseDTO.success("开课信息更新成功", section));
         } catch (Exception e) {
             logger.error("修改开课信息过程中发生未知错误", e);
             return ResponseEntity.ok(ApiResponseDTO.error(500, "服务器内部错误"));
@@ -248,7 +243,7 @@ public class CourseAndSectionManagerController {
      * @return 删除结果
      */
     @DeleteMapping("/sections/{section_id}")
-    public ResponseEntity<ApiResponseDTO<Void>> updateSection(
+    public ResponseEntity<ApiResponseDTO<Void>> deleteSection(
             HttpServletRequest request,
             @PathVariable("section_id") Integer section_id
     ){
@@ -263,7 +258,7 @@ public class CourseAndSectionManagerController {
 
             // 检查课程是否存在
             SectionSearchDTO oldsection = sectionService.getSectionById(section_id);
-            int course_id = oldsection.getSection().getCourseId();
+            int course_id = oldsection.getCourseId();
             Course course = courseService.getCourseById(course_id);
             if( course == null) {
                 logger.warn("课程不存在，无法删除开课信息: course_id={}", course_id);
@@ -275,7 +270,7 @@ public class CourseAndSectionManagerController {
             }
 
             // 检查是否有学生选课
-            if (oldsection.getSection().getCapacity() != oldsection.getSection().getAvailableCapacity()) {
+            if (oldsection.getCapacity() != oldsection.getAvailable_capacity()) {
                 logger.warn("开课信息存在选课学生，无法删除: section_id={}", section_id);
                 return ResponseEntity.ok(ApiResponseDTO.error(400, "开课信息存在选课学生，无法删除"));
             }
@@ -329,7 +324,7 @@ public class CourseAndSectionManagerController {
      * @return 开课列表
      */
     @GetMapping("/my-courses/{course_id}/sections")
-    public ResponseEntity<ApiResponseDTO<SectionSearchListDTO>> getTeacherSections(
+    public ResponseEntity<ApiResponseListDTO<SectionSearchDTO>> getTeacherSections(
             @PathVariable("course_id") Integer courseId,
             @RequestParam(value = "semester", required = false) String semester,
             @RequestParam(value = "sec_year", required = false) Integer sec_year,
@@ -344,18 +339,18 @@ public class CourseAndSectionManagerController {
             Course course = courseService.getCourseById(courseId);
             if (course == null) {
                 logger.warn("课程不存在，无法获取开课列表: course_id={}", courseId);
-                return ResponseEntity.ok(ApiResponseDTO.error(404, "课程不存在"));
+                return ResponseEntity.ok(ApiResponseListDTO.error(404, "课程不存在"));
             }
             else if (course.getTeacherId() != userId){
                 logger.warn("无权限获取开课列表: userId={}, course_id={}", userId, courseId);
-                return ResponseEntity.ok(ApiResponseDTO.error(403, "无权限获取开课列表"));
+                return ResponseEntity.ok(ApiResponseListDTO.error(403, "无权限获取开课列表"));
             }
             // 获取开课列表
-            SectionSearchListDTO searchDTO = sectionService.getSections(courseId, semester, sec_year);
-            return ResponseEntity.ok(ApiResponseDTO.success("获取成功",searchDTO));
+            List<SectionSearchDTO> searchDTO = sectionService.getSections(courseId, semester, sec_year);
+            return ResponseEntity.ok(ApiResponseListDTO.success("获取成功",searchDTO));
         } catch (Exception e) {
             logger.error("获取开课列表过程中发生未知错误", e);
-            return ResponseEntity.ok(ApiResponseDTO.error(500, "服务器内部错误"));
+            return ResponseEntity.ok(ApiResponseListDTO.error(500, "服务器内部错误"));
         }
     }
 }

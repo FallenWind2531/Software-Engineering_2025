@@ -34,7 +34,7 @@ public class GradeService{
      * @param courseName 课程名字
      * @return StudentGradeListDTO
      */
-    public StudentGradeListDTO getStudentGradeList(int studentId, String semester, int secYear, String courseName) {
+    public List<StudentGradeDTO> getStudentGradeList(int studentId, String semester, int secYear, String courseName) {
         List<Object> params = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT gb.* FROM GradeBase gb WHERE gb.student_id = ?");
         params.add(studentId);
@@ -86,9 +86,7 @@ public class GradeService{
             studentGradeDTOList.add(studentGradeDTO);
         }
 
-        StudentGradeListDTO studentGradeListDTO = new StudentGradeListDTO();
-        studentGradeListDTO.SetStudentGradeList(studentGradeDTOList);
-        return studentGradeListDTO;
+        return studentGradeDTOList;
     }
 
     /**
@@ -266,7 +264,7 @@ public class GradeService{
         }
 
         // 获取学生所有成绩记录
-        StudentGradeListDTO gradeListDTO = getStudentGradeList(studentId, null, 0, null);
+        List<StudentGradeDTO> gradeListDTO = getStudentGradeList(studentId, null, 0, null);
 
         // 初始化总 GPA、总分数和课程计数
         double totalGpa = 0.0;
@@ -284,7 +282,7 @@ public class GradeService{
         Map<String, Integer> semesterCourseCountMap = new HashMap<>();
 
         // 遍历成绩记录
-        for (StudentGradeDTO studentGradeDTO : gradeListDTO.getStudentGradeList()) {
+        for (StudentGradeDTO studentGradeDTO : gradeListDTO) {
             int year = studentGradeDTO.getSec_year();
             String semester = studentGradeDTO.getSemester();
 
