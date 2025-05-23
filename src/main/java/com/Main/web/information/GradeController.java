@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -55,8 +56,8 @@ public class GradeController {
             Course course = courseService.getCourseById(gradeDTO.getCourse_id());
             User user = userService.getUserById(course.getTeacherId());
 
-            String semester = sectionDTO.getSection().getSemester();
-            int sec_year = sectionDTO.getSection().getSecYear();
+            String semester = sectionDTO.getSemester();
+            int sec_year = sectionDTO.getSecYear();
             String course_name = course.getName();
             String teacher_name = user.getName();
 
@@ -82,7 +83,7 @@ public class GradeController {
      * @return 成绩列表
      */
     @GetMapping("/student/grades")
-    public ResponseEntity<ApiResponseDTO<StudentGradeListDTO>> getGradesList(
+    public ResponseEntity<ApiResponseListDTO<StudentGradeDTO>> getGradesList(
             HttpServletRequest request,
             @RequestParam(value = "semester", required = false) String semester,
             @RequestParam(value = "sec_year", required = false) Integer sec_year,
@@ -93,17 +94,17 @@ public class GradeController {
         // 获取学生成绩列表
         try {
             int student_id = (int) request.getAttribute("userId");
-            StudentGradeListDTO gradeListDTO = gradeService.getStudentGradeList(student_id, semester, sec_year, course_name);
+            List<StudentGradeDTO> gradeListDTO = gradeService.getStudentGradeList(student_id, semester, sec_year, course_name);
 
             // 补充每个成绩的详细信息
-            for (StudentGradeDTO gradeDTO : gradeListDTO.getStudentGradeList()) {
+            for (StudentGradeDTO gradeDTO : gradeListDTO) {
                 SectionSearchDTO sectionDTO = sectionService.getSectionById(gradeDTO.getSection_id());
                 Course course = courseService.getCourseById(gradeDTO.getCourse_id());
                 User user = userService.getUserById(course.getTeacherId());
 
                 String teacher_name = user.getName();
-                String semesterValue = sectionDTO.getSection().getSemester();
-                int sec_yearValue = sectionDTO.getSection().getSecYear();
+                String semesterValue = sectionDTO.getSemester();
+                int sec_yearValue = sectionDTO.getSecYear();
 
                 // 设置成绩信息
                 gradeDTO.setCourse_name(course_name);
@@ -112,10 +113,10 @@ public class GradeController {
                 gradeDTO.setSec_year(sec_yearValue);
             }
 
-            return ResponseEntity.ok(ApiResponseDTO.success("获取成功", gradeListDTO));
+            return ResponseEntity.ok(ApiResponseListDTO.success("获取成功", gradeListDTO));
         } catch (Exception e) {
             logger.error(e.getMessage());
-            return ResponseEntity.ok(ApiResponseDTO.error(500, "获取失败"));
+            return ResponseEntity.ok(ApiResponseListDTO.error(500, "获取失败"));
         }
     }
 
@@ -143,7 +144,7 @@ public class GradeController {
             int student_id = scoreDTO.getStudent_id();
             int score = scoreDTO.getScore();
             float gpa = scoreDTO.getGpa();
-            int course_id = sectionService.getSectionById(section_id).getSection().getCourseId();
+            int course_id = sectionService.getSectionById(section_id).getCourseId();
             // 提交成绩
             try {
                 status = gradeService.submitStudentGrades(section_id, student_id, course_id, score, gpa);

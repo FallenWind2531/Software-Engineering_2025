@@ -39,7 +39,7 @@ public class SectionService {
      * @param secYear 学年
      * @return 开课信息
      */
-    public SectionSearchListDTO getSections(int courseId, String semester, int secYear) {
+    public List<SectionSearchDTO> getSections(int courseId, String semester, int secYear) {
         logger.info("查询开课信息列表: courseId={}, semester={}, secYear={}", courseId, semester, secYear);
 
         // 构建基础SQL和参数
@@ -67,16 +67,22 @@ public class SectionService {
 
         // 查询数据
         List<Section> sections = jdbcTemplate.query(querySql.toString(), params.toArray(), sectionRowMapper);
-
-        // 构建 SectionSearchDTO 列表
-        List<String> Locations = new ArrayList<>();
+        List<SectionSearchDTO> sectionSearchDTOS = new ArrayList<>();
         for (Section section : sections) {
             String location_querysql = "SELECT location FROM Classroom WHERE class_id = ?";
             String classroomLocation = jdbcTemplate.queryForObject(location_querysql, String.class, section.getClassroomId());
-            Locations.add(classroomLocation);
+            SectionSearchDTO sectionSearchDTO = new SectionSearchDTO();
+            sectionSearchDTO.setSectionId(section.getId());
+            sectionSearchDTO.setCourseId(section.getCourseId());
+            sectionSearchDTO.setClassroomId(section.getClassroomId());
+            sectionSearchDTO.setCapacity(section.getCapacity());
+            sectionSearchDTO.setSemester(section.getSemester());
+            sectionSearchDTO.setSecYear(section.getSecYear());
+            sectionSearchDTO.setSecTime(section.getSecTime());
+            sectionSearchDTO.setClassroom_location(classroomLocation);
+            sectionSearchDTOS.add(sectionSearchDTO);
         }
-
-        return new SectionSearchListDTO(sections,Locations);
+        return sectionSearchDTOS;
     }
 
     /**
@@ -89,7 +95,18 @@ public class SectionService {
         try {
             Section section = jdbcTemplate.queryForObject("SELECT * FROM Section WHERE section_id = ?", new Object[]{sectionId}, sectionRowMapper);
             String location = jdbcTemplate.queryForObject("SELECT location FROM Classroom WHERE class_id = ?", String.class, section.getClassroomId());
-            return new SectionSearchDTO(section, location);
+            SectionSearchDTO sectionSearchDTO = new SectionSearchDTO();
+            sectionSearchDTO.setSectionId(section.getId());
+            sectionSearchDTO.setCourseId(section.getCourseId());
+            sectionSearchDTO.setClassroomId(section.getClassroomId());
+            sectionSearchDTO.setCapacity(section.getCapacity());
+            sectionSearchDTO.setSemester(section.getSemester());
+            sectionSearchDTO.setSecYear(section.getSecYear());
+            sectionSearchDTO.setSecTime(section.getSecTime());
+            sectionSearchDTO.setClassroom_location(location);
+            sectionSearchDTO.setAvailable_capacity(section.getAvailableCapacity());
+            sectionSearchDTO.setClassroom_location(location);
+            return sectionSearchDTO;
         } catch (DataAccessException e) {
             logger.error("SQL Error: " + e.getMessage(), e);
             throw new RuntimeException("获取开课信息失败.", e);
