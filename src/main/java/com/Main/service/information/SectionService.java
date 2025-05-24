@@ -53,11 +53,9 @@ public class SectionService {
         }
         if (semester != null && !semester.isEmpty()) {
             querySql.append("AND semester = ? ");
-            querySql.append("AND semester = ? ");
             params.add(semester);
         }
         if (secYear > 0) {
-            querySql.append("AND sec_year = ? ");
             querySql.append("AND sec_year = ? ");
             params.add(secYear);
         }
@@ -69,7 +67,7 @@ public class SectionService {
         List<Section> sections = jdbcTemplate.query(querySql.toString(), params.toArray(), sectionRowMapper);
         List<SectionSearchDTO> sectionSearchDTOS = new ArrayList<>();
         for (Section section : sections) {
-            String location_querysql = "SELECT location FROM Classroom WHERE class_id = ?";
+            String location_querysql = "SELECT location FROM Classroom WHERE classroom_id = ?";
             String classroomLocation = jdbcTemplate.queryForObject(location_querysql, String.class, section.getClassroomId());
             SectionSearchDTO sectionSearchDTO = new SectionSearchDTO();
             sectionSearchDTO.setSectionId(section.getId());
@@ -80,6 +78,7 @@ public class SectionService {
             sectionSearchDTO.setSecYear(section.getSecYear());
             sectionSearchDTO.setSecTime(section.getSecTime());
             sectionSearchDTO.setClassroom_location(classroomLocation);
+            sectionSearchDTO.setAvailable_capacity(section.getCapacity());
             sectionSearchDTOS.add(sectionSearchDTO);
         }
         return sectionSearchDTOS;
@@ -94,7 +93,7 @@ public class SectionService {
         logger.info("获取课程信息: sectionId={}", sectionId);
         try {
             Section section = jdbcTemplate.queryForObject("SELECT * FROM Section WHERE section_id = ?", new Object[]{sectionId}, sectionRowMapper);
-            String location = jdbcTemplate.queryForObject("SELECT location FROM Classroom WHERE class_id = ?", String.class, section.getClassroomId());
+            String location = jdbcTemplate.queryForObject("SELECT location FROM Classroom WHERE classroom_id = ?", String.class, section.getClassroomId());
             SectionSearchDTO sectionSearchDTO = new SectionSearchDTO();
             sectionSearchDTO.setSectionId(section.getId());
             sectionSearchDTO.setCourseId(section.getCourseId());
@@ -230,7 +229,7 @@ public class SectionService {
             throw new IllegalArgumentException("上课时间不能为空");
         }
 
-        String sql = "UPDATE Section SET classroom_id = ?, capacity = ?, semester = ?, sec_year = ?, sec_time = ? , availavle_capacity = ? WHERE section_id = ?";
+        String sql = "UPDATE Section SET classroom_id = ?, capacity = ?, semester = ?, sec_year = ?, sec_time = ? , available_capacity = ? WHERE section_id = ?";
         int rowsAffected = jdbcTemplate.update(sql, classroomId, capacity, semester, secYear, secTime, available_capacity, sectionId);
 
         if (rowsAffected > 0) {
@@ -266,7 +265,7 @@ public class SectionService {
         logger.info("删除开课信息: sectionId={}", sectionId);
 
         // 参数验证
-        if (sectionId <= 0) {
+        if (sectionId < 0) {
             logger.warn("无效的sectionId: {}", sectionId);
             throw new IllegalArgumentException("无效的sectionId");
         }

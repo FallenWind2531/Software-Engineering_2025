@@ -248,6 +248,7 @@ public class CourseService {
             course.setCredit(rs.getFloat("credit"));
             course.setCategory(rs.getString("category"));
             course.setTeacherId(rs.getInt("teacher_id"));
+            course.setHours_per_week(rs.getInt("hours_per_week"));
             return course;
         });
 
@@ -265,7 +266,7 @@ public class CourseService {
         // 检查是否有开课信息或学生选课
         String sql = "SELECT COUNT(*) FROM Section WHERE course_id = ?";
         Integer count = jdbcTemplate.queryForObject(sql, new Object[]{courseId}, Integer.class);
-        if (count == null || count <= 0) {
+        if ( count > 0) {
             logger.warn("无法删除课程 {} 因为有学生选课.", courseId);
             return false;
         }

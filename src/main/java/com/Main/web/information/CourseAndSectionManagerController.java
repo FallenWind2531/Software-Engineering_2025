@@ -23,29 +23,28 @@ public class CourseAndSectionManagerController {
 
     @Autowired
     private CourseService courseService;
+    @Autowired
     private SectionService sectionService;
+    @Autowired
     private ClassroomService classroomService;
 
     /**
      * 创建课程
      * @param request HTTP请求对象
-     * @param course_name 课程名字
-     * @param course_description 课程描述
-     * @param credit 学分
-     * @param category 课程类别
-     * @param hours_per_week 每周课时
+     * @param courseManagerDTO 课程创建/修改DTO
      * @return 新创建的课程
      */
     @PostMapping("/courses")
     public ResponseEntity<ApiResponseDTO<Course>> createCourse(
             HttpServletRequest request,
-            @RequestParam("course_name") String course_name,
-            @RequestParam("course_description") String course_description,
-            @RequestParam("credit") Integer credit,
-            @RequestParam("category") String category,
-            @RequestParam("hours_per_week") Integer hours_per_week
+            @RequestBody CourseManagerDTO courseManagerDTO
     ){
         try {
+            String course_name = courseManagerDTO.getCourseName();
+            String course_description = courseManagerDTO.getCourseDescription();
+            float credit = courseManagerDTO.getCredit();
+            String category = courseManagerDTO.getCategory();
+            int hours_per_week = courseManagerDTO.getHours_per_week();
             // 从请求属性中获取用户ID（由JWT拦截器设置）
             Integer userId = (Integer) request.getAttribute("userId");
             logger.info("创建课程: userId={}, course_name={}, course_description={}, credit={}, category={}, hours_per_week={}",
@@ -63,34 +62,30 @@ public class CourseAndSectionManagerController {
     /**
      * 修改课程信息
      * @param request HTTP请求对象
-     * @param course_name 课程名字
-     * @param course_description 课程描述
-     * @param credit 学分
-     * @param category 课程类别
-     * @param hours_per_week 每周课时
+     * @param courseManagerDTO 课程创建/修改DTO
      * @return 新创建的课程节
      */
     @PutMapping("/courses/{course_id}")
     public ResponseEntity<ApiResponseDTO<Course>> updateCourse(
             HttpServletRequest request,
             @PathVariable("course_id") Integer course_id,
-            @RequestParam("course_name") String course_name,
-            @RequestParam("course_description") String course_description,
-            @RequestParam("credit") Integer credit,
-            @RequestParam("category") String category,
-            @RequestParam("hours_per_week") Integer hours_per_week
+            @RequestBody CourseManagerDTO courseManagerDTO
     ){
         try {
             // 从请求属性中获取用户ID和角色（由JWT拦截器设置）
             Integer userId = (Integer) request.getAttribute("userId");
-            String role = (String) request.getAttribute("role");
+            String role = (String) request.getAttribute("userRole");
 
             // 验证用户身份是否为教师
             if (!"t".equals(role)) {
                 logger.warn("无权限修改课程: userId={}, role={}", userId, role);
                 return ResponseEntity.ok(ApiResponseDTO.error(403, "无权限修改课程"));
             }
-
+            String course_name = courseManagerDTO.getCourseName();
+            String course_description = courseManagerDTO.getCourseDescription();
+            float credit = courseManagerDTO.getCredit();
+            String category = courseManagerDTO.getCategory();
+            int hours_per_week = courseManagerDTO.getHours_per_week();
             logger.info("修改课程: userId={}, course_id={}, course_name={}, course_description={}, credit={}, category={}, hours_per_week={}",
                     userId, course_id, course_name, course_description, credit, category, hours_per_week);
 
@@ -109,7 +104,7 @@ public class CourseAndSectionManagerController {
      * @param course_id 课程ID
      * @return 删除结果
      */
-    @DeleteMapping("/courses/delete/{course_id}")
+    @DeleteMapping("/courses/{course_id}")
     public ResponseEntity<ApiResponseDTO<Void>> deleteCourse(
             HttpServletRequest request,
             @PathVariable("course_id") Integer course_id
@@ -120,8 +115,8 @@ public class CourseAndSectionManagerController {
             logger.info("删除课程: userId={}, course_id={}", userId, course_id);
 
             // 检查开课表是否为空
-            SectionSearchDTO section = sectionService.getSectionById(course_id);
-            if (section != null) {
+            List<SectionSearchDTO> section = sectionService.getSections(course_id,null,0);
+            if (section != null && !section.isEmpty()) {
                 logger.warn("课程存在开课信息，无法删除: course_id={}", course_id);
                 return ResponseEntity.ok(ApiResponseDTO.error(400, "课程存在开课信息，无法删除"));
             }
@@ -139,30 +134,26 @@ public class CourseAndSectionManagerController {
     /**
      * 创建开课信息
      * @param request HTTP请求对象
-     * @param classroom_id 课程ID
-     * @param sec_year 学年
-     * @param sec_time 上课时间
-     * @param semester 学期
-     * @param capacity 容量
+     * @param sectionManagerDTO 开课信息创建/修改DTO
      * @return 新创建的开课信息
      */
     @PostMapping("/courses/{course_id}/sections")
     public ResponseEntity<ApiResponseDTO<Section>> createSection(
             HttpServletRequest request,
             @PathVariable("course_id") Integer course_id,
-            @RequestParam("section_id") Integer section_id,
-            @RequestParam("classroom_id") Integer classroom_id,
-            @RequestParam("sec_year") Integer sec_year,
-            @RequestParam("sec_time") String sec_time,
-            @RequestParam("semester") String semester,
-            @RequestParam("capacity") Integer capacity
+            @RequestBody SectionManagerDTO sectionManagerDTO
     ){
         try {
             // 从请求属性中获取用户ID（由JWT拦截器设置）
             Integer userId = (Integer) request.getAttribute("userId");
-            logger.info("创建开课信息: section_id={}, classroom_id={}, sec_year={}, sec_time={}, semester={}, capacity={}",
-                    section_id, classroom_id, sec_year, sec_time, semester, capacity);
-            String role = (String) request.getAttribute("role");
+            int classroom_id = sectionManagerDTO.getClassroomId();
+            int sec_year = sectionManagerDTO.getSecYear();
+            String sec_time = sectionManagerDTO.getSecTime();
+            String semester = sectionManagerDTO.getSemester();
+            int capacity = sectionManagerDTO.getCapacity();
+            logger.info("创建开课信息:  classroom_id={}, sec_year={}, sec_time={}, semester={}, capacity={}",
+                    classroom_id, sec_year, sec_time, semester, capacity);
+            String role = (String) request.getAttribute("userRole");
             if(!role.equals("t")){
                 throw new RuntimeException("无权限创建开课信息");
             }
@@ -177,7 +168,7 @@ public class CourseAndSectionManagerController {
                 return ResponseEntity.ok(ApiResponseDTO.error(403, "无权限创建开课信息"));
             }
             // 创建开课信息
-            Section section = sectionService.createSection(section_id, classroom_id, capacity, semester, sec_year, sec_time);
+            Section section = sectionService.createSection(course_id, classroom_id, capacity, semester, sec_year, sec_time);
             return ResponseEntity.ok(ApiResponseDTO.success("开课信息创建成功", section));
         } catch (Exception e) {
             logger.error("创建开课信息过程中发生未知错误", e);
@@ -187,28 +178,26 @@ public class CourseAndSectionManagerController {
     /**
      * 修改开课信息
      * @param request HTTP请求对象
-     * @param sec_year 学年
-     * @param sec_time 上课时间
-     * @param semester 学期
-     * @param capacity 容量
+     * @param sectionManagerDTO 开课信息创建/修改DTO
      * @return 修改后的开课信息
      */
     @PutMapping("/sections/{section_id}")
     public ResponseEntity<ApiResponseDTO<Section>> updateSection(
             HttpServletRequest request,
             @PathVariable("section_id") Integer section_id,
-            @RequestParam("classroom_id") Integer classroom_id,
-            @RequestParam("sec_year") Integer sec_year,
-            @RequestParam("sec_time") String sec_time,
-            @RequestParam("semester") String semester,
-            @RequestParam("capacity") Integer capacity
+            @RequestBody SectionManagerDTO sectionManagerDTO
     ){
         try {
             // 从请求属性中获取用户ID（由JWT拦截器设置）
             Integer userId = (Integer) request.getAttribute("userId");
+            int classroom_id = sectionManagerDTO.getClassroomId();
+            int sec_year = sectionManagerDTO.getSecYear();
+            String sec_time = sectionManagerDTO.getSecTime();
+            String semester = sectionManagerDTO.getSemester();
+            int capacity = sectionManagerDTO.getCapacity();
             logger.info("修改开课信息: section_id={}, classroom_id={}, sec_year={}, sec_time={}, semester={}, capacity={}",
                     section_id, classroom_id, sec_year, sec_time, semester, capacity);
-            String role = (String) request.getAttribute("role");
+            String role = (String) request.getAttribute("userRole");
             if(!role.equals("t")){
                 throw new RuntimeException("无权限修改开课信息");
             }
@@ -251,7 +240,7 @@ public class CourseAndSectionManagerController {
             // 从请求属性中获取用户ID（由JWT拦截器设置）
             Integer userId = (Integer) request.getAttribute("userId");
             logger.info("删除开课信息: section_id={}", section_id);
-            String role = (String) request.getAttribute("role");
+            String role = (String) request.getAttribute("userRole");
             if(!role.equals("t")){
                 throw new RuntimeException("无权限删除开课信息");
             }
@@ -331,6 +320,7 @@ public class CourseAndSectionManagerController {
             HttpServletRequest request)
     {
         try{
+            if(sec_year == null) sec_year = 0;
             // 从请求属性中获取用户ID（由JWT拦截器设置）
             Integer userId = (Integer) request.getAttribute("userId");
             logger.info("获取开课列表: userId={}, course_id={}, semester={}, sec_year={}",
