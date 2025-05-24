@@ -18,7 +18,7 @@ public class GradeBaseRowMapper implements RowMapper<GradeBase> {
         gradeBase.setSectionId(rs.getInt("section_id"));
         gradeBase.setScore(rs.getInt("score"));
         gradeBase.setGpa(rs.getFloat("gpa"));
-        gradeBase.setSubmitStatus(rs.getString("submit_status"));
+        gradeBase.setSubmitStatus(rs.getInt("submit_status"));
         return gradeBase;
     }
 }

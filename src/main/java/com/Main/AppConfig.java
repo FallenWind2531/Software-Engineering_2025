@@ -75,8 +75,12 @@ public class AppConfig  implements WebMvcConfigurer {
             public void addInterceptors(InterceptorRegistry registry) {
                 // 添加JWT拦截器，拦截所有需要认证的API路径
                 registry.addInterceptor(interceptors[0])
-                        .addPathPatterns("/api/v1/**")
-                        .excludePathPatterns("/api/v1/auth/login");
+                        .addPathPatterns("/information/api/v1/**")
+                        .excludePathPatterns("/information/api/v1/auth/login");
+
+                // 日志拦截器
+                registry.addInterceptor(interceptors[1])
+                        .addPathPatterns("/**");
             }
         };
     }
@@ -136,7 +140,7 @@ public class AppConfig  implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // 允许所有路径
-                .allowedOrigins("http://localhost:5174") // 允许的前端地址
+                .allowedOrigins("http://localhost:5174", "null") // 允许的前端地址
                 .allowedMethods("GET", "POST", "PUT", "DELETE") // 允许的请求方式
                 .allowedHeaders("*") // 允许的请求头
                 .allowCredentials(true);

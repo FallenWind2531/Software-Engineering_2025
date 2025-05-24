@@ -8,8 +8,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.core.annotation.Order;
 
 @Component
+@Order(1)
 public class JwtInterceptor implements HandlerInterceptor {
     
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -21,12 +23,14 @@ public class JwtInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         // 登录和OPTIONS请求不需要验证
         String requestURI = request.getRequestURI();
-        if (requestURI.contains("/api/v1/auth/login") || request.getMethod().equals("OPTIONS")) {
+        logger.info("JWT拦截器开始处理请求: {}", request.getRequestURI());
+        if (requestURI.contains("information/api/v1/auth/login") || request.getMethod().equals("OPTIONS")) {
             return true;
         }
         
         // 从请求头获取Authorization
         String authHeader = request.getHeader("Authorization");
+        logger.info("Authorization头: {}", authHeader);
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             try {
