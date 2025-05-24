@@ -12,7 +12,7 @@ import org.springframework.web.servlet.ModelAndView;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 
-@Order(1)
+@Order(2)
 @Component
 public class LoggerInterceptor implements HandlerInterceptor {
 

@@ -40,7 +40,7 @@ public class AuthService {
         
         // 3. 验证角色（如果需要）
         String expectedRole = "s"; // 默认为学生
-        if ("1".equals(loginRequest.getRole())) {
+        if ("a".equals(loginRequest.getRole())) {
             // 如果请求的是管理员角色
             expectedRole = "a";
         }
