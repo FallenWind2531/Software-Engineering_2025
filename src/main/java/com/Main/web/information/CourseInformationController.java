@@ -49,13 +49,13 @@ public class CourseInformationController {
     }
 
     /**
-     * 获取课程列表（支持分页和筛选）
+     * 获取课程信息
      * @param course_id 页码
-     * @return 分页课程列表
+     * @return 课程信息
      */
-    @GetMapping("/course_id")
+    @GetMapping("/{course_id}")
     public ResponseEntity<ApiResponseDTO<Course>> getCourseById(
-            @RequestParam Integer course_id)
+            @PathVariable int course_id)
     {
         try{
             Course course = courseService.getCourseById(course_id);

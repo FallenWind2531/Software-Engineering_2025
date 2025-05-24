@@ -44,7 +44,9 @@ public class AuthService {
             // 如果请求的是管理员角色
             expectedRole = "a";
         }
-        
+        if ("t".equals(loginRequest.getRole())) {
+            expectedRole = "t";
+        }
         if (!expectedRole.equals(user.getRole())) {
             logger.error("角色不匹配, 账户: {}, 预期角色: {}, 实际角色: {}", 
                 loginRequest.getAccount(), expectedRole, user.getRole());

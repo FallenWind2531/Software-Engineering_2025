@@ -28,11 +28,12 @@ public class SectionInformationController {
      * @param sec_year 开课学年
      * @return 开课列表
      */
-    @GetMapping("/{course_id}/sections")
+    @GetMapping("/courses/{course_id}/sections")
     public ResponseEntity<ApiResponseListDTO<SectionSearchDTO>> getSections(
             @PathVariable("course_id") Integer courseId,
             @RequestParam(value = "semester", required = false) String semester,
             @RequestParam(value = "sec_year", required = false) Integer sec_year) {
+        if(sec_year == null) sec_year = 0;
         try{
             List<SectionSearchDTO> sectionsearchlistDTO = sectionService.getSections(courseId, semester, sec_year);
             return ResponseEntity.ok(ApiResponseListDTO.success("获取成功",sectionsearchlistDTO));
