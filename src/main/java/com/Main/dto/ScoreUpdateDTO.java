@@ -1,56 +1,42 @@
 package com.Main.dto;
-
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ScoreUpdateDTO {
-
-    private List<StudentScoreDTO> studentScores;
+    @JsonProperty("student_id")
+    private int studentId; // 学生ID
+    private int score;     // 总分
+    private float gpa;     // 绩点
 
     public ScoreUpdateDTO() {
     }
 
-    public ScoreUpdateDTO(List<StudentScoreDTO> studentScores) {
-        this.studentScores = studentScores;
+    public ScoreUpdateDTO(int studentId, int score, float gpa) {
+        this.studentId = studentId;
+        this.score = score;
+        this.gpa = gpa;
     }
 
-    public List<StudentScoreDTO> getStudentScores() {
-        return studentScores;
+    public int getStudentId() {
+        return studentId;
     }
 
-    public void setStudentScores(List<StudentScoreDTO> studentScores) {
-        this.studentScores = studentScores;
+    public void setStudentId(int studentId) {
+        this.studentId = studentId;
     }
 
-    public static class StudentScoreDTO {
-        private int student_id;
-        private int score;
-        private float gpa;
+    public int getScore() {
+        return score;
+    }
 
-        public StudentScoreDTO() {
-        }
+    public void setScore(int score) {
+        this.score = score;
+    }
 
-        public int getStudent_id() {
-            return student_id;
-        }
+    public float getGpa() {
+        return gpa;
+    }
 
-        public void setStudent_id(int student_id) {
-            this.student_id = student_id;
-        }
-
-        public int getScore() {
-            return score;
-        }
-
-        public void setScore(int score) {
-            this.score = score;
-        }
-
-        public float getGpa() {
-            return gpa;
-        }
-
-        public void setGpa(float gpa) {
-            this.gpa = gpa;
-        }
+    public void setGpa(float gpa) {
+        this.gpa = gpa;
     }
 }

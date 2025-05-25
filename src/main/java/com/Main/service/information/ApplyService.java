@@ -56,7 +56,7 @@ public class ApplyService {
                 ps.setInt(3, apply.getOldScore());
                 ps.setInt(4, apply.getNewScore());
                 ps.setString(5, apply.getReason());
-                ps.setInt(6, apply.getAuditStatus());
+                ps.setString(6, String.valueOf(apply.getAuditStatus()));
                 ps.setTimestamp(7, apply.getApplyTime());
                 return ps;
             }, keyHolder)) {
@@ -71,6 +71,7 @@ public class ApplyService {
         return apply;
     }
 
+
     /**
      * 查询教师的成绩修改申请列表
      * @param teacherId 教师ID
@@ -79,9 +80,9 @@ public class ApplyService {
      */
     public List<Apply> getAppliesByTeacher(int teacherId, Integer auditStatus) {
         List<Object> params = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("SELECT a.*, s.student_name, c.course_name FROM Apply a " +
+        StringBuilder sql = new StringBuilder("SELECT a.*, s.name, c.course_name FROM Apply a " +
                 "INNER JOIN GradeBase gb ON a.grade_id = gb.grade_id " +
-                "INNER JOIN User s ON gb.student_id = s.UserId " +
+                "INNER JOIN User s ON gb.student_id = s.user_Id " +
                 "INNER JOIN Course c ON gb.course_id = c.course_id " +
                 "WHERE a.teacher_id = ? ");
         params.add(teacherId);
@@ -105,10 +106,10 @@ public class ApplyService {
      */
     public List<Apply> getAppliesByAdmin(Integer auditStatus, Integer teacherId) {
         List<Object> params = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("SELECT a.*, t.UserName AS teacher_name, s.student_name, c.course_name FROM Apply a " +
+        StringBuilder sql = new StringBuilder("SELECT a.*, t.name AS teacher_name, s.name, c.course_name FROM Apply a " +
                 "INNER JOIN GradeBase gb ON a.grade_id = gb.grade_id " +
-                "INNER JOIN User t ON a.teacher_id = t.UserId " +
-                "INNER JOIN User s ON gb.student_id = s.UserId " +
+                "INNER JOIN User t ON a.teacher_id = t.user_Id " +
+                "INNER JOIN User s ON gb.student_id = s.user_Id " +
                 "INNER JOIN Course c ON gb.course_id = c.course_id " +
                 "WHERE 1=1 ");
 
@@ -137,8 +138,9 @@ public class ApplyService {
      */
     public Apply reviewApply(int applyId, int adminId, int auditStatus) {
         Apply apply = null;
+        logger.info("Reviewing apply with ID: {}, Admin ID: {}, Audit Status: {}", applyId, adminId, auditStatus);
         try {
-            apply = jdbcTemplate.queryForObject("SELECT * FROM Apply WHERE apply_id = ?", new Object[]{applyId}, applyRowMapper);
+            apply = jdbcTemplate.queryForObject("SELECT * FROM Apply WHERE apply_id = ?",applyRowMapper, applyId);
         } catch (DataAccessException e) {
             logger.warn("Apply not found with id: {}", applyId);
             return null;
@@ -153,7 +155,7 @@ public class ApplyService {
         apply.setReviewTime(new Timestamp(System.currentTimeMillis()));
 
         String sql = "UPDATE Apply SET admin_id = ?, audit_status = ?, review_time = ? WHERE apply_id = ?";
-        int rowsAffected = jdbcTemplate.update(sql, adminId, auditStatus, apply.getReviewTime(), applyId);
+        int rowsAffected = jdbcTemplate.update(sql, adminId, String.valueOf(auditStatus), apply.getReviewTime(), applyId);
 
         if (rowsAffected > 0) {
             logger.info("Apply {} reviewed successfully.", applyId);
@@ -164,7 +166,7 @@ public class ApplyService {
             }
             // 重新查询 Apply 以获取最新状态
             try {
-                return jdbcTemplate.queryForObject("SELECT * FROM Apply WHERE apply_id = ?", new Object[]{applyId}, applyRowMapper);
+                return jdbcTemplate.queryForObject("SELECT * FROM Apply WHERE apply_id = ?",applyRowMapper,applyId);
             } catch (DataAccessException e) {
                 logger.error("Error retrieving updated Apply after review: {}", applyId, e);
                 return null;

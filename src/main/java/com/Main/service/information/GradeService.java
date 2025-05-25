@@ -56,7 +56,7 @@ public class GradeService{
 
         logger.info("SQL: {}, Params: {}", sql.toString(), params);
 
-        List<GradeBase> gradeBases = jdbcTemplate.query(sql.toString(), params.toArray(), gradeBaseRowMapper);
+        List<GradeBase> gradeBases = jdbcTemplate.query(sql.toString(), gradeBaseRowMapper, params.toArray());
 
         if (gradeBases.isEmpty()) {
             throw new DataAccessException("找不到该学生的成绩") {};
@@ -76,10 +76,10 @@ public class GradeService{
             String componentSql = "SELECT * FROM GradeComponent WHERE grade_id = ?";
             List<GradeComponent> components;
             try {
-                components = jdbcTemplate.query(componentSql, new Object[]{gradeBase.getGradeId()}, gradeComponentRowMapper);
+                components = jdbcTemplate.query(componentSql, gradeComponentRowMapper, gradeBase.getGradeId()); // 直接传入gradeId
             } catch (DataAccessException e) {
                 logger.warn("No GradeComponent found for gradeId: {}", gradeBase.getGradeId());
-                throw new DataAccessException("找不到该gradeID的grade component") {};
+                components = Collections.emptyList(); // 不抛出异常，允许成绩没有组件
             }
             studentGradeDTO.setGradeComponents(components);
 
@@ -88,6 +88,7 @@ public class GradeService{
 
         return studentGradeDTOList;
     }
+
 
     /**
      * 学生查询成绩详情
@@ -196,6 +197,7 @@ public class GradeService{
             userSql.append(" AND UserId = ?");
             userParams.add(studentId);
         }
+        userSql.append(" AND role = 's'"); // 只查询学生
 
         logger.info("User SQL: {}, Params: {}", userSql.toString(), userParams);
 
@@ -255,7 +257,7 @@ public class GradeService{
      */
     public StudentAnalyseDTO getStudentGradeAnalysis(int studentId, int startSecYear, String startSemester, int endSecYear, String endSemester) {
         StudentAnalyseDTO analysisResult = new StudentAnalyseDTO();
-
+        logger.info("studentId={}",studentId);
         // 学期顺序定义
         List<String> semesters = Arrays.asList("秋冬", "春夏");
         Map<String, Integer> semesterOrder = new HashMap<>();
@@ -283,20 +285,20 @@ public class GradeService{
 
         // 遍历成绩记录
         for (StudentGradeDTO studentGradeDTO : gradeListDTO) {
-            int year = studentGradeDTO.getSec_year();
-            String semester = studentGradeDTO.getSemester();
-
+            Section section = jdbcTemplate.queryForObject("SELECT * FROM Section WHERE section_id = ?",sectionRowMapper,studentGradeDTO.getSection_id());
+            int year = section.getSecYear();
+            String semester = section.getSemester();
+            logger.info("year={}, semester={}", year, semester);
             // 检查是否在范围内
-            if (year < startSecYear || year > endSecYear) {
-                continue; // 跳过范围外的学年
-            }
-            if (year == startSecYear && semesterOrder.get(startSemester) > semesterOrder.get(semester)) {
-                continue; // 跳过开始学年之前的学期
-            }
-            if (year == endSecYear && semesterOrder.get(endSemester) < semesterOrder.get(semester)) {
-                continue; // 跳过结束学年之后的学期
-            }
+            // 检查是否在范围内
+            if (year > 0) {
+                boolean withinStartYear = (startSecYear == 0 || year >= startSecYear) && (startSemester == null || semesterOrder.get(startSemester) <= semesterOrder.get(semester));
+                boolean withinEndYear = (endSecYear == 0 || year <= endSecYear) && (endSemester == null || semesterOrder.get(endSemester) >= semesterOrder.get(semester));
 
+                if (!withinStartYear || !withinEndYear) {
+                    continue; // 跳过范围外的学年
+                }
+            }
             // 累加 GPA 和分数
             totalGpa += studentGradeDTO.getGpa();
             totalScore += studentGradeDTO.getScore();

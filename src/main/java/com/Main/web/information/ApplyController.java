@@ -41,22 +41,19 @@ public class ApplyController {
 
     /**
      * 提交成绩修改申请
-     *
-     * @param grade_id  成绩ID
-     * @param old_score 原成绩
-     * @param new_score 新成绩
-     * @param reason    申请理由
+     * @param applyrequestDTO  申请DTO
      * @param request   请求对象
      * @return 成绩
      */
     @PostMapping("/teacher/grade-applies")
     public ResponseEntity<ApiResponseDTO<Apply>> applyForGradeChange(
-            @RequestParam("grade_id") int grade_id,
-            @RequestParam("old_score") int old_score,
-            @RequestParam("new_score") int new_score,
-            @RequestParam("reason") String reason,
+            @RequestBody ApplyRequestDTO applyrequestDTO,
             HttpServletRequest request
     ) {
+        int grade_id = applyrequestDTO.getGradeId();
+        int old_score = applyrequestDTO.getOldScore();
+        int new_score = applyrequestDTO.getNewScore();
+        String  reason = applyrequestDTO.getReason();
         logger.info("提交成绩修改申请, grade_id: {}, old_score: {}, new_score: {}, reason: {}", grade_id, old_score, new_score, reason);
         // 验证成绩正确性
         GradeDTO gradeDTO = gradeService.getGradeDetail(grade_id);
@@ -82,7 +79,7 @@ public class ApplyController {
      * @return 申请列表
      */
     @GetMapping("/teacher/grade-applies")
-    public ResponseEntity<ApiResponseDTO<ListReturnDTO<ApplySearchDTO>>> queryForSentApply(
+    public ResponseEntity<ApiResponseListDTO<ApplySearchDTO>> queryForSentApply(
             @RequestParam(value = "audit_status", required = false) Integer audit_status,
             HttpServletRequest request
     ) {
@@ -90,9 +87,7 @@ public class ApplyController {
         try {
             int teacher_id = (int) request.getAttribute("userId");
             List<Apply> applyList = applyService.getAppliesByTeacher(teacher_id, audit_status);
-            ListReturnDTO<Apply> applyListDTO = new ListReturnDTO<>();
             List<ApplySearchDTO> applySearchDTOList = new ArrayList<>();
-            ListReturnDTO<ApplySearchDTO> returnDTO= new ListReturnDTO<>();
             for (Apply apply : applyList) {
                 ApplySearchDTO applySearchDTO = new ApplySearchDTO();
                 applySearchDTO.setApply(apply);
@@ -111,11 +106,10 @@ public class ApplyController {
 
                 applySearchDTOList.add(applySearchDTO);
             }
-            returnDTO.setList(applySearchDTOList);
-            return ResponseEntity.ok(ApiResponseDTO.success("获取成功",returnDTO));
+            return ResponseEntity.ok(ApiResponseListDTO.success("获取成功",applySearchDTOList));
         } catch (Exception e) {
             logger.error("查询已发送申请失败", e);
-            return ResponseEntity.badRequest().body(ApiResponseDTO.error(500, e.getMessage()));
+            return ResponseEntity.badRequest().body(ApiResponseListDTO.error(500, e.getMessage()));
         }
     }
     /**
@@ -126,21 +120,20 @@ public class ApplyController {
      * @return 申请列表
      */
     @GetMapping("/admin/grade-applies")
-    public ResponseEntity<ApiResponseDTO<ListReturnDTO<ApplySearchDTO>>> queryForAdminApply(
+    public ResponseEntity<ApiResponseListDTO<ApplySearchDTO>> queryForAdminApply(
             @RequestParam(value = "audit_status", required = false) Integer audit_status,
             @RequestParam(value = "teacher_id", required = false) Integer teacher_id,
             HttpServletRequest request
     ) {
         logger.info("管理员查询成绩修改申请, audit_status: {}, teacher_id: {}", audit_status, teacher_id);
         try {
-            String role = (String) request.getAttribute("role");
-            if (!role.equals('a') ){
+            String role = (String) request.getAttribute("userRole");
+            if (!role.equals("a") ){
                 throw new RuntimeException("没有权限");
             }
 
             List<Apply> applyList = applyService.getAppliesByAdmin(audit_status, teacher_id);
             List<ApplySearchDTO> applySearchDTOList = new ArrayList<>();
-            ListReturnDTO<ApplySearchDTO> returnDTO = new ListReturnDTO<>();
             for (Apply apply : applyList) {
                 ApplySearchDTO applySearchDTO = new ApplySearchDTO();
                 applySearchDTO.setApply(apply);
@@ -160,29 +153,30 @@ public class ApplyController {
 
                 applySearchDTOList.add(applySearchDTO);
             }
-            returnDTO.setList(applySearchDTOList);
-            return ResponseEntity.ok(ApiResponseDTO.success("获取成功", returnDTO));
+            return ResponseEntity.ok(ApiResponseListDTO.success("获取成功", applySearchDTOList));
         } catch (Exception e) {
             logger.error("管理员查询成绩修改申请失败", e);
-            return ResponseEntity.badRequest().body(ApiResponseDTO.error(500, e.getMessage()));
+            return ResponseEntity.badRequest().body(ApiResponseListDTO.error(500, e.getMessage()));
         }
     }
 
     /** 管理员审核成绩修改申请
      * @param apply_id 申请ID
+     * @param reviewApplyDTO 审核DTO
      * @param request 请求对象
      * @return 修改后申请
      */
     @PutMapping("/admin/grade-applies/{apply_id}/review")
     public ResponseEntity<ApiResponseDTO<Apply>> ReviewApply(
             @PathVariable("apply_id") int apply_id,
-            @RequestParam("audit_status") int audit_status,
+            @RequestBody ReviewApplyDTO reviewApplyDTO,
             HttpServletRequest request
     ) {
+        int audit_status = reviewApplyDTO.getAuditStatus();
         logger.info("管理员审核成绩修改申请, apply_id: {}, audit_status: {}", apply_id, audit_status);
         int admin_id = (int) request.getAttribute("userId");
         try {
-            Apply apply = applyService.reviewApply(apply_id, audit_status, admin_id);
+            Apply apply = applyService.reviewApply(apply_id, admin_id, audit_status);
             return ResponseEntity.ok(ApiResponseDTO.success("审核操作成功",apply));
         } catch (Exception e) {
             logger.error("管理员审核成绩修改申请失败", e);
