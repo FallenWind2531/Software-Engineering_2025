@@ -1,0 +1,480 @@
+<template>
+  <div>
+    <div class="top-bar">
+      <div class="left-section">
+        <!-- 登录页通常没有返回图标 -->
+        <span class="system-name">教学服务系统</span>
+        <span class="system-subname">信息管理子系统 - 登录</span>
+      </div>
+      <div class="right-section">
+        <!-- 登录页通常不显示用户信息 -->
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="page-main">
+      <div class="login-container">
+        <div class="card login-card">
+          <h2 class="card-title">用户登录</h2>
+          <form @submit.prevent="handleLogin" id="loginForm">
+            <div class="form-group">
+              <label for="loginRole">登录身份:</label>
+              <select v-model="formData.role" id="loginRole" name="role">
+                <option value="student">学生</option>
+                <option value="teacher">教师</option>
+                <option value="admin">管理员</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="username">账号:</label>
+              <input
+                v-model="formData.username"
+                type="text"
+                id="username"
+                name="username"
+                placeholder="请输入您的账号"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="password">密码:</label>
+              <input
+                v-model="formData.password"
+                type="password"
+                id="password"
+                name="password"
+                placeholder="请输入密码"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+              登 录
+            </button>
+          </form>
+          <div
+            id="notificationArea"
+            class="notification"
+            :style="{ display: notificationVisible ? 'block' : 'none' }"
+            :class="notificationType"
+          >
+            {{ notificationMessage }}
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Bar -->
+    <div class="bottom-bar">
+      <p class="copyright-text">
+        版权所有© Copyright 2025 浙江大学 软件工程基础课程 教学服务系统课程设计
+        信息管理子系统
+      </p>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from "vue";
+import { login } from "@/api/auth";
+
+// 表单数据
+const formData = ref({
+  role: "student",
+  username: "",
+  password: "",
+});
+
+// 通知相关状态
+const notificationVisible = ref(false);
+const notificationMessage = ref("");
+const notificationType = ref("info");
+
+// 显示通知的函数
+const showNotification = (
+  message: string,
+  type: "success" | "error" | "info" = "info"
+) => {
+  notificationMessage.value = message;
+  notificationType.value = `notification ${type}`;
+  notificationVisible.value = true;
+
+  setTimeout(() => {
+    notificationVisible.value = false;
+  }, 5000);
+};
+
+// 处理登录表单提交
+const handleLogin = async () => {
+  const { role, username, password } = formData.value;
+
+  if (!username || !password) {
+    showNotification("账号和密码不能为空！", "error");
+    return;
+  }
+
+  showNotification("正在登录，请稍候...", "info");
+
+  try {
+    const response = await login(formData.value);
+    if (response.status === 200) {
+      showNotification("登录成功！正在跳转...", "success");
+      setTimeout(() => {
+        if (role === "teacher") {
+          alert("将跳转到教师导航页 (../teacher/dashboard)");
+        } else if (role === "student") {
+          alert("将跳转到学生导航页 (../student/dashboard)");
+        } else if (role === "admin") {
+          alert("将跳转到管理员导航页 (../admin/dashboard)");
+        }
+      }, 1500);
+    } else {
+      showNotification("登录失败：账号或密码错误，或身份不匹配。", "error");
+    }
+  } catch (error) {
+    showNotification("登录失败：网络错误，请稍后重试。", "error");
+    console.error("登录请求出错:", error);
+  }
+};
+</script>
+
+<style scoped>
+/* 原有的样式部分保持不变 */
+/* Global Styles */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  margin: 0;
+  background-color: #f8f9fa; /* 主背景色 */
+  color: #333;
+  line-height: 1.6;
+  /* 为固定的顶栏和底栏留出空间 */
+  padding-top: 60px; /* 等于 top-bar 高度 */
+  padding-bottom: 40px; /* 大致等于 bottom-bar 高度，可微调 */
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  text-decoration: none;
+  color: #409eff; /* 统一使用 Element Plus 主题蓝 */
+}
+
+a:hover {
+  text-decoration: underline;
+  color: #1370eb; /* 悬停颜色加深 */
+}
+
+/* Top Bar (与提供的Vue样式对齐) */
+.top-bar {
+  height: 60px;
+  background-color: #409eff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  box-sizing: border-box;
+}
+
+.top-bar .left-section {
+  display: flex;
+  align-items: center;
+}
+
+.top-bar .system-name {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  margin-left: 10px; /* 登录页没有返回图标，直接显示系统名 */
+}
+
+.top-bar .system-subname {
+  font-size: 16px;
+  /* font-weight: bold; */ /* 子系统名可以不加粗以示区别 */
+  color: white;
+  margin-left: 15px;
+}
+
+.top-bar .right-section {
+  display: flex;
+  align-items: center;
+}
+/* 用户信息相关样式 (在登录页不显示，但为其他页面准备) */
+.top-bar .user-info {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 20px;
+  transition: all 0.2s;
+  position: relative; /* For dropdown positioning */
+}
+.top-bar .user-info:hover {
+  background-color: #1370eb;
+}
+.top-bar .user-avatar {
+  /* 使用Font Awesome替代el-avatar */
+  font-size: 28px; /* 调整图标大小模拟头像 */
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #fff; /* 头像背景 */
+  color: #409eff; /* 图标颜色 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 8px;
+}
+.top-bar .user-name {
+  margin: 0 8px;
+  font-size: 15px;
+  color: white;
+}
+.top-bar .user-info .fa-angle-down {
+  /* 模拟 el-icon arrow-down */
+  font-size: 12px;
+  color: white;
+  margin-left: 5px;
+}
+.top-bar .user-dropdown-menu {
+  /* 简易下拉菜单 */
+  display: none; /* JS控制 */
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  min-width: 120px;
+  z-index: 1001;
+}
+.top-bar .user-dropdown-menu a {
+  display: block;
+  padding: 8px 15px;
+  color: #606266;
+  font-size: 14px;
+  text-decoration: none;
+}
+.top-bar .user-dropdown-menu a:hover {
+  background-color: #ecf5ff;
+  color: #409eff;
+  text-decoration: none;
+}
+.top-bar .user-dropdown-menu .divider {
+  height: 1px;
+  background-color: #ebeef5;
+  margin: 5px 0;
+}
+
+/* Main Content */
+.page-main {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px; /* 内边距 */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.login-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Cards (基本保持不变，微调) */
+.card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* 阴影微调 */
+  padding: 30px 35px; /* 调整内边距 */
+  width: 100%;
+  max-width: 420px; /* 稍微增大 */
+  box-sizing: border-box;
+}
+
+.card-title {
+  font-size: 22px; /* 调整卡片标题大小 */
+  color: #303133; /* Element Plus 文本主色 */
+  margin-top: 0;
+  margin-bottom: 30px; /* 增大间距 */
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Forms (基本保持不变，颜色和焦点效果可参考Element Plus) */
+.form-group {
+  margin-bottom: 22px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #606266; /* Element Plus 文本常规色 */
+  font-size: 14px;
+}
+
+.form-group select,
+.form-group input[type="text"],
+.form-group input[type="password"] {
+  width: 100%;
+  padding: 10px 12px; /* 调整输入框padding */
+  border: 1px solid #dcdfe6; /* Element Plus 输入框边框色 */
+  border-radius: 4px; /* Element Plus 圆角 */
+  box-sizing: border-box;
+  font-size: 14px;
+  color: #606266;
+  transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.form-group select:focus,
+.form-group input[type="text"]:focus,
+.form-group input[type="password"]:focus {
+  border-color: #409eff; /* Element Plus 焦点边框色 */
+  outline: 0;
+  /* box-shadow: 0 0 0 2px rgba(64,158,255,.2); /* 可选：模拟焦点阴影 */
+}
+
+.form-group select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg class='icon' viewBox='0 0 1024 1024' xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M512 714.666667c-8.533333 0-17.066667-2.133333-23.466667-8.533334l-307.2-268.8c-12.8-10.666667-14.933333-29.866667-4.266666-42.666666 10.666667-12.8 29.866667-14.933333 42.666666-4.266667l292.266667 256 292.266667-256c12.8-10.666667 32-8.533333 42.666667 4.266667s8.533333 32-4.266667 42.666666l-307.2 268.8c-6.4 4.266667-12.8 8.533333-21.333333 8.533334z' fill='%23C0C4CC'%3E%3C/path%3E%3C/svg%3E"); /* Element Plus select箭头 */
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+  padding-right: 30px;
+}
+
+/* Buttons (与Element Plus按钮风格对齐) */
+.btn {
+  padding: 10px 20px; /* Element Plus 默认按钮padding */
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: 0.1s;
+  text-align: center;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background-color: #409eff;
+  border-color: #409eff;
+  color: white;
+}
+.btn-primary:hover {
+  background-color: #66b1ff;
+  border-color: #66b1ff;
+}
+.btn-primary:active {
+  background-color: #3a8ee6;
+  border-color: #3a8ee6;
+}
+
+.btn-block {
+  display: block;
+  width: 100%;
+  margin-top: 25px;
+}
+
+.form-links {
+  text-align: right;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+/* Notification Area (保持原有，颜色可微调) */
+.notification {
+  padding: 10px 15px;
+  margin-top: 20px;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 14px;
+  border: 1px solid transparent;
+}
+.notification.success {
+  background-color: #f0f9eb;
+  color: #67c23a;
+  border-color: #e1f3d8;
+}
+.notification.error {
+  background-color: #fef0f0;
+  color: #f56c6c;
+  border-color: #fde2e2;
+}
+.notification.info {
+  background-color: #edf2fc;
+  color: #909399;
+  border-color: #e4e7ed;
+}
+
+/* Bottom Bar (与提供的Vue样式对齐) */
+.bottom-bar {
+  background-color: #f5f5f5b7;
+  padding: 12px 0;
+  text-align: center;
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 999;
+  box-sizing: border-box;
+  /* margin-top: auto; /* 在flex布局中，如果page-main flex-grow:1，这个可能不需要 */
+}
+
+.copyright-text {
+  color: #666;
+  font-size: 12.5px;
+  margin: 0; /* 移除了原有的 margin-top, margin-bottom */
+  line-height: 1.5;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .top-bar {
+    padding: 0 15px; /* 减小padding */
+    height: 50px; /* 可选：减小高度 */
+  }
+  body {
+    padding-top: 50px; /* 对应顶栏高度 */
+  }
+  .top-bar .system-name {
+    font-size: 20px;
+  }
+  .top-bar .system-subname {
+    font-size: 14px;
+    margin-left: 10px;
+  }
+  .page-main {
+    padding: 15px;
+  }
+  .card {
+    padding: 20px 25px;
+  }
+  .card-title {
+    font-size: 20px;
+    margin-bottom: 25px;
+  }
+  .btn {
+    padding: 9px 15px;
+  }
+  .bottom-bar {
+    padding: 10px 0;
+  }
+  .copyright-text {
+    font-size: 11.5px;
+  }
+}
+</style>

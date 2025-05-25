@@ -1,0 +1,1058 @@
+<template>
+  <div>
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="left-section">
+        <router-link
+          to="../student/dashboard"
+          class="back-icon"
+          id="backToDashboard"
+        >
+          <FontAwesomeIcon icon="fas fa-arrow-left" />
+        </router-link>
+        <span class="system-name">教学服务系统</span>
+        <span class="system-subname">信息管理子系统 - 成绩分析</span>
+      </div>
+      <div class="right-section">
+        <div class="user-info" id="userInfoToggle" @click="toggleUserDropdown">
+          <div class="user-avatar">
+            <FontAwesomeIcon icon="fas fa-user-shield" />
+          </div>
+          <span class="user-name" id="approveGradeAdminName">{{
+            JSON.stringify(loginUserStore.loginUser.name)
+          }}</span>
+          <FontAwesomeIcon
+            :icon="isUserDropdownOpen ? 'fas fa-angle-up' : 'fas fa-angle-down'"
+          />
+        </div>
+        <div
+          class="user-dropdown-menu"
+          id="userDropdown"
+          :style="{ display: isUserDropdownOpen ? 'block' : 'none' }"
+        >
+          <a @click="handleChangePassword">修改密码</a>
+          <div class="divider"></div>
+          <a @click="handleLogout">退出登录</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="page-main">
+      <div class="container analysis-container">
+        <div class="card filter-card-analysis">
+          <h2 class="card-title">
+            <FontAwesomeIcon icon="fas fa-cogs" /> 分析设置
+          </h2>
+          <form
+            @submit.prevent="submitAnalysisForm"
+            id="analysisFilterForm"
+            class="filter-form-grid"
+          >
+            <div class="form-group semester-range-group-label">
+              <label for="analysisSemesterRangeStart">选择学期范围:</label>
+              <div class="semester-selects-container">
+                <select
+                  v-model="startSem"
+                  id="analysisSemesterRangeStart"
+                  name="semesterStart"
+                >
+                  <option value="all">从最早</option>
+                  <option
+                    v-for="semester in semesters"
+                    :key="semester"
+                    :value="semester"
+                  >
+                    {{ formatSemester(semester) }}
+                  </option>
+                </select>
+                <span class="range-separator"> 至 </span>
+                <select
+                  v-model="endSem"
+                  id="analysisSemesterRangeEnd"
+                  name="semesterEnd"
+                >
+                  <option value="all">至今</option>
+                  <option
+                    v-for="semester in semesters"
+                    :key="semester"
+                    :value="semester"
+                  >
+                    {{ formatSemester(semester) }}
+                  </option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="analysisCourseType">课程性质:</label>
+              <select
+                v-model="courseType"
+                id="analysisCourseType"
+                name="courseType"
+              >
+                <option value="all">全部性质</option>
+                <option value="compulsory">必修课</option>
+                <option value="elective">选修课</option>
+              </select>
+            </div>
+            <div class="form-action-group">
+              <button type="submit" class="btn btn-primary">
+                <FontAwesomeIcon icon="fas fa-sync-alt" /> 生成分析报告
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="analysis-results-grid">
+          <div class="card stats-summary-card">
+            <h3 class="sub-card-title">
+              <FontAwesomeIcon icon="fas fa-calculator" /> 总体学情概览
+            </h3>
+            <div class="overall-stats">
+              <div class="stat-item">
+                <span class="stat-label">总获得学分:</span>
+                <span class="stat-value">{{ totalCreditsEarned }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">平均绩点 (GPA):</span>
+                <span class="stat-value">{{ overallGpa }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">平均分:</span>
+                <span class="stat-value">{{ averageScore }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">已修课程数:</span>
+                <span class="stat-value">{{ coursesTaken }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <h3 class="sub-card-title">
+              <FontAwesomeIcon icon="fas fa-chart-line" /> 学期平均绩点趋势
+            </h3>
+            <div class="chart-container" ref="gpaChartContainer">
+              <canvas id="gpaTrendChart"></canvas>
+              <p class="chart-no-data-message" v-if="!hasGpaTrendData">
+                暂无数据
+              </p>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <h3 class="sub-card-title">
+              <FontAwesomeIcon icon="fas fa-chart-pie" /> 分数段分布
+            </h3>
+            <div class="chart-container" ref="scoreChartContainer">
+              <canvas id="scoreDistributionChart"></canvas>
+              <p class="chart-no-data-message" v-if="!hasScoreDistributionData">
+                暂无数据
+              </p>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <h3 class="sub-card-title">
+              <FontAwesomeIcon icon="fas fa-chart-doughnut" /> 学分构成
+            </h3>
+            <div class="chart-container" ref="creditsChartContainer">
+              <canvas id="creditsByTypeChart"></canvas>
+              <p class="chart-no-data-message" v-if="!hasCreditsByTypeData">
+                暂无数据
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Notification Area -->
+    <div
+      id="notificationArea"
+      class="notification"
+      :style="{ display: showNotification ? 'block' : 'none' }"
+    >
+      {{ notificationMessage }}
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="bottom-bar">
+      <p class="copyright-text">
+        版权所有© Copyright 2025 浙江大学 软件工程基础课程 教学服务系统课程设计
+        信息管理子系统
+      </p>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, nextTick } from "vue";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { useuserLoginStore } from "@/store/userLoginStore";
+import { getStudentGrades, getStudentGradeAnalysis } from "@/api/student";
+import { Chart } from "chart.js/auto";
+
+const loginUserStore = useuserLoginStore();
+// 响应式数据
+const isUserDropdownOpen = ref(false);
+const gradesFilterAll = ref({
+  semester: "",
+  sec_year: null,
+  course_name: "",
+});
+const allGradesData = ref<any[]>([]);
+const semesters = ref<string[]>([]);
+const startSem = ref<string>("all");
+const endSem = ref<string>("all");
+const courseType = ref<string>("all");
+const totalCreditsEarned = ref<string>("--");
+const overallGpa = ref<string>("--");
+const averageScore = ref<string>("--");
+const coursesTaken = ref<string>("--");
+const hasGpaTrendData = ref<boolean>(false);
+const hasScoreDistributionData = ref<boolean>(false);
+const hasCreditsByTypeData = ref<boolean>(false);
+const showNotification = ref<boolean>(false);
+const notificationMessage = ref<string>("");
+
+// 图表实例引用
+let gpaTrendChart: Chart | null = null;
+let scoreDistributionChart: Chart | null = null;
+let creditsByTypeChart: Chart | null = null;
+
+// 切换用户下拉菜单
+const toggleUserDropdown = () => {
+  isUserDropdownOpen.value = !isUserDropdownOpen.value;
+};
+
+// 处理退出登录
+const handleLogout = () => {
+  showMainNotification("正在退出登录...", "info");
+  setTimeout(() => {
+    loginUserStore.setLoginUserUnlogin();
+    window.location.href = "../login";
+  }, 1500);
+};
+
+// 处理修改密码
+const handleChangePassword = () => {
+  loginUserStore.setLoginUserUnlogin();
+  window.location.href = "../change-password";
+};
+
+// 显示通知
+const showMainNotification = (message: string, type = "info") => {
+  notificationMessage.value = message;
+  showNotification.value = true;
+  setTimeout(() => {
+    showNotification.value = false;
+  }, 3000);
+};
+
+// 销毁现有图表
+const destroyCharts = () => {
+  if (gpaTrendChart) {
+    gpaTrendChart.destroy();
+    gpaTrendChart = null;
+  }
+  if (scoreDistributionChart) {
+    scoreDistributionChart.destroy();
+    scoreDistributionChart = null;
+  }
+  if (creditsByTypeChart) {
+    creditsByTypeChart.destroy();
+    creditsByTypeChart = null;
+  }
+};
+
+// 获取成绩数据
+const fetchGradesData = async () => {
+  try {
+    const response = await getStudentGrades(gradesFilterAll);
+    allGradesData.value = response.data;
+    const combinedSemesters = allGradesData.value.map(
+      (g) => `${g.sec_year}-${g.semester}`
+    );
+    semesters.value = [...new Set(combinedSemesters)].sort((a, b) => {
+      const [yearA, termA] = a.split("-");
+      const [yearB, termB] = b.split("-");
+      if (parseInt(yearA) !== parseInt(yearB)) {
+        return parseInt(yearA) - parseInt(yearB);
+      }
+      if (termA === "秋冬" && termB === "春夏") {
+        return -1;
+      } else if (termA === "春夏" && termB === "秋冬") {
+        return 1;
+      } else return 0;
+    });
+    if (semesters.value.length > 0) {
+      startSem.value = semesters.value[0];
+      endSem.value = semesters.value[semesters.value.length - 1];
+    }
+    // 初始加载时自动生成分析
+    nextTick(() => {
+      submitAnalysisForm();
+    });
+  } catch (error) {
+    console.error("获取成绩数据失败:", error);
+    showMainNotification("获取成绩数据失败", "error");
+  }
+};
+
+// 提交分析表单
+const submitAnalysisForm = async () => {
+  showMainNotification("正在生成分析报告...", "info");
+  try {
+    if (
+      startSem.value !== "all" &&
+      endSem.value !== "all" &&
+      startSem.value > endSem.value
+    ) {
+      showMainNotification("开始学期不能晚于结束学期。", "error");
+      return;
+    }
+
+    const startYear =
+      startSem.value === "all" ? null : parseInt(startSem.value.split("-")[0]);
+    const startSemester =
+      startSem.value === "all" ? null : startSem.value.split("-")[1];
+    const endYear =
+      endSem.value === "all" ? null : parseInt(endSem.value.split("-")[0]);
+    const endSemester =
+      endSem.value === "all" ? null : endSem.value.split("-")[1];
+
+    const params = {
+      start_semester: startSemester,
+      start_sec_year: startYear,
+      end_semester: endSemester,
+      end_sec_year: endYear,
+    };
+
+    const response = await getStudentGradeAnalysis(params);
+
+    if (response.data.code === 200) {
+      // 使用nextTick确保DOM更新完成后再绘制图表
+      nextTick(() => {
+        calculateAndDisplayAnalytics(response.data.data);
+      });
+    } else {
+      showMainNotification("分析失败，请重试。", "error");
+    }
+  } catch (error) {
+    console.error("获取成绩分析数据失败:", error);
+    showMainNotification("获取成绩分析数据失败", "error");
+  }
+};
+
+// 计算并显示分析结果
+const calculateAndDisplayAnalytics = (data: any) => {
+  // 先销毁现有图表
+  destroyCharts();
+
+  totalCreditsEarned.value = data.total_credits_earned.toString();
+  overallGpa.value = data.overall_gpa.toString();
+  averageScore.value = data.average_score.toString();
+  coursesTaken.value = data.grade_distribution_by_course.length.toString();
+
+  // 处理学期平均绩点趋势
+  const gpaTrendLabels = [];
+  const gpaTrendData = [];
+  data.performance_trend.forEach((trend: any) => {
+    gpaTrendLabels.push(trend.semester || trend.year);
+    gpaTrendData.push(trend.gpa || trend.average_score);
+  });
+  hasGpaTrendData.value = gpaTrendLabels.length > 0;
+
+  // 处理分数段分布
+  const scoreRanges = {
+    "90-100": 0,
+    "80-89": 0,
+    "70-79": 0,
+    "60-69": 0,
+    "<60": 0,
+  };
+  let hasNumericScores = false;
+  data.grade_distribution_by_course.forEach((course: any) => {
+    hasNumericScores = true;
+    if (course.score >= 90) scoreRanges["90-100"]++;
+    else if (course.score >= 80) scoreRanges["80-89"]++;
+    else if (course.score >= 70) scoreRanges["70-79"]++;
+    else if (course.score >= 60) scoreRanges["60-69"]++;
+    else scoreRanges["<60"]++;
+  });
+  hasScoreDistributionData.value = hasNumericScores > 0;
+
+  // 处理学分构成
+  const creditsByType = {};
+  data.grade_distribution_by_course.forEach((course: any) => {
+    if (course.score >= 60) {
+      creditsByType[course.course_type] =
+        (creditsByType[course.course_type] || 0) + course.credit;
+    }
+  });
+  hasCreditsByTypeData.value = Object.keys(creditsByType).length > 0;
+
+  showMainNotification("成绩分析报告已生成。", "success");
+
+  // 绘制学期平均绩点趋势图
+  const gpaTrendChartCtx = document.getElementById(
+    "gpaTrendChart"
+  ) as HTMLCanvasElement;
+  if (gpaTrendChartCtx) {
+    gpaTrendChart = new Chart(gpaTrendChartCtx, {
+      type: "line",
+      data: {
+        labels: gpaTrendLabels,
+        datasets: [
+          {
+            label: "学期平均绩点趋势",
+            data: gpaTrendData,
+            borderColor: "rgb(75, 192, 192)",
+            backgroundColor: "rgba(75, 192, 192, 0.5)",
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+      },
+    });
+  }
+
+  // 绘制分数段分布图
+  const scoreDistributionChartCtx = document.getElementById(
+    "scoreDistributionChart"
+  ) as HTMLCanvasElement;
+  if (scoreDistributionChartCtx) {
+    scoreDistributionChart = new Chart(scoreDistributionChartCtx, {
+      type: "pie",
+      data: {
+        labels: Object.keys(scoreRanges),
+        datasets: [
+          {
+            label: "分数段分布",
+            data: Object.values(scoreRanges),
+            backgroundColor: [
+              "rgb(255, 99, 132)",
+              "rgb(54, 162, 235)",
+              "rgb(255, 205, 86)",
+              "rgb(75, 192, 192)",
+              "rgb(153, 102, 255)",
+              "rgb(201, 203, 207)",
+            ],
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+      },
+    });
+  }
+
+  // 绘制学分构成图
+  const creditsByTypeChartCtx = document.getElementById(
+    "creditsByTypeChart"
+  ) as HTMLCanvasElement;
+  if (creditsByTypeChartCtx) {
+    creditsByTypeChart = new Chart(creditsByTypeChartCtx, {
+      type: "doughnut",
+      data: {
+        labels: Object.keys(creditsByType),
+        datasets: [
+          {
+            data: Object.values(creditsByType),
+            backgroundColor: [
+              "rgb(54, 162, 235)",
+              "rgb(255, 99, 132)",
+              "rgb(255, 205, 86)",
+              "rgb(75, 192, 192)",
+              "rgb(153, 102, 255)",
+            ],
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+      },
+    });
+  }
+};
+
+// const mockStudentGradesResponse = {
+//   data: [
+//     {
+//       sec_year: 2023,
+//       semester: "秋冬",
+//       course_id: "C001",
+//       score: 85,
+//       gpa: 3.5,
+//       credits: 3,
+//       type: "compulsory",
+//     },
+//     {
+//       sec_year: 2023,
+//       semester: "秋冬",
+//       course_id: "C002",
+//       score: 92,
+//       gpa: 4.0,
+//       credits: 4,
+//       type: "elective",
+//     },
+//     {
+//       sec_year: 2024,
+//       semester: "春夏",
+//       course_id: "C003",
+//       score: 78,
+//       gpa: 3.2,
+//       credits: 3,
+//       type: "compulsory",
+//     },
+//   ],
+// };
+//
+// const mockStudentGradeAnalysisResponse = {
+//   data: {
+//     code: 200,
+//     message: "分析成功",
+//     data: {
+//       overall_gpa: 3.3,
+//       average_score: 78.25,
+//       total_credits_earned: 10,
+//       total_credits_taken: 12,
+//       grade_distribution_by_course: [
+//         {
+//           course_name: "高等数学",
+//           score: 85,
+//           gpa: 3.5,
+//           credit: 3,
+//           course_type: "compulsory",
+//         },
+//         {
+//           course_name: "大学英语",
+//           score: 92,
+//           gpa: 4.0,
+//           credit: 4,
+//           course_type: "elective",
+//         },
+//         {
+//           course_name: "计算机科学基础",
+//           score: 78,
+//           gpa: 3.2,
+//           credit: 3,
+//           course_type: "compulsory",
+//         },
+//         {
+//           course_name: "艺术鉴赏",
+//           score: 58,
+//           gpa: 1.8,
+//           credit: 2,
+//           course_type: "elective",
+//         },
+//         {
+//           course_name: "艺术鉴赏",
+//           score: 58,
+//           gpa: 1.8,
+//           credit: 2,
+//           course_type: "elective",
+//         },
+//         {
+//           course_name: "艺术鉴赏",
+//           score: 58,
+//           gpa: 1.8,
+//           credit: 2,
+//           course_type: "elective",
+//         },
+//       ],
+//       performance_trend: [
+//         {
+//           semester: "2023-秋冬",
+//           gpa: 3.75,
+//         },
+//         {
+//           semester: "2024-春夏",
+//           gpa: 3.0,
+//         },
+//       ],
+//     },
+//   },
+// };
+//
+// // 临时替换 getStudentGrades 函数
+// const getStudentGrades = async (params: any) => {
+//   return mockStudentGradesResponse;
+// };
+//
+// // 临时替换 getStudentGradeAnalysis 函数
+// const getStudentGradeAnalysis = async (params: any) => {
+//   return mockStudentGradeAnalysisResponse;
+// };
+
+onMounted(() => {
+  fetchGradesData();
+});
+
+// 格式化学期
+const formatSemester = (semester: string) => {
+  const [year, term] = semester.split("-");
+  return `${year}学年 ${term}学期`;
+};
+</script>
+
+<style scoped>
+/* 原有的样式代码保持不变 */
+</style>
+<style scoped>
+/* Global Styles */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  margin: 0;
+  background-color: #f4f6f8;
+  color: #333;
+  line-height: 1.6;
+  padding-top: 60px;
+  padding-bottom: 50px; /* Increased padding-bottom */
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+router-link {
+  text-decoration: none;
+  color: #409eff;
+}
+router-link:hover {
+  text-decoration: none;
+  color: #1370eb;
+}
+
+/* Top Bar */
+.top-bar {
+  height: 60px;
+  background-color: #409eff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  box-sizing: border-box;
+}
+.top-bar .left-section {
+  display: flex;
+  align-items: center;
+}
+.top-bar .back-icon {
+  color: white;
+  font-size: 20px;
+  margin-right: 20px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.top-bar .back-icon:hover {
+  opacity: 0.7;
+}
+.top-bar .system-name {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+}
+.top-bar .system-subname {
+  font-size: 16px;
+  color: white;
+  margin-left: 15px;
+}
+
+.top-bar .right-section {
+  display: flex;
+  align-items: center;
+}
+.top-bar .user-info {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 20px;
+  transition: background-color 0.2s;
+  position: relative;
+}
+.top-bar .user-info:hover {
+  background-color: #3a8ee6; /* Darker blue for hover */
+}
+.top-bar .user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 8px;
+  overflow: hidden;
+}
+.top-bar .user-avatar i {
+  font-size: 18px; /* Adjusted for better fit */
+  color: #409eff;
+  line-height: 1;
+}
+.top-bar .user-name {
+  margin: 0 8px 0 0;
+  font-size: 14px;
+  color: white;
+  line-height: 1; /* Align with icons */
+}
+.top-bar .user-info .fa-angle-down {
+  font-size: 12px;
+  color: white;
+  margin-left: 5px;
+  transition: transform 0.2s;
+}
+.top-bar .user-info.is-open .fa-angle-down {
+  /* JS would add/remove 'is-open' */
+  transform: rotate(180deg);
+}
+.top-bar .user-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  background-color: white;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  min-width: 130px;
+  z-index: 1001;
+}
+.top-bar .user-dropdown-menu router-link {
+  display: block;
+  padding: 8px 15px;
+  color: #606266;
+  font-size: 14px;
+}
+.top-bar .user-dropdown-menu router-link:hover {
+  background-color: #ecf5ff;
+  color: #409eff;
+}
+.top-bar .user-dropdown-menu .divider {
+  height: 1px;
+  background-color: #ebeef5;
+  margin: 5px 0;
+}
+
+/* Main Content */
+.page-main {
+  flex-grow: 1;
+  padding: 25px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.container.analysis-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Card Styles */
+.card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
+  padding: 20px 25px;
+  margin-bottom: 25px;
+}
+.card-title {
+  font-size: 18px;
+  color: #303133;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ebeef5;
+}
+.card-title i {
+  margin-right: 10px;
+  color: #409eff;
+  font-size: 1.05em;
+}
+.sub-card-title {
+  font-size: 17px;
+  color: #303133;
+  margin-top: 0;
+  margin-bottom: 18px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+.sub-card-title i {
+  margin-right: 8px;
+  color: #67c23a;
+}
+.stats-summary-card .sub-card-title i {
+  color: #e6a23c;
+}
+
+/* Filter Form Grid */
+.filter-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  align-items: flex-end;
+}
+.filter-form-grid .form-group,
+.filter-form-grid .semester-range-group-label {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+.filter-form-grid .form-group label,
+.filter-form-grid .semester-range-group-label > label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #606266;
+  font-size: 14px;
+}
+.filter-form-grid .semester-selects-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.filter-form-grid .semester-selects-container select,
+.filter-form-grid .form-group select {
+  flex-grow: 1;
+  min-width: 100px;
+  padding: 9px 12px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 14px;
+  color: #606266;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg class='icon' viewBox='0 0 1024 1024' xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M512 714.666667c-8.533333 0-17.066667-2.133333-23.466667-8.533334l-307.2-268.8c-12.8-10.666667-14.933333-29.866667-4.266666-42.666666 10.666667-12.8 29.866667-14.933333 42.666666-4.266667l292.266667 256 292.266667-256c12.8-10.666667 32-8.533333 42.666667 4.266667s8.533333 32-4.266667 42.666666l-307.2 268.8c-6.4 4.266667-12.8 8.533333-21.333333 8.533334z' fill='%23C0C4CC'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+  padding-right: 30px;
+}
+.filter-form-grid .semester-selects-container select:focus,
+.filter-form-grid .form-group select:focus {
+  border-color: #409eff;
+  outline: 0;
+}
+.filter-form-grid .range-separator {
+  white-space: nowrap;
+  color: #606266;
+  margin: 0 5px;
+}
+
+.filter-form-grid .form-action-group {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+@media (min-width: 900px) {
+  .filter-form-grid .form-action-group {
+    grid-column: auto;
+  }
+}
+
+/* Buttons */
+.btn {
+  padding: 9px 18px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: 0.1s;
+  text-align: center;
+  user-select: none;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn i {
+  font-size: 1em;
+}
+.btn-primary {
+  background-color: #409eff;
+  border-color: #409eff;
+  color: white;
+}
+.btn-primary:hover {
+  background-color: #66b1ff;
+  border-color: #66b1ff;
+}
+
+/* Analysis Results Grid */
+.analysis-results-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 25px;
+}
+@media (min-width: 992px) {
+  .analysis-results-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stats-summary-card {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Stats Summary Card */
+.overall-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 15px;
+  padding-top: 10px;
+}
+.stat-item {
+  background-color: #f9fafc;
+  padding: 15px;
+  border-radius: 6px;
+  text-align: center;
+  border: 1px solid #ebeef5;
+}
+.stat-label {
+  display: block;
+  font-size: 14px;
+  color: #606266;
+  margin-bottom: 8px;
+}
+.stat-value {
+  display: block;
+  font-size: 22px;
+  font-weight: bold;
+  color: #409eff;
+}
+
+/* Chart Card & Container */
+.chart-card {
+  padding-bottom: 25px;
+}
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  margin-top: 10px;
+}
+.chart-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+.chart-no-data-message {
+  text-align: center;
+  color: #909399;
+  font-style: italic;
+  padding: 50px 0;
+  font-size: 15px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+}
+
+/* Notification Area */
+.notification {
+  padding: 10px 15px;
+  margin-top: 20px;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 14px;
+  border: 1px solid transparent;
+}
+.notification.success {
+  background-color: #f0f9eb;
+  color: #67c23a;
+  border-color: #e1f3d8;
+}
+.notification.error {
+  background-color: #fef0f0;
+  color: #f56c6c;
+  border-color: #fde2e2;
+}
+.notification.info {
+  background-color: #edf2fc;
+  color: #909399;
+  border-color: #e4e7ed;
+}
+
+/* Bottom Bar */
+.bottom-bar {
+  background-color: #f5f5f5b7;
+  padding: 12px 0;
+  text-align: center; /* This centers the inline or inline-block child */
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 999;
+  box-sizing: border-box;
+}
+.copyright-text {
+  color: #666;
+  font-size: 12.5px;
+  margin: 0; /* Crucial for text-align on parent to work as expected for block elements */
+  line-height: 1.5;
+  /* display: inline-block; */ /* Not strictly necessary if .bottom-bar has text-align: center */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .top-bar {
+    padding: 0 15px;
+    height: 50px;
+  }
+  body {
+    padding-top: 50px;
+  }
+  .top-bar .system-name {
+    font-size: 18px;
+  }
+  .top-bar .system-subname {
+    display: none;
+  }
+  .page-main {
+    padding: 15px;
+  }
+  .filter-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .filter-form-grid .semester-selects-container {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .filter-form-grid .semester-selects-container select {
+    width: 100%;
+  }
+  .filter-form-grid .range-separator {
+    margin: 5px 0;
+    text-align: center;
+  }
+  .analysis-results-grid {
+    grid-template-columns: 1fr;
+  }
+  .stat-value {
+    font-size: 20px;
+  }
+  .chart-container {
+    height: 250px;
+  }
+}
+</style>

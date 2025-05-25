@@ -1,20 +1,14 @@
 <template>
-  <RouterView />
+  <router-view />
 </template>
 
 <script setup>
-import { RouterView } from 'vue-router'
+import { useuserLoginStore } from "@/store/userLoginStore";
+
+const loginUserStore = useuserLoginStore();
+// 改成fetch 现在没连后端 会报网络错误
+// loginUserStore.fetchLoginUser();
+loginUserStore.setLoginUserUnlogin();
 </script>
 
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: Arial, sans-serif;
-  line-height: 1.6;
-}
-</style>
+<style></style>
