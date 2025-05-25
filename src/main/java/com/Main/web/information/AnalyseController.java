@@ -40,26 +40,31 @@ public class AnalyseController {
     @GetMapping("/student/grades/analysis")
     public ResponseEntity<ApiResponseDTO<StudentAnalyseDTO>> getGrades(
             @RequestParam(value = "start_sec_year", required = false, defaultValue = "0") int start_sec_year,
-            @RequestParam(value = "start_semester", required = false, defaultValue = "") String start_semester,
+            @RequestParam(value = "start_semester", required = false) String start_semester,
             @RequestParam(value = "end_sec_year", required = false, defaultValue = "0") int end_sec_year,
-            @RequestParam(value = "end_semester", required = false, defaultValue = "") String end_semester,
+            @RequestParam(value = "end_semester", required = false) String end_semester,
             HttpServletRequest request
     ) {
         logger.info("获取学生成绩分析, start_sec_year: {}, start_semester: {}, end_sec_year: {}, end_semester: {}",
                 start_sec_year, start_semester, end_sec_year, end_semester);
 
         // 验证输入参数
-        if ((start_sec_year != 0 && start_semester.isEmpty()) || (start_sec_year == 0 && !start_semester.isEmpty())) {
+        if ((start_sec_year != 0 && start_semester == null) || (start_sec_year == 0 && !(start_semester==null) )) {
             return ResponseEntity.ok(ApiResponseDTO.error(500, "开始学年和开始学期必须同时输入或同时不输入"));
         }
 
-        if ((end_sec_year != 0 && end_semester.isEmpty()) || (end_sec_year == 0 && !end_semester.isEmpty())) {
+        if ((end_sec_year != 0 && end_semester == null) || (end_sec_year == 0 && !(end_semester == null))) {
             return ResponseEntity.ok(ApiResponseDTO.error(500, "结束学年和结束学期必须同时输入或同时不输入"));
         }
 
         // 获取学生成绩
         try {
             int student_id = (int) request.getAttribute("userId");
+            String role = (String) request.getAttribute("userRole");
+            if(!role.equals("s")) {
+                logger.error("该用户不是学生");
+                throw new Exception();
+            }
             StudentAnalyseDTO studentAnalyseDTO = gradeService.getStudentGradeAnalysis(student_id, start_sec_year, start_semester, end_sec_year, end_semester);
 
             return ResponseEntity.ok(ApiResponseDTO.success("分析成功",studentAnalyseDTO));

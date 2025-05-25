@@ -12,7 +12,9 @@ public class PerformanceTrendDTO {
         return sec_year;
     }
 
-    public void setSec_year(int sec_year) {}
+    public void setSec_year(int sec_year) {
+        this.sec_year = sec_year;
+    }
 
     public String getSemester() {
         return semester;

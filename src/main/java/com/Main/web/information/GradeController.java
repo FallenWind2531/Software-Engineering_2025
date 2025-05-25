@@ -93,6 +93,7 @@ public class GradeController {
 
         // 获取学生成绩列表
         try {
+            if(sec_year == null) { sec_year = 0; }
             int student_id = (int) request.getAttribute("userId");
             List<StudentGradeDTO> gradeListDTO = gradeService.getStudentGradeList(student_id, semester, sec_year, course_name);
 
@@ -123,25 +124,35 @@ public class GradeController {
     /**
      * 教师提交成绩
      * @param request 请求对象
-     * @param scoreUpdateDTO 成绩更新对象
+     * @param scoreUpdatesDTO 成绩更新对象
      * @param section_id 开课ID
      * @return 成绩列表
      */
     @PostMapping("/teacher/sections/{section_id}/grades")
     public ResponseEntity<ApiResponseDTO<Map<String,Integer>>> submitGrades(
             HttpServletRequest request,
-            @RequestBody ScoreUpdateDTO scoreUpdateDTO,
+            @RequestBody List<ScoreUpdateDTO> scoreUpdatesDTO,
             @PathVariable("section_id") int section_id
     ) {
         Map<String, Integer> result = new HashMap<>();
 
         // 获取教师ID
         int teacher_id = (int) request.getAttribute("userId");
+        String role = (String) request.getAttribute("userRole");
+        if (!role.equals("t")) {
+            logger.error("提交成绩失败: 用户ID {} 不是教师", teacher_id);
+            return ResponseEntity.ok(ApiResponseDTO.error(403, "用户ID " + teacher_id + " 不是教师"));
+        }
         logger.info("教师提交成绩, teacher_id: {}, section_id: {}", teacher_id, section_id);
 
         boolean status = false;
-        for (ScoreUpdateDTO.StudentScoreDTO scoreDTO : scoreUpdateDTO.getStudentScores()) {
-            int student_id = scoreDTO.getStudent_id();
+        for (ScoreUpdateDTO scoreDTO : scoreUpdatesDTO) {
+            int student_id = scoreDTO.getStudentId();
+            User student = userService.getUserById(student_id);
+            if (!student.getRole().equals("s")) {
+                logger.error("提交成绩失败: 用户ID {} 不是学生", student_id);
+                return ResponseEntity.ok(ApiResponseDTO.error(400, "用户ID " + student_id + " 不是学生"));
+            }
             int score = scoreDTO.getScore();
             float gpa = scoreDTO.getGpa();
             int course_id = sectionService.getSectionById(section_id).getCourseId();
@@ -182,7 +193,8 @@ public class GradeController {
 
         // 获取班级成绩
         try {
-            SectionGradeDTO sectionGradeDTO = gradeService.getSectionStudentGrades(section_id,  student_name,student_id);
+            if(student_id == null) { student_id = 0; }
+            SectionGradeDTO sectionGradeDTO = gradeService.getSectionStudentGrades(section_id,student_name,student_id);
             return ResponseEntity.ok(ApiResponseDTO.success("获取成功", sectionGradeDTO));
         } catch (Exception e) {
             logger.error(e.getMessage());
