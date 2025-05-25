@@ -20,9 +20,9 @@
             <div class="form-group">
               <label for="loginRole">登录身份:</label>
               <select v-model="formData.role" id="loginRole" name="role">
-                <option value="student">学生</option>
-                <option value="teacher">教师</option>
-                <option value="admin">管理员</option>
+                <option value="s">学生</option>
+                <option value="t">教师</option>
+                <option value="a">管理员</option>
               </select>
             </div>
             <div class="form-group">
