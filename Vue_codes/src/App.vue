@@ -3,12 +3,19 @@
 </template>
 
 <script setup>
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { useuserLoginStore } from "@/store/userLoginStore";
 
 const loginUserStore = useuserLoginStore();
-// 改成fetch 现在没连后端 会报网络错误
-// loginUserStore.fetchLoginUser();
-loginUserStore.setLoginUserUnlogin();
+const route = useRoute();
+
+onMounted(() => {
+  // if (!route.path.includes("login")) {
+  //   // loginUserStore.fetchLoginUser();
+  //   // loginUserStore.setLoginUserUnlogin();
+  // }
+});
 </script>
 
 <style></style>

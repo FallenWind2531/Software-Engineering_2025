@@ -98,14 +98,14 @@ public class UserService {
             throw new RuntimeException("Insert failed due to SQL error.", e);
         }
 
-        user.setUserId(holder.getKey().intValue());
+        user.setUser_id(holder.getKey().intValue());
         return user;
     }
 
     public void updateUser(User user) {
         if (1 != jdbcTemplate.update(
                 "UPDATE User SET name = ?, department = ?, contact = ? WHERE user_id = ?", 
-                user.getName(), user.getDepartment(), user.getContact(), user.getUserId())) {
+                user.getName(), user.getDepartment(), user.getContact(), user.getUser_id())) {
             throw new RuntimeException("User not found by id");
         }
     }

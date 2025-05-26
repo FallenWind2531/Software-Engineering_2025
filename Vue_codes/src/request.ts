@@ -4,7 +4,7 @@ import axios from "axios";
 // const loginUser = useuserLoginStore();
 
 const apiClient = axios.create({
-  baseURL: "/information/api/v1",
+  baseURL: "http://localhost:8080/information/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
@@ -18,13 +18,7 @@ apiClient.interceptors.request.use(
     const token = loginUserStore.loginUser.token;
     const url = config.url || "";
 
-    if (
-      token &&
-      (url.includes("admin") ||
-        url.includes("account") ||
-        url.includes("teacher") ||
-        url.includes("student/grades"))
-    ) {
+    if (token && !url.includes("login")) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;

@@ -26,12 +26,12 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="username">账号:</label>
+              <label for="account">账号:</label>
               <input
-                v-model="formData.username"
+                v-model="formData.account"
                 type="text"
-                id="username"
-                name="username"
+                id="account"
+                name="account"
                 placeholder="请输入您的账号"
                 required
               />
@@ -75,12 +75,17 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 import { login } from "@/api/auth";
+import { useuserLoginStore } from "@/store/userLoginStore";
 
+const loginUserStore = useuserLoginStore();
+
+const router = useRouter();
 // 表单数据
 const formData = ref({
   role: "student",
-  username: "",
+  account: "",
   password: "",
 });
 
@@ -105,9 +110,9 @@ const showNotification = (
 
 // 处理登录表单提交
 const handleLogin = async () => {
-  const { role, username, password } = formData.value;
+  const { role, account, password } = formData.value;
 
-  if (!username || !password) {
+  if (!account || !password) {
     showNotification("账号和密码不能为空！", "error");
     return;
   }
@@ -118,15 +123,19 @@ const handleLogin = async () => {
     const response = await login(formData.value);
     if (response.status === 200) {
       showNotification("登录成功！正在跳转...", "success");
+      loginUserStore.setLoginUser(response);
       setTimeout(() => {
-        if (role === "teacher") {
+        if (role === "t") {
           alert("将跳转到教师导航页 (../teacher/dashboard)");
-        } else if (role === "student") {
+          router.push("/teacher/dashboard");
+        } else if (role === "s") {
           alert("将跳转到学生导航页 (../student/dashboard)");
-        } else if (role === "admin") {
+          router.push("/student/dashboard");
+        } else if (role === "a") {
           alert("将跳转到管理员导航页 (../admin/dashboard)");
+          router.push("/admin/dashboard");
         }
-      }, 1500);
+      }, 150);
     } else {
       showNotification("登录失败：账号或密码错误，或身份不匹配。", "error");
     }

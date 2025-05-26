@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class User {
 
-    private int userId;
+    private int user_id;
     private String name;
     private String account;
 
@@ -33,13 +33,13 @@ public class User {
     }
     
     // Getters and Setters
-    public int getUserId() {
-        return userId;
+    public int getUser_id() {
+        return user_id;
     }
     
-    public void setUserId(int userId) {
-        this.userId = userId;
-            }
+    public void setUser_id(int user_id) {
+        this.user_id = user_id;
+    }
     
     public String getName() {
         return name;
@@ -99,7 +99,7 @@ public class User {
 
     @Override
     public String toString() {
-        return String.format("User[id=%d, account='%s', name='%s', role='%s', department='%s', contact='%s']",
-                userId, account, name, role, department, contact);
+        return String.format("User[user_id=%d, account='%s', name='%s', role='%s', department='%s', contact='%s']",
+                user_id, account, name, role, department, contact);
     }
 }

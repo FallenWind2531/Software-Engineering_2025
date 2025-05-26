@@ -11,9 +11,7 @@
           <div class="user-avatar">
             <font-awesome-icon :icon="['fas', 'user-graduate']" />
           </div>
-          <span class="user-name">{{
-            JSON.stringify(loginUserStore.loginUser.name)
-          }}</span>
+          <span class="user-name">{{ loginUserStore.loginUser.name }}</span>
           <font-awesome-icon
             :icon="
               userDropdownOpen
@@ -37,9 +35,7 @@
     <main class="page-main">
       <div class="container dashboard-container">
         <div class="welcome-banner">
-          <h1>
-            欢迎回来，{{ JSON.stringify(loginUserStore.loginUser.name) }}同学！
-          </h1>
+          <h1>欢迎回来，{{ loginUserStore.loginUser.name }}同学！</h1>
           <p>今天是 {{ currentDate }}</p>
         </div>
 
@@ -198,7 +194,7 @@ const showMainNotification = (message: string, type = "info") => {
 
 const getCurrentDate = () => {
   const today = new Date();
-  const options = {
+  const options: Intl.DateTimeFormatOptions = {
     year: "numeric",
     month: "long",
     day: "numeric",

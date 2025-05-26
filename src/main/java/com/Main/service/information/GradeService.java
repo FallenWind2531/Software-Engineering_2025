@@ -210,7 +210,7 @@ public class GradeService{
 
         // 查询成绩
         for (User user : userList) {
-            int userId = user.getUserId();
+            int userId = user.getUser_id();
             String gradeSql = "SELECT * FROM GradeBase WHERE section_id = ? AND student_id = ?";
             List<GradeBase> gradeBases = new ArrayList<>();
 

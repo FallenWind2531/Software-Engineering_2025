@@ -54,7 +54,7 @@
             <div class="form-group">
               <label for="filterSemesterGrades">选择学年:</label>
               <select id="filterSemesterGrades" v-model="filter.sec_year">
-                <option value="all">从最早</option>
+                <option value="">所有</option>
                 <option
                   v-for="semester in semesters"
                   :key="semester"
@@ -67,7 +67,7 @@
             <div class="form-group">
               <label for="filterSemesterGrades">选择学期:</label>
               <select id="filterSemesterGrades" v-model="filter.semester">
-                <option value="all">从最早</option>
+                <option value="">所有</option>
                 <option
                   v-for="semester in semesters"
                   :key="semester"
@@ -138,12 +138,12 @@
                   </tr>
                 </template>
                 <template v-else>
-                  <tr v-for="grade in grades" :key="grade.courseId">
+                  <tr v-for="grade in grades" :key="grade.course_id">
                     <td>{{ grade.sec_year }}</td>
                     <td>{{ grade.semester }}</td>
                     <td>{{ grade.teacher_name }}</td>
                     <td>{{ grade.course_name }}</td>
-                    <td>{{ grade.credits }}</td>
+                    <td>{{ grade.credit }}</td>
                     <td :class="getGradeClass(grade.score)">
                       {{ grade.score }}
                     </td>
@@ -191,24 +191,48 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { getStudentGrades } from "@/api/student";
 import { useuserLoginStore } from "@/store/userLoginStore";
 
+type Grade = {
+  grade_id: number;
+  course_id: number;
+  course_name: string;
+  section_id: number;
+  semester: string;
+  sec_year: number;
+  teacher_name: string;
+  score: number;
+  gpa: number;
+  credit: number;
+  submit_status: number;
+  componets: [
+    {
+      component_id: number;
+      component_name: string;
+      grade_id: number;
+      component_type: number;
+      ratio: number;
+      score: number;
+    }
+  ];
+};
+
 const loginUserStore = useuserLoginStore();
 // 响应式数据
 const userDropdownVisible = ref(false);
 const filter = ref({
-  sec_year: "",
-  semester: null,
-  course_name: "",
+  sec_year: null,
+  semester: "",
+  course_name: null,
 });
 const gradesFilterAll = ref({
   sec_year: "",
-  semester: null,
+  semester: "",
   course_name: "",
 });
 const semesters = ref<string[]>([]);
-const allGradesData = ref<any[]>([]);
+const allGradesData = ref<Grade[]>([]);
 const filterText = ref("全部学期");
 const loading = ref(true);
-const grades = ref([]);
+const grades = ref<Grade[]>([]);
 const notification = ref({
   message: "",
   type: "info",
@@ -219,7 +243,7 @@ const gpa = ref("N/A");
 
 // 生命周期钩子
 onMounted(() => {
-  filterAndDisplayGrades();
+  //filterAndDisplayGrades();
 });
 
 // 切换用户下拉菜单
@@ -252,43 +276,10 @@ const handleChangePassword = () => {
   window.location.href = "../change-password";
 };
 
-const sampleGradesData = [
-  {
-    courseId: 1,
-    sec_year: "2023",
-    semester: "秋冬",
-    teacher_name: "张三",
-    course_name: "软件工程基础",
-    credits: 3,
-    score: 85,
-    gpa: 3.5,
-  },
-  {
-    courseId: 2,
-    sec_year: "2023",
-    semester: "春夏",
-    teacher_name: "李四",
-    course_name: "计算机网络",
-    credits: 4,
-    score: 70,
-    gpa: 2.7,
-  },
-  {
-    courseId: 3,
-    sec_year: "2022",
-    semester: "秋冬",
-    teacher_name: "王五",
-    course_name: "数据结构",
-    credits: 3,
-    score: 55,
-    gpa: 1.5,
-  },
-];
-
 const fetchGradesData = async () => {
   try {
-    const response = await getStudentGrades(gradesFilterAll);
-    allGradesData.value = response.data;
+    const response = await getStudentGrades(gradesFilterAll.value);
+    allGradesData.value = response.data.data;
     // const response = sampleGradesData;
     // allGradesData.value = response;
     const combinedSemesters = allGradesData.value.map(
@@ -321,7 +312,7 @@ const filterAndDisplayGrades = async () => {
   showNotification("正在查询成绩列表...", "info");
   try {
     const response = await getStudentGrades(filter.value);
-    grades.value = response.data;
+    grades.value = response.data.data;
     // const response = sampleGradesData;
     // grades.value = response;
     const selectedOption = document.getElementById("filterSemesterGrades")

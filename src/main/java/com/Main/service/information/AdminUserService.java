@@ -208,7 +208,7 @@ public class AdminUserService {
             }
             
             logger.info("用户创建成功: userId={}, account={}", 
-                    newUser != null ? newUser.getUserId() : "unknown", account);
+                    newUser != null ? newUser.getUser_id() : "unknown", account);
             return newUser;
         } catch (Exception e) {
             if (!(e instanceof RuntimeException)) {

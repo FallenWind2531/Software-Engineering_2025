@@ -54,7 +54,7 @@ public class AuthService {
         }
         
         // 4. 生成JWT令牌
-        String token = jwtTokenUtil.generateToken(user.getUserId(), user.getRole());
+        String token = jwtTokenUtil.generateToken(user.getUser_id(), user.getRole());
         
         // 5. 构造响应对象
         LoginResponseDTO response = new LoginResponseDTO();
@@ -63,7 +63,7 @@ public class AuthService {
         // 设置用户信息（密码不应返回给客户端）
         // 这里创建新对象进行脱敏
         User userInfo = new User();
-        userInfo.setUserId(user.getUserId());
+        userInfo.setUser_id(user.getUser_id());
         userInfo.setName(user.getName());
         userInfo.setAccount(user.getAccount());
         userInfo.setRole(user.getRole());

@@ -4,7 +4,7 @@
     <div class="top-bar">
       <div class="left-section">
         <router-link
-          :to="`../${loginUserStore.loginUser.role}/dashboard`"
+          :to="getDashboardUrl()"
           class="back-icon"
           id="backToDashboard"
         >
@@ -129,7 +129,7 @@
                     </td>
                   </tr>
                 </template>
-                <template v-else-if="courses.length === 0">
+                <template v-else-if="courseNum === 0">
                   <tr>
                     <td colspan="6" class="no-data-placeholder">
                       未查询到符合条件的课程。
@@ -137,9 +137,12 @@
                   </tr>
                 </template>
                 <template v-else>
-                  <tr v-for="course in paginatedCourses" :key="course.id">
-                    <td>{{ course.course_name }}</td>
-                    <td>{{ course.course_description }}</td>
+                  <tr
+                    v-for="course in paginatedCourses"
+                    :key="course.course_id"
+                  >
+                    <td>{{ course.name }}</td>
+                    <td>{{ course.description }}</td>
                     <td>{{ course.teacher_name }}</td>
                     <td>{{ course.credit }}</td>
                     <td>{{ course.hours_per_week }}</td>
@@ -161,7 +164,7 @@
           <div
             class="pagination-controls"
             id="paginationControls"
-            :style="{ display: courses.length > 0 ? 'flex' : 'none' }"
+            :style="{ display: courseNum > 0 ? 'flex' : 'none' }"
           >
             <button
               class="btn btn-sm btn-default"
@@ -173,7 +176,7 @@
             </button>
             <span id="pageInfo"
               >第 {{ currentPage }} / {{ totalPages }} 页 (共
-              {{ courses.length }} 条)</span
+              {{ courseNum }} 条)</span
             >
             <button
               class="btn btn-sm btn-default"
@@ -216,8 +219,8 @@ const loginUserStore = useuserLoginStore();
 
 type Course = {
   course_id: number;
-  course_name: string;
-  course_description: string;
+  name: string;
+  description: string;
   teacher_id: number;
   teacher_name: string; // 联查得到
   credit: number;
@@ -233,6 +236,7 @@ const filters = ref({
   category: "",
 });
 const courses = ref<Course[]>([]);
+const courseNum = ref(0);
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
 const isLoading = ref(false);
@@ -242,7 +246,21 @@ const notificationType = ref("info");
 
 // 计算总页数
 const totalPages = ref(0);
-const paginatedCourses = ref([]);
+const paginatedCourses = ref<Course[]>([]);
+
+// 根据用户角色获取dashboard的URL
+const getDashboardUrl = () => {
+  const role = loginUserStore.loginUser.role;
+  if (role === "s") {
+    return "/student/dashboard";
+  } else if (role === "t") {
+    return "/teacher/dashboard";
+  } else if (role === "a") {
+    return "/admin/dashboard";
+  } else {
+    return "/login"; // 默认返回登录页
+  }
+};
 
 // 切换用户下拉菜单显示状态
 const toggleUserDropdown = () => {
@@ -277,260 +295,266 @@ const showNotification = (message: string, type = "info") => {
 const calculatePaginatedCourses = () => {
   const startIndex = (currentPage.value - 1) * itemsPerPage.value;
   const endIndex = startIndex + itemsPerPage.value;
-  paginatedCourses.value = courses.value.slice(startIndex, endIndex);
-  totalPages.value = Math.ceil(courses.value.length / itemsPerPage.value);
+  // 确保courses.value存在且是数组
+  if (courses.value && Array.isArray(courses.value)) {
+    paginatedCourses.value = courses.value.slice(startIndex, endIndex);
+  } else {
+    paginatedCourses.value = [];
+  }
+  totalPages.value = Math.ceil(courseNum.value / itemsPerPage.value);
 };
 
-const sampleCourses: Course[] = [
-  {
-    course_id: 1001,
-    course_name: "数据结构与算法",
-    course_description:
-      "介绍常用的数据结构和算法，培养学生的算法设计和分析能力。",
-    teacher_id: 2001,
-    teacher_name: "张教授",
-    credit: 4,
-    category: "专业必修",
-    hours_per_week: 4,
-  },
-  {
-    course_id: 1002,
-    course_name: "计算机组成原理",
-    course_description: "讲解计算机硬件系统的基本组成原理和工作机制。",
-    teacher_id: 2002,
-    teacher_name: "李教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1003,
-    course_name: "操作系统",
-    course_description:
-      "研究操作系统的设计原理和实现技术，包括进程管理、内存管理等。",
-    teacher_id: 2003,
-    teacher_name: "王教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1001,
-    course_name: "数据结构与算法",
-    course_description:
-      "介绍常用的数据结构和算法，培养学生的算法设计和分析能力。",
-    teacher_id: 2001,
-    teacher_name: "张教授",
-    credit: 4,
-    category: "专业必修",
-    hours_per_week: 4,
-  },
-  {
-    course_id: 1002,
-    course_name: "计算机组成原理",
-    course_description: "讲解计算机硬件系统的基本组成原理和工作机制。",
-    teacher_id: 2002,
-    teacher_name: "李教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1003,
-    course_name: "操作系统",
-    course_description:
-      "研究操作系统的设计原理和实现技术，包括进程管理、内存管理等。",
-    teacher_id: 2003,
-    teacher_name: "王教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1001,
-    course_name: "数据结构与算法",
-    course_description:
-      "介绍常用的数据结构和算法，培养学生的算法设计和分析能力。",
-    teacher_id: 2001,
-    teacher_name: "张教授",
-    credit: 4,
-    category: "专业必修",
-    hours_per_week: 4,
-  },
-  {
-    course_id: 1002,
-    course_name: "计算机组成原理",
-    course_description: "讲解计算机硬件系统的基本组成原理和工作机制。",
-    teacher_id: 2002,
-    teacher_name: "李教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1003,
-    course_name: "操作系统",
-    course_description:
-      "研究操作系统的设计原理和实现技术，包括进程管理、内存管理等。",
-    teacher_id: 2003,
-    teacher_name: "王教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1001,
-    course_name: "数据结构与算法",
-    course_description:
-      "介绍常用的数据结构和算法，培养学生的算法设计和分析能力。",
-    teacher_id: 2001,
-    teacher_name: "张教授",
-    credit: 4,
-    category: "专业必修",
-    hours_per_week: 4,
-  },
-  {
-    course_id: 1002,
-    course_name: "计算机组成原理",
-    course_description:
-      "讲解计算机硬件系统的基本组成原理和工作机制讲解计算机硬件系统的基本组成原理和工作机制。",
-    teacher_id: 2002,
-    teacher_name: "李教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1001,
-    course_name: "数据结构与算法",
-    course_description:
-      "介绍常用的数据结构和算法，培养学生的算法设计和分析能力。",
-    teacher_id: 2001,
-    teacher_name: "张教授",
-    credit: 4,
-    category: "专业必修",
-    hours_per_week: 4,
-  },
-  {
-    course_id: 1002,
-    course_name: "计算机组成原理",
-    course_description: "讲解计算机硬件系统的基本组成原理和工作机制。",
-    teacher_id: 2002,
-    teacher_name: "李教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1003,
-    course_name: "操作系统",
-    course_description:
-      "研究操作系统的设计原理和实现技术，包括进程管理、内存管理等。",
-    teacher_id: 2003,
-    teacher_name: "王教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1003,
-    course_name: "操作系统",
-    course_description:
-      "研究操作系统的设计原理和实现技术，包括进程管理、内存管理等。",
-    teacher_id: 2003,
-    teacher_name: "王教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1004,
-    course_name: "人工智能导论",
-    course_description:
-      "介绍人工智能的基本概念、方法和应用，包括机器学习、自然语言处理等。",
-    teacher_id: 2004,
-    teacher_name: "赵教授",
-    credit: 3,
-    category: "专业选修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1005,
-    course_name: "计算机网络",
-    course_description: "讲解计算机网络的体系结构、协议和实现技术。",
-    teacher_id: 2005,
-    teacher_name: "孙教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1006,
-    course_name: "数据库系统",
-    course_description: "介绍数据库系统的基本原理、设计方法和应用技术。",
-    teacher_id: 2006,
-    teacher_name: "周教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1007,
-    course_name: "软件工程",
-    course_description:
-      "研究软件开发的工程化方法和技术，培养学生的软件项目管理能力。",
-    teacher_id: 2007,
-    teacher_name: "吴教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1008,
-    course_name: "编译原理",
-    course_description:
-      "讲解编译程序的构造原理和实现技术，包括词法分析、语法分析等。",
-    teacher_id: 2008,
-    teacher_name: "郑教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1009,
-    course_name: "信息安全技术",
-    course_description:
-      "介绍信息安全的基本概念、技术和方法，包括密码学、网络安全等。",
-    teacher_id: 2009,
-    teacher_name: "钱教授",
-    credit: 3,
-    category: "专业选修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1010,
-    course_name: "大数据分析技术",
-    course_description:
-      "介绍大数据处理和分析的基本技术和方法，包括Hadoop、Spark等。",
-    teacher_id: 2010,
-    teacher_name: "冯教授",
-    credit: 3,
-    category: "专业选修",
-    hours_per_week: 3,
-  },
-];
+// const sampleCourses: Course[] = [
+//   {
+//     course_id: 1001,
+//     course_name: "数据结构与算法",
+//     course_description:
+//       "介绍常用的数据结构和算法，培养学生的算法设计和分析能力。",
+//     teacher_id: 2001,
+//     teacher_name: "张教授",
+//     credit: 4,
+//     category: "专业必修",
+//     hours_per_week: 4,
+//   },
+//   {
+//     course_id: 1002,
+//     course_name: "计算机组成原理",
+//     course_description: "讲解计算机硬件系统的基本组成原理和工作机制。",
+//     teacher_id: 2002,
+//     teacher_name: "李教授",
+//     credit: 3,
+//     category: "专业必修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1003,
+//     course_name: "操作系统",
+//     course_description:
+//       "研究操作系统的设计原理和实现技术，包括进程管理、内存管理等。",
+//     teacher_id: 2003,
+//     teacher_name: "王教授",
+//     credit: 3,
+//     category: "专业必修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1001,
+//     course_name: "数据结构与算法",
+//     course_description:
+//       "介绍常用的数据结构和算法，培养学生的算法设计和分析能力。",
+//     teacher_id: 2001,
+//     teacher_name: "张教授",
+//     credit: 4,
+//     category: "专业必修",
+//     hours_per_week: 4,
+//   },
+//   {
+//     course_id: 1002,
+//     course_name: "计算机组成原理",
+//     course_description: "讲解计算机硬件系统的基本组成原理和工作机制。",
+//     teacher_id: 2002,
+//     teacher_name: "李教授",
+//     credit: 3,
+//     category: "专业必修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1003,
+//     course_name: "操作系统",
+//     course_description:
+//       "研究操作系统的设计原理和实现技术，包括进程管理、内存管理等。",
+//     teacher_id: 2003,
+//     teacher_name: "王教授",
+//     credit: 3,
+//     category: "专业必修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1001,
+//     course_name: "数据结构与算法",
+//     course_description:
+//       "介绍常用的数据结构和算法，培养学生的算法设计和分析能力。",
+//     teacher_id: 2001,
+//     teacher_name: "张教授",
+//     credit: 4,
+//     category: "专业必修",
+//     hours_per_week: 4,
+//   },
+//   {
+//     course_id: 1002,
+//     course_name: "计算机组成原理",
+//     course_description: "讲解计算机硬件系统的基本组成原理和工作机制。",
+//     teacher_id: 2002,
+//     teacher_name: "李教授",
+//     credit: 3,
+//     category: "专业必修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1003,
+//     course_name: "操作系统",
+//     course_description:
+//       "研究操作系统的设计原理和实现技术，包括进程管理、内存管理等。",
+//     teacher_id: 2003,
+//     teacher_name: "王教授",
+//     credit: 3,
+//     category: "专业必修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1001,
+//     course_name: "数据结构与算法",
+//     course_description:
+//       "介绍常用的数据结构和算法，培养学生的算法设计和分析能力。",
+//     teacher_id: 2001,
+//     teacher_name: "张教授",
+//     credit: 4,
+//     category: "专业必修",
+//     hours_per_week: 4,
+//   },
+//   {
+//     course_id: 1002,
+//     course_name: "计算机组成原理",
+//     course_description:
+//       "讲解计算机硬件系统的基本组成原理和工作机制讲解计算机硬件系统的基本组成原理和工作机制。",
+//     teacher_id: 2002,
+//     teacher_name: "李教授",
+//     credit: 3,
+//     category: "专业必修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1001,
+//     course_name: "数据结构与算法",
+//     course_description:
+//       "介绍常用的数据结构和算法，培养学生的算法设计和分析能力。",
+//     teacher_id: 2001,
+//     teacher_name: "张教授",
+//     credit: 4,
+//     category: "专业必修",
+//     hours_per_week: 4,
+//   },
+//   {
+//     course_id: 1002,
+//     course_name: "计算机组成原理",
+//     course_description: "讲解计算机硬件系统的基本组成原理和工作机制。",
+//     teacher_id: 2002,
+//     teacher_name: "李教授",
+//     credit: 3,
+//     category: "专业必修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1003,
+//     course_name: "操作系统",
+//     course_description:
+//       "研究操作系统的设计原理和实现技术，包括进程管理、内存管理等。",
+//     teacher_id: 2003,
+//     teacher_name: "王教授",
+//     credit: 3,
+//     category: "专业必修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1003,
+//     course_name: "操作系统",
+//     course_description:
+//       "研究操作系统的设计原理和实现技术，包括进程管理、内存管理等。",
+//     teacher_id: 2003,
+//     teacher_name: "王教授",
+//     credit: 3,
+//     category: "专业必修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1004,
+//     course_name: "人工智能导论",
+//     course_description:
+//       "介绍人工智能的基本概念、方法和应用，包括机器学习、自然语言处理等。",
+//     teacher_id: 2004,
+//     teacher_name: "赵教授",
+//     credit: 3,
+//     category: "专业选修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1005,
+//     course_name: "计算机网络",
+//     course_description: "讲解计算机网络的体系结构、协议和实现技术。",
+//     teacher_id: 2005,
+//     teacher_name: "孙教授",
+//     credit: 3,
+//     category: "专业必修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1006,
+//     course_name: "数据库系统",
+//     course_description: "介绍数据库系统的基本原理、设计方法和应用技术。",
+//     teacher_id: 2006,
+//     teacher_name: "周教授",
+//     credit: 3,
+//     category: "专业必修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1007,
+//     course_name: "软件工程",
+//     course_description:
+//       "研究软件开发的工程化方法和技术，培养学生的软件项目管理能力。",
+//     teacher_id: 2007,
+//     teacher_name: "吴教授",
+//     credit: 3,
+//     category: "专业必修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1008,
+//     course_name: "编译原理",
+//     course_description:
+//       "讲解编译程序的构造原理和实现技术，包括词法分析、语法分析等。",
+//     teacher_id: 2008,
+//     teacher_name: "郑教授",
+//     credit: 3,
+//     category: "专业必修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1009,
+//     course_name: "信息安全技术",
+//     course_description:
+//       "介绍信息安全的基本概念、技术和方法，包括密码学、网络安全等。",
+//     teacher_id: 2009,
+//     teacher_name: "钱教授",
+//     credit: 3,
+//     category: "专业选修",
+//     hours_per_week: 3,
+//   },
+//   {
+//     course_id: 1010,
+//     course_name: "大数据分析技术",
+//     course_description:
+//       "介绍大数据处理和分析的基本技术和方法，包括Hadoop、Spark等。",
+//     teacher_id: 2010,
+//     teacher_name: "冯教授",
+//     credit: 3,
+//     category: "专业选修",
+//     hours_per_week: 3,
+//   },
+// ];
 // 查询课程
 const queryCourses = async () => {
   isLoading.value = true;
   showNotification("正在查询课程...", "info");
   try {
     const response = await getCourses(filters.value);
-    // courses.value = sampleCourses;
+    courseNum.value = response.data.data.totalItems;
+    courses.value = response.data.data.items;
     currentPage.value = 1;
     calculatePaginatedCourses();
-    if (courses.value.length > 0) {
+    if (response.data.data.totalItems > 0) {
       showNotification(
-        `查询到 ${courses.value.length} 条符合条件的课程。`,
+        `查询到 ${response.data.data.totalItems} 条符合条件的课程。`,
         "success"
       );
     } else {
