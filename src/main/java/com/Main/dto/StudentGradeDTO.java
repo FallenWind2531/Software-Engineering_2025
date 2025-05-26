@@ -15,6 +15,7 @@ public class StudentGradeDTO {
     private String teacher_name;
     private int score;
     private float gpa;
+    private float credit;
     private int submit_status;
     private List<GradeComponent> gradeComponents;
 
@@ -84,6 +85,14 @@ public class StudentGradeDTO {
         this.score = score;
     }
 
+    public float getCredit() {
+        return credit;
+    }
+
+    public void setCredit(float credit) {
+        this.credit = credit;
+    }
+
     public float getGpa() {
         return gpa;
     }
@@ -107,4 +116,5 @@ public class StudentGradeDTO {
     public void setGradeComponents(List<GradeComponent> gradeComponents) {
         this.gradeComponents = gradeComponents;
     }
+
 }

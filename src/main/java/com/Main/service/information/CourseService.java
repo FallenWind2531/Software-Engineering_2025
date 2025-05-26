@@ -1,8 +1,11 @@
 package com.Main.service.information;
 
 import com.Main.RowMapper.CourseRowMapper;
+import com.Main.RowMapper.UserRowMapper;
 import com.Main.dto.PageResponseDTO;
+import com.Main.dto.ReturnCourseDTO;
 import com.Main.entity.Course;
+import com.Main.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +29,8 @@ public class CourseService {
     JdbcTemplate jdbcTemplate;
 
     RowMapper<Course> courseRowMapper = new CourseRowMapper();
+    RowMapper<User> userRowMapper = new UserRowMapper();
+
     /**
      * 获取课程列表（支持分页和筛选）
      * @param page 页码
@@ -36,7 +41,7 @@ public class CourseService {
      * @param category 按课程类别筛选
      * @return 分页课程列表
      */
-    public PageResponseDTO<Course> getCourses(Integer page, Integer size, String courseName, Integer teacherId, String teacherName, String category) {
+    public PageResponseDTO<ReturnCourseDTO> getCourses(Integer page, Integer size, String courseName, Integer teacherId, String teacherName, String category) {
         logger.info("查询课程列表: page={}, size={}, courseName={}, teacherId={}, teacherName={}, category={}",
                 page, size, courseName, teacherId, teacherName, category);
 
@@ -47,7 +52,7 @@ public class CourseService {
 
         // 构建基础SQL和参数
         StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM Course c JOIN User u ON c.teacher_id = u.user_id WHERE 1=1");
-        StringBuilder querySql = new StringBuilder("SELECT c.* FROM Course c JOIN User u ON c.teacher_id = u.user_id WHERE 1=1"); // Select all columns from Course
+        StringBuilder querySql = new StringBuilder("SELECT c.* FROM Course c JOIN User u ON c.teacher_id = u.user_id WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
         // 添加筛选条件
@@ -64,8 +69,8 @@ public class CourseService {
         }
 
         if (teacherName != null && !teacherName.isEmpty()) {
-            countSql.append(" AND u.name LIKE ?"); // Filter on User's name
-            querySql.append(" AND u.name LIKE ?"); // Filter on User's name
+            countSql.append(" AND u.name LIKE ?");
+            querySql.append(" AND u.name LIKE ?");
             params.add("%" + teacherName + "%");
         }
 
@@ -93,28 +98,56 @@ public class CourseService {
         int totalPages = (totalItems + size - 1) / size;
 
         // 查询当前页数据
-        List<Course> courses = new ArrayList<>();
+        List<ReturnCourseDTO> courses = new ArrayList<>();
         if (totalItems > 0) {
-            courses = jdbcTemplate.query(querySql.toString(), courseRowMapper, queryParams.toArray());
+            List<Course> courseList = jdbcTemplate.query(querySql.toString(), courseRowMapper, queryParams.toArray());
+
+            // 将 Course 对象转换为 ReturnCourseDTO 对象
+            for (Course course : courseList) {
+                int teacher_id = course.getTeacherId();
+                User teacher = jdbcTemplate.queryForObject("SELECT * FROM User WHERE user_id = ?", new UserRowMapper(), teacher_id);
+                String name = teacher.getName();
+                ReturnCourseDTO returnCourseDTO = new ReturnCourseDTO();
+                returnCourseDTO.setCourseId(course.getId());
+                returnCourseDTO.setCourse_name(course.getName());
+                returnCourseDTO.setCourse_description(course.getDescription());
+                returnCourseDTO.setTeacher_id(course.getTeacherId());
+                returnCourseDTO.setTeacher_name(name);
+                returnCourseDTO.setCredit(course.getCredit());
+                returnCourseDTO.setCategory(course.getCategory());
+                returnCourseDTO.setHoursPerWeek(course.getHours_per_week());
+                courses.add(returnCourseDTO);
+            }
         }
 
         // 构建分页响应
         return new PageResponseDTO<>(totalItems, totalPages, page, courses);
     }
 
-
     /**
      * 获取课程详细信息（支持分页和筛选）
      * @param courseId 课程信息
      * @return 课程详细信息
      */
-    public Course getCourseById(int courseId) {
+    public ReturnCourseDTO getCourseById(int courseId) {
         logger.info("获取课程信息: courseId={}", courseId);
 
         try {
             String sql = "SELECT * FROM Course WHERE course_id = ?";
             Course course = jdbcTemplate.queryForObject(sql, new CourseRowMapper(), courseId);
-            return course;
+            String userSql = "SELECT * FROM User WHERE user_id = ?";
+            User teacher = jdbcTemplate.queryForObject(userSql, new UserRowMapper(), course.getTeacherId());
+            String teacher_name = teacher.getName();
+            ReturnCourseDTO returnCourseDTO = new ReturnCourseDTO();
+            returnCourseDTO.setCourseId(course.getId());
+            returnCourseDTO.setCourse_name(course.getName());
+            returnCourseDTO.setCourse_description(course.getDescription());
+            returnCourseDTO.setTeacher_id(course.getTeacherId());
+            returnCourseDTO.setTeacher_name(teacher_name);
+            returnCourseDTO.setCredit(course.getCredit());
+            returnCourseDTO.setCategory(course.getCategory());
+            returnCourseDTO.setHoursPerWeek(course.getHours_per_week());
+            return returnCourseDTO;
         } catch (DataAccessException e) {
             logger.warn("课程获取失败: courseId={}, message={}", courseId, e.getMessage());
             throw new RuntimeException("用户不存在或查询失败");

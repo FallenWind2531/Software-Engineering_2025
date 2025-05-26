@@ -158,12 +158,12 @@ public class CourseAndSectionManagerController {
                 throw new RuntimeException("无权限创建开课信息");
             }
             // 检查课程是否存在
-            Course course = courseService.getCourseById(course_id);
+            ReturnCourseDTO course = courseService.getCourseById(course_id);
             if (course == null) {
                 logger.warn("课程不存在，无法创建开课信息: course_id={}", course_id);
                 return ResponseEntity.ok(ApiResponseDTO.error(404, "课程不存在"));
             }
-            else if (course.getTeacherId() != userId){
+            else if (course.getTeacher_id() != userId){
                 logger.warn("无权限创建开课信息: userId={}, course_id={}", userId, course_id);
                 return ResponseEntity.ok(ApiResponseDTO.error(403, "无权限创建开课信息"));
             }
@@ -204,12 +204,12 @@ public class CourseAndSectionManagerController {
             // 检查课程是否存在
             SectionSearchDTO oldsection = sectionService.getSectionById(section_id);
             int course_id = oldsection.getCourseId();
-            Course course = courseService.getCourseById(course_id);
+            ReturnCourseDTO course = courseService.getCourseById(course_id);
             if( course == null) {
                 logger.warn("课程不存在，无法修改开课信息: course_id={}", course_id);
                 return ResponseEntity.ok(ApiResponseDTO.error(404, "课程不存在"));
             }
-            else if (course.getTeacherId() != userId){
+            else if (course.getTeacher_id() != userId){
                 logger.warn("无权限修改开课信息: userId={}, course_id={}", userId, course_id);
                 return ResponseEntity.ok(ApiResponseDTO.error(403, "无权限修改开课信息"));
             }
@@ -248,12 +248,12 @@ public class CourseAndSectionManagerController {
             // 检查课程是否存在
             SectionSearchDTO oldsection = sectionService.getSectionById(section_id);
             int course_id = oldsection.getCourseId();
-            Course course = courseService.getCourseById(course_id);
+            ReturnCourseDTO course = courseService.getCourseById(course_id);
             if( course == null) {
                 logger.warn("课程不存在，无法删除开课信息: course_id={}", course_id);
                 return ResponseEntity.ok(ApiResponseDTO.error(404, "课程不存在"));
             }
-            else if (course.getTeacherId() != userId){
+            else if (course.getTeacher_id() != userId){
                 logger.warn("无权限删除开课信息: userId={}, course_id={}", userId, course_id);
                 return ResponseEntity.ok(ApiResponseDTO.error(403, "无权限删除开课信息"));
             }
@@ -282,7 +282,7 @@ public class CourseAndSectionManagerController {
      * @return 分页课程列表
      */
     @GetMapping("/my-courses")
-    public ResponseEntity<ApiResponseDTO<PageResponseDTO<Course>>> getTeacherCourses(
+    public ResponseEntity<ApiResponseDTO<PageResponseDTO<ReturnCourseDTO>>> getTeacherCourses(
             @RequestParam(required = false, defaultValue = "1") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer size,
             @RequestParam(required = false) String course_name,
@@ -296,7 +296,7 @@ public class CourseAndSectionManagerController {
                     userId, page, size, course_name, teacher_name, category);
 
             // 获取课程列表
-            PageResponseDTO<Course> courses = courseService.getCourses(page, size, course_name, userId, teacher_name, category);
+            PageResponseDTO<ReturnCourseDTO> courses = courseService.getCourses(page, size, course_name, userId, teacher_name, category);
             return ResponseEntity.ok(ApiResponseDTO.success("获取成功", courses));
         } catch (Exception e) {
             logger.error("获取课程列表过程中发生未知错误", e);
@@ -326,12 +326,12 @@ public class CourseAndSectionManagerController {
             logger.info("获取开课列表: userId={}, course_id={}, semester={}, sec_year={}",
                     userId, courseId, semester, sec_year);
             // 检查课程是否存在
-            Course course = courseService.getCourseById(courseId);
+            ReturnCourseDTO course = courseService.getCourseById(courseId);
             if (course == null) {
                 logger.warn("课程不存在，无法获取开课列表: course_id={}", courseId);
                 return ResponseEntity.ok(ApiResponseListDTO.error(404, "课程不存在"));
             }
-            else if (course.getTeacherId() != userId){
+            else if (course.getTeacher_id() != userId){
                 logger.warn("无权限获取开课列表: userId={}, course_id={}", userId, courseId);
                 return ResponseEntity.ok(ApiResponseListDTO.error(403, "无权限获取开课列表"));
             }

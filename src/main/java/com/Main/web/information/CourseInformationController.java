@@ -2,6 +2,7 @@ package com.Main.web.information;
 
 import com.Main.dto.ApiResponseDTO;
 import com.Main.dto.PageResponseDTO;
+import com.Main.dto.ReturnCourseDTO;
 import com.Main.entity.Course;
 import com.Main.service.information.CourseService;
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ public class CourseInformationController {
      * @return 分页课程列表
      */
     @GetMapping
-    public ResponseEntity<ApiResponseDTO<PageResponseDTO<Course>>> getCourseList(
+    public ResponseEntity<ApiResponseDTO<PageResponseDTO<ReturnCourseDTO>>> getCourseList(
             @RequestParam(required = false, defaultValue = "1") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer size,
             @RequestParam(required = false) String course_name,
@@ -40,7 +41,7 @@ public class CourseInformationController {
     {
 
             try{
-                PageResponseDTO<Course> courses = courseService.getCourses(page, size, course_name, teacher_id, teacher_name, category);
+                PageResponseDTO<ReturnCourseDTO> courses = courseService.getCourses(page, size, course_name, teacher_id, teacher_name, category);
                 return ResponseEntity.ok(ApiResponseDTO.success("获取成功",courses));
             }catch (Exception e){
                 logger.error("获取课程列表失败: {}", e.getMessage());
@@ -54,11 +55,11 @@ public class CourseInformationController {
      * @return 课程信息
      */
     @GetMapping("/{course_id}")
-    public ResponseEntity<ApiResponseDTO<Course>> getCourseById(
+    public ResponseEntity<ApiResponseDTO<ReturnCourseDTO>> getCourseById(
             @PathVariable int course_id)
     {
         try{
-            Course course = courseService.getCourseById(course_id);
+            ReturnCourseDTO course = courseService.getCourseById(course_id);
             return ResponseEntity.ok(ApiResponseDTO.success("获取成功",course));
         }catch (RuntimeException e) {
             logger.error("获取课程信息失败: {}", e.getMessage());

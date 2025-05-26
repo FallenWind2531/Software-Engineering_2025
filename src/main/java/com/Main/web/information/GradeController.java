@@ -53,15 +53,16 @@ public class GradeController {
             StudentGradeDTO gradeDTO = gradeService.getStudentGradeDetail(student_id, grade_id);
 
             SectionSearchDTO sectionDTO = sectionService.getSectionById(gradeDTO.getSection_id());
-            Course course = courseService.getCourseById(gradeDTO.getCourse_id());
-            User user = userService.getUserById(course.getTeacherId());
+            ReturnCourseDTO course = courseService.getCourseById(gradeDTO.getCourse_id());
+            User user = userService.getUserById(course.getTeacher_id());
 
             String semester = sectionDTO.getSemester();
             int sec_year = sectionDTO.getSecYear();
-            String course_name = course.getName();
+            String course_name = course.getCourse_name();
             String teacher_name = user.getName();
 
             // 设置成绩信息
+            gradeDTO.setCredit(course.getCredit());
             gradeDTO.setSemester(semester);
             gradeDTO.setSec_year(sec_year);
             gradeDTO.setCourse_name(course_name);
@@ -100,15 +101,16 @@ public class GradeController {
             // 补充每个成绩的详细信息
             for (StudentGradeDTO gradeDTO : gradeListDTO) {
                 SectionSearchDTO sectionDTO = sectionService.getSectionById(gradeDTO.getSection_id());
-                Course course = courseService.getCourseById(gradeDTO.getCourse_id());
-                User user = userService.getUserById(course.getTeacherId());
+                ReturnCourseDTO course = courseService.getCourseById(gradeDTO.getCourse_id());
+                User user = userService.getUserById(course.getTeacher_id());
 
                 String teacher_name = user.getName();
                 String semesterValue = sectionDTO.getSemester();
                 int sec_yearValue = sectionDTO.getSecYear();
 
                 // 设置成绩信息
-                gradeDTO.setCourse_name(course_name);
+                gradeDTO.setCredit(course.getCredit());
+                gradeDTO.setCourse_name(course.getCourse_name());
                 gradeDTO.setTeacher_name(teacher_name);
                 gradeDTO.setSemester(semesterValue);
                 gradeDTO.setSec_year(sec_yearValue);

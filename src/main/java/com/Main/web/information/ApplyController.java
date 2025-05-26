@@ -92,8 +92,8 @@ public class ApplyController {
                 ApplySearchDTO applySearchDTO = new ApplySearchDTO();
                 applySearchDTO.setApply(apply);
                 // 获取课程信息
-                Course course = courseService.getCourseById(apply.getGradeId());
-                applySearchDTO.setCourse_name(course.getName());
+                ReturnCourseDTO course = courseService.getCourseById(apply.getGradeId());
+                applySearchDTO.setCourse_name(course.getCourse_name());
 
                 // 获取教师信息
                 User teacher = userService.getUserById(apply.getTeacherId());
@@ -139,8 +139,8 @@ public class ApplyController {
                 applySearchDTO.setApply(apply);
 
                 // 获取课程信息
-                Course course = courseService.getCourseById(apply.getGradeId());
-                applySearchDTO.setCourse_name(course.getName());
+                ReturnCourseDTO course = courseService.getCourseById(apply.getGradeId());
+                applySearchDTO.setCourse_name(course.getCourse_name());
 
                 // 获取教师信息
                 User teacher = userService.getUserById(apply.getTeacherId());
