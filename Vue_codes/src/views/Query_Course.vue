@@ -19,7 +19,7 @@
             <FontAwesomeIcon icon="fas fa-user-shield" />
           </div>
           <span class="user-name" id="approveGradeAdminName">{{
-            JSON.stringify(loginUserStore.loginUser.name)
+            loginUserStore.loginUser.name
           }}</span>
           <FontAwesomeIcon
             :icon="
