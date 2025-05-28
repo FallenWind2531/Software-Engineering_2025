@@ -297,20 +297,20 @@ const handleAvatarUpload = async (event: Event) => {
   const files = (event.target as HTMLInputElement).files;
   if (files && files.length > 0) {
     const file = files[0];
-    // const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
-    // const maxSize = 5 * 1024 * 1024; // 5MB
-    //
-    // // 验证文件类型
-    // if (!allowedTypes.includes(file.type)) {
-    //   showNotification("请上传 JPEG/JPG或PNG 格式的图片。", "error");
-    //   return;
-    // }
-    //
-    // // 验证文件大小
-    // if (file.size > maxSize) {
-    //   showNotification("图片大小不能超过 5MB。", "error");
-    //   return;
-    // }
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    // 验证文件类型
+    if (!allowedTypes.includes(file.type)) {
+      showNotification("请上传 JPEG/JPG或PNG 格式的图片。", "error");
+      return;
+    }
+
+    // 验证文件大小
+    if (file.size > maxSize) {
+      showNotification("图片大小不能超过 5MB。", "error");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("avatar", file);
