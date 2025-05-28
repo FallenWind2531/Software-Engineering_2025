@@ -55,11 +55,11 @@
               <input
                 type="text"
                 id="filterTeacherNameApproval"
-                v-model="filter.teacherName"
+                v-model="filter.teacher_id"
                 placeholder="输入教师姓名或工号"
               />
             </div>
-            <div class="form-group">
+            <!-- <div class="form-group">
               <label for="filterCourseNameApproval">涉及课程:</label>
               <input
                 type="text"
@@ -67,7 +67,7 @@
                 v-model="filter.courseName"
                 placeholder="输入课程名称或编号"
               />
-            </div>
+            </div> -->
             <div class="form-group">
               <label for="filterApplicationStatus">申请状态:</label>
               <select
@@ -111,7 +111,7 @@
                   <th>申请ID</th>
                   <th>申请教师</th>
                   <th>课程名称</th>
-                  <th>学生姓名 (学号)</th>
+                  <th>学生姓名</th>
                   <th>原成绩</th>
                   <th>申请修改为</th>
                   <th>申请时间</th>
@@ -139,7 +139,7 @@
                     <td class="application-id">{{ app.id }}</td>
                     <td>{{ app.teacherName }}</td>
                     <td>{{ app.courseName }}</td>
-                    <td>{{ app.studentName }} ({{ app.studentId }})</td>
+                    <td>{{ app.studentName }}</td>
                     <td>{{ app.originalGrade }}</td>
                     <td>{{ app.newGrade }}</td>
                     <td>{{ app.applicationTime }}</td>
@@ -235,10 +235,8 @@
                 <p>
                   <strong>学生:</strong>
                   <span id="modalStudentInfo"
-                    >{{ currentEditingApplication?.studentName }} ({{
-                      currentEditingApplication?.studentId
-                    }})</span
-                  >
+                    >{{ currentEditingApplication?.studentName }}
+                  </span>
                 </p>
                 <p>
                   <strong>原成绩:</strong>
@@ -344,20 +342,56 @@ import { ref, onMounted } from "vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { getAdminGradeApplies, reviewGradeApply } from "@/api/admin";
 import { useuserLoginStore } from "@/store/userLoginStore";
+import { useRouter } from "vue-router";
 
+// 定义申请记录的类型接口
+interface Application {
+  id?: number;
+  apply_id: number;
+  teacherName?: string;
+  courseName?: string;
+  studentName?: string;
+  studentId?: string;
+  originalGrade?: number;
+  newGrade?: number;
+  applicationTime?: string;
+  audit_status: number | string;
+  reason?: string;
+  adminRemarks?: string;
+}
+
+// 定义后端返回的数据结构
+interface ApplyItem {
+  apply: {
+    applyId: number;
+    teacherId: number;
+    adminId: number | null;
+    gradeId: number;
+    oldScore: number;
+    newScore: number;
+    reason: string;
+    auditStatus: number;
+    applyTime: number;
+    reviewTime: number | null;
+  };
+  course_name: string;
+  teacher_name: string;
+  student_name: string;
+}
+
+const router = useRouter();
 const loginUserStore = useuserLoginStore();
 // 响应式数据
 const userDropdownVisible = ref(false);
 const filter = ref({
-  teacherName: "",
-  courseName: "",
+  teacher_id: "",
   audit_status: 0,
 });
 // const filterText = ref("待审核");
 const loading = ref(true);
-const filteredApplications = ref([]);
+const filteredApplications = ref<Application[]>([]);
 const isModalOpen = ref(false);
-const currentEditingApplication = ref(null);
+const currentEditingApplication = ref<Application | null>(null);
 const adminRemarks = ref("");
 const notification = ref({
   message: "",
@@ -384,14 +418,14 @@ const handleLogout = () => {
   showNotification("正在退出登录...", "info");
   setTimeout(() => {
     loginUserStore.setLoginUserUnlogin();
-    window.location.href = "../login";
+    router.push("/login");
   }, 1500);
 };
 
 // 处理修改密码
 const handleChangePassword = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  //window.location.href = "../change-password";
+  router.push("/change-password");
 };
 
 const filterAndDisplayApplications = async () => {
@@ -399,13 +433,26 @@ const filterAndDisplayApplications = async () => {
   showNotification("正在查询申请列表...", "info");
   try {
     const response = await getAdminGradeApplies(filter.value);
-    filteredApplications.value = response.data;
+    // 确保response.data存在且是一个数组
+    filteredApplications.value = Array.isArray(response.data.data)
+      ? response.data.data.map((item: ApplyItem) => ({
+          id: item.apply.applyId,
+          apply_id: item.apply.applyId,
+          teacherName: item.teacher_name,
+          courseName: item.course_name,
+          studentName: item.student_name,
+          studentId: item.apply.gradeId.toString(), // 可能需要替换为实际的学生ID
+          originalGrade: item.apply.oldScore,
+          newGrade: item.apply.newScore,
+          applicationTime: new Date(item.apply.applyTime).toLocaleString(),
+          audit_status: item.apply.auditStatus,
+          reason: item.apply.reason,
+        }))
+      : [];
+
     totalPages.value = Math.ceil(
       filteredApplications.value.length / itemsPerPage.value
     );
-    // const selectedOption = document.getElementById("filterApplicationStatus")
-    //   .selectedOptions[0];
-    // filterText.value = selectedOption.text;
     loading.value = false;
     if (filteredApplications.value.length > 0) {
       showNotification("申请列表加载完毕。", "success");
@@ -414,6 +461,8 @@ const filterAndDisplayApplications = async () => {
     }
   } catch (error) {
     loading.value = false;
+    filteredApplications.value = []; // 确保在出错时设置为空数组
+    totalPages.value = 0; // 重置页数
     showNotification("查询申请列表失败，请稍后重试。", "error");
     console.error(error);
   }
@@ -421,14 +470,13 @@ const filterAndDisplayApplications = async () => {
 
 const resetFilters = () => {
   filter.value = {
-    teacherName: "",
-    courseName: "",
+    teacher_id: "",
     audit_status: 0,
   };
   setTimeout(filterAndDisplayApplications, 100);
 };
 
-const openModal = (application) => {
+const openModal = (application: Application) => {
   currentEditingApplication.value = application;
   adminRemarks.value = application.adminRemarks || "";
   isModalOpen.value = true;
@@ -445,7 +493,9 @@ const approveApplication = async () => {
   const remarks = adminRemarks.value.trim();
   try {
     const data = { audit_status: 1, review_comment: remarks };
-    await reviewGradeApply(currentEditingApplication.value.apply_id, data);
+    // 确保apply_id是字符串
+    const applyId = String(currentEditingApplication.value.apply_id);
+    await reviewGradeApply(applyId, data);
     showNotification(`申请已批准。`, "success");
     closeModal();
     await filterAndDisplayApplications();
@@ -463,8 +513,10 @@ const rejectApplication = async () => {
     return;
   }
   try {
-    const data = { audit_status: 2, adminRemarks: remarks };
-    await reviewGradeApply(currentEditingApplication.value.apply_id, data);
+    const data = { audit_status: 2, review_comment: remarks };
+    // 确保apply_id是字符串
+    const applyId = String(currentEditingApplication.value.apply_id);
+    await reviewGradeApply(applyId, data);
     showNotification(`申请已驳回。`, "info");
     closeModal();
     await filterAndDisplayApplications();
@@ -474,7 +526,7 @@ const rejectApplication = async () => {
   }
 };
 
-const showNotification = (message, type = "info") => {
+const showNotification = (message: string, type: "info") => {
   notification.value = {
     message,
     type,
@@ -487,9 +539,9 @@ const showNotification = (message, type = "info") => {
   }, 3000);
 };
 
-const statusText = (audit_status) => {
-  if (audit_status === 0) return "待审核";
-  if (audit_status === 1) return "已批准";
+const statusText = (audit_status: number | string): string => {
+  if (audit_status === 0 || audit_status === "0") return "待审核";
+  if (audit_status === 1 || audit_status === "1") return "已批准";
   return "已驳回";
 };
 

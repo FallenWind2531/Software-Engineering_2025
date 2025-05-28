@@ -16,10 +16,10 @@
       <div class="right-section">
         <div class="user-info" id="userInfoToggle" @click="toggleUserDropdown">
           <div class="user-avatar">
-            <FontAwesomeIcon icon="fas fa-user-shield" />
+            <FontAwesomeIcon icon="fas fa-user-graduate" />
           </div>
           <span class="user-name" id="approveGradeAdminName">{{
-            JSON.stringify(loginUserStore.loginUser.name)
+            loginUserStore.loginUser.name
           }}</span>
           <FontAwesomeIcon
             :icon="isUserDropdownOpen ? 'fas fa-angle-up' : 'fas fa-angle-down'"
@@ -192,15 +192,17 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { useuserLoginStore } from "@/store/userLoginStore";
 import { getStudentGrades, getStudentGradeAnalysis } from "@/api/student";
 import { Chart } from "chart.js/auto";
+import { useRouter } from "vue-router";
 
 const loginUserStore = useuserLoginStore();
+const router = useRouter();
 // 响应式数据
 const isUserDropdownOpen = ref(false);
-const gradesFilterAll = ref({
+const gradesFilterAll = {
   semester: "",
-  sec_year: null,
+  sec_year: "",
   course_name: "",
-});
+};
 const allGradesData = ref<any[]>([]);
 const semesters = ref<string[]>([]);
 const startSem = ref<string>("all");
@@ -231,14 +233,15 @@ const handleLogout = () => {
   showMainNotification("正在退出登录...", "info");
   setTimeout(() => {
     loginUserStore.setLoginUserUnlogin();
-    window.location.href = "../login";
+    //window.location.href = "../login";
+    router.push("/login");
   }, 1500);
 };
 
 // 处理修改密码
 const handleChangePassword = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  //window.location.href = "../change-password";
+  router.push("/change-password");
 };
 
 // 显示通知
@@ -269,31 +272,51 @@ const destroyCharts = () => {
 // 获取成绩数据
 const fetchGradesData = async () => {
   try {
-    const response = await getStudentGrades(gradesFilterAll);
-    allGradesData.value = response.data;
-    const combinedSemesters = allGradesData.value.map(
-      (g) => `${g.sec_year}-${g.semester}`
-    );
-    semesters.value = [...new Set(combinedSemesters)].sort((a, b) => {
-      const [yearA, termA] = a.split("-");
-      const [yearB, termB] = b.split("-");
-      if (parseInt(yearA) !== parseInt(yearB)) {
-        return parseInt(yearA) - parseInt(yearB);
+    // 创建普通对象传递给API
+    const params = {
+      semester: gradesFilterAll.semester,
+      sec_year: gradesFilterAll.sec_year,
+      course_name: gradesFilterAll.course_name,
+    };
+    console.log("获取成绩列表参数:", params);
+    const response = await getStudentGrades(params);
+    console.log("获取成绩列表响应:", response);
+    if (response.data.code === 200) {
+      allGradesData.value = response.data.data;
+      // 提取所有学期信息
+      if (allGradesData.value && Array.isArray(allGradesData.value)) {
+        const combinedSemesters = allGradesData.value.map(
+          (g) => `${g.sec_year}-${g.semester}`
+        );
+        semesters.value = [...new Set(combinedSemesters)].sort((a, b) => {
+          const [yearA, termA] = a.split("-");
+          const [yearB, termB] = b.split("-");
+          if (parseInt(yearA) !== parseInt(yearB)) {
+            return parseInt(yearA) - parseInt(yearB);
+          }
+          if (termA === "秋冬" && termB === "春夏") {
+            return -1;
+          } else if (termA === "春夏" && termB === "秋冬") {
+            return 1;
+          } else return 0;
+        });
+
+        // 设置默认学期范围
+        if (semesters.value.length > 0) {
+          startSem.value = semesters.value[0];
+          endSem.value = semesters.value[semesters.value.length - 1];
+        }
+
+        // 初始加载时自动生成分析
+        nextTick(() => {
+          submitAnalysisForm();
+        });
+      } else {
+        showMainNotification("没有可用的成绩数据", "info");
       }
-      if (termA === "秋冬" && termB === "春夏") {
-        return -1;
-      } else if (termA === "春夏" && termB === "秋冬") {
-        return 1;
-      } else return 0;
-    });
-    if (semesters.value.length > 0) {
-      startSem.value = semesters.value[0];
-      endSem.value = semesters.value[semesters.value.length - 1];
+    } else {
+      showMainNotification(`获取成绩失败: ${response.data.message}`, "error");
     }
-    // 初始加载时自动生成分析
-    nextTick(() => {
-      submitAnalysisForm();
-    });
   } catch (error) {
     console.error("获取成绩数据失败:", error);
     showMainNotification("获取成绩数据失败", "error");
@@ -314,13 +337,13 @@ const submitAnalysisForm = async () => {
     }
 
     const startYear =
-      startSem.value === "all" ? null : parseInt(startSem.value.split("-")[0]);
+      startSem.value === "all" ? 0 : parseInt(startSem.value.split("-")[0]);
     const startSemester =
-      startSem.value === "all" ? null : startSem.value.split("-")[1];
+      startSem.value === "all" ? "" : startSem.value.split("-")[1];
     const endYear =
-      endSem.value === "all" ? null : parseInt(endSem.value.split("-")[0]);
+      endSem.value === "all" ? 0 : parseInt(endSem.value.split("-")[0]);
     const endSemester =
-      endSem.value === "all" ? null : endSem.value.split("-")[1];
+      endSem.value === "all" ? "" : endSem.value.split("-")[1];
 
     const params = {
       start_semester: startSemester,
@@ -329,15 +352,30 @@ const submitAnalysisForm = async () => {
       end_sec_year: endYear,
     };
 
-    const response = await getStudentGradeAnalysis(params);
+    console.log("发送分析请求参数:", params);
 
-    if (response.data.code === 200) {
-      // 使用nextTick确保DOM更新完成后再绘制图表
-      nextTick(() => {
-        calculateAndDisplayAnalytics(response.data.data);
-      });
-    } else {
-      showMainNotification("分析失败，请重试。", "error");
+    try {
+      const response = await getStudentGradeAnalysis(params);
+      console.log("获取分析响应:", response);
+
+      if (response.data.code === 200) {
+        // 使用nextTick确保DOM更新完成后再绘制图表
+        nextTick(() => {
+          calculateAndDisplayAnalytics(response.data.data);
+        });
+      } else {
+        showMainNotification(
+          `后端分析API返回错误: ${response.data.message}，尝试前端分析`,
+          "warn"
+        );
+        // 当后端API失败时，尝试前端数据分析
+        generateAndDisplayLocalAnalysis();
+      }
+    } catch (error) {
+      console.error("后端分析API调用失败:", error);
+      showMainNotification("后端分析API调用失败，尝试前端分析", "warn");
+      // 当后端API失败时，尝试前端数据分析
+      generateAndDisplayLocalAnalysis();
     }
   } catch (error) {
     console.error("获取成绩分析数据失败:", error);
@@ -345,52 +383,235 @@ const submitAnalysisForm = async () => {
   }
 };
 
+// 从本地成绩数据生成分析数据
+const generateAndDisplayLocalAnalysis = () => {
+  try {
+    if (
+      !allGradesData.value ||
+      !Array.isArray(allGradesData.value) ||
+      allGradesData.value.length === 0
+    ) {
+      showMainNotification("没有可用的成绩数据进行分析", "error");
+      return;
+    }
+
+    // 筛选符合条件的成绩
+    let filteredGrades = [...allGradesData.value];
+
+    // 根据学期范围筛选
+    if (startSem.value !== "all" || endSem.value !== "all") {
+      filteredGrades = filteredGrades.filter((grade) => {
+        const semesterKey = `${grade.sec_year}-${grade.semester}`;
+        if (startSem.value !== "all") {
+          const [startYear, startTerm] = startSem.value.split("-");
+          if (grade.sec_year < parseInt(startYear)) return false;
+          if (
+            grade.sec_year === parseInt(startYear) &&
+            startTerm === "秋冬" &&
+            grade.semester === "春夏"
+          )
+            return false;
+        }
+
+        if (endSem.value !== "all") {
+          const [endYear, endTerm] = endSem.value.split("-");
+          if (grade.sec_year > parseInt(endYear)) return false;
+          if (
+            grade.sec_year === parseInt(endYear) &&
+            endTerm === "春夏" &&
+            grade.semester === "秋冬"
+          )
+            return false;
+        }
+
+        return true;
+      });
+    }
+
+    // 根据课程类型筛选
+    if (courseType.value !== "all") {
+      // 假设课程类型在数据中存在
+      filteredGrades = filteredGrades.filter(
+        (grade) => grade.course_type === courseType.value
+      );
+    }
+
+    // 创建分析数据结构
+    const analysisData = {
+      overall_gpa: 0,
+      average_score: 0,
+      total_credits_earned: 0,
+      total_credits_taken: 0,
+      grade_distribution_by_course: filteredGrades.map((g) => ({
+        course_name: g.course_name,
+        score: g.score,
+        gpa: g.gpa,
+        credit: g.credit,
+        course_type: g.course_type || "未分类",
+      })),
+      performance_trend: [] as Array<{
+        sec_year: number;
+        semester: string;
+        gpa: number;
+        average_score: number;
+      }>,
+    };
+
+    // 计算总体数据
+    let totalGpa = 0;
+    let totalScore = 0;
+    let earnedCredits = 0;
+    let totalCourses = filteredGrades.length;
+
+    filteredGrades.forEach((grade) => {
+      totalGpa += grade.gpa;
+      totalScore += grade.score;
+      // 假设submit_status为1表示已获得学分
+      if (grade.submit_status === 1) {
+        earnedCredits += grade.credit;
+      }
+    });
+
+    const totalCredits = filteredGrades.reduce(
+      (sum, grade) => sum + grade.credit,
+      0
+    );
+    analysisData.overall_gpa = totalCourses > 0 ? totalGpa / totalCourses : 0;
+    analysisData.average_score =
+      totalCourses > 0 ? totalScore / totalCourses : 0;
+    analysisData.total_credits_earned = earnedCredits;
+    analysisData.total_credits_taken = totalCredits;
+
+    // 生成学期表现趋势
+    const semesterData: Record<
+      string,
+      {
+        sec_year: number;
+        semester: string;
+        gpa: number;
+        average_score: number;
+        count: number;
+      }
+    > = {};
+
+    filteredGrades.forEach((grade) => {
+      const key = `${grade.sec_year}-${grade.semester}`;
+      if (!semesterData[key]) {
+        semesterData[key] = {
+          sec_year: grade.sec_year,
+          semester: grade.semester,
+          gpa: 0,
+          average_score: 0,
+          count: 0,
+        };
+      }
+
+      semesterData[key].gpa += grade.gpa;
+      semesterData[key].average_score += grade.score;
+      semesterData[key].count += 1;
+    });
+
+    // 计算每个学期的平均GPA和成绩
+    analysisData.performance_trend = Object.values(semesterData).map((sem) => ({
+      sec_year: sem.sec_year,
+      semester: sem.semester,
+      gpa: sem.count > 0 ? sem.gpa / sem.count : 0,
+      average_score: sem.count > 0 ? sem.average_score / sem.count : 0,
+    }));
+
+    // 按学期排序
+    analysisData.performance_trend.sort((a, b) => {
+      if (a.sec_year !== b.sec_year) {
+        return a.sec_year - b.sec_year;
+      }
+      return a.semester === "秋冬" ? -1 : 1;
+    });
+
+    console.log("前端生成的分析数据:", analysisData);
+    calculateAndDisplayAnalytics(analysisData);
+  } catch (error) {
+    console.error("前端分析数据生成失败:", error);
+    showMainNotification("前端分析数据生成失败", "error");
+  }
+};
+
 // 计算并显示分析结果
 const calculateAndDisplayAnalytics = (data: any) => {
+  console.log("开始处理分析数据:", data);
   // 先销毁现有图表
   destroyCharts();
 
-  totalCreditsEarned.value = data.total_credits_earned.toString();
-  overallGpa.value = data.overall_gpa.toString();
-  averageScore.value = data.average_score.toString();
-  coursesTaken.value = data.grade_distribution_by_course.length.toString();
+  // 防御性检查确保数据存在
+  if (!data) {
+    showMainNotification("分析数据为空，请重试。", "error");
+    return;
+  }
+
+  // 添加防御性检查，确保所有必要的字段都存在
+  totalCreditsEarned.value = data.total_credits_earned?.toString() || "0";
+  overallGpa.value = data.overall_gpa?.toString() || "0";
+  averageScore.value = data.average_score?.toString() || "0";
+  coursesTaken.value =
+    data.grade_distribution_by_course?.length?.toString() || "0";
 
   // 处理学期平均绩点趋势
-  const gpaTrendLabels = [];
-  const gpaTrendData = [];
-  data.performance_trend.forEach((trend: any) => {
-    gpaTrendLabels.push(trend.semester || trend.year);
-    gpaTrendData.push(trend.gpa || trend.average_score);
-  });
+  const gpaTrendLabels: string[] = [];
+  const gpaTrendData: number[] = [];
+
+  if (data.performance_trend && Array.isArray(data.performance_trend)) {
+    data.performance_trend.forEach((trend: any) => {
+      gpaTrendLabels.push(
+        trend.semester || (trend.sec_year ? trend.sec_year.toString() : "未知")
+      );
+      gpaTrendData.push(
+        parseFloat(trend.gpa) || parseFloat(trend.average_score) || 0
+      );
+    });
+  }
   hasGpaTrendData.value = gpaTrendLabels.length > 0;
 
   // 处理分数段分布
-  const scoreRanges = {
+  const scoreRanges: { [key: string]: number } = {
     "90-100": 0,
     "80-89": 0,
     "70-79": 0,
     "60-69": 0,
     "<60": 0,
   };
-  let hasNumericScores = false;
-  data.grade_distribution_by_course.forEach((course: any) => {
-    hasNumericScores = true;
-    if (course.score >= 90) scoreRanges["90-100"]++;
-    else if (course.score >= 80) scoreRanges["80-89"]++;
-    else if (course.score >= 70) scoreRanges["70-79"]++;
-    else if (course.score >= 60) scoreRanges["60-69"]++;
-    else scoreRanges["<60"]++;
-  });
-  hasScoreDistributionData.value = hasNumericScores > 0;
+
+  let hasAnyScores = false;
+  if (
+    data.grade_distribution_by_course &&
+    Array.isArray(data.grade_distribution_by_course)
+  ) {
+    data.grade_distribution_by_course.forEach((course: any) => {
+      if (course) {
+        hasAnyScores = true;
+        const score = parseFloat(course.score) || 0;
+        if (score >= 90) scoreRanges["90-100"]++;
+        else if (score >= 80) scoreRanges["80-89"]++;
+        else if (score >= 70) scoreRanges["70-79"]++;
+        else if (score >= 60) scoreRanges["60-69"]++;
+        else scoreRanges["<60"]++;
+      }
+    });
+  }
+  hasScoreDistributionData.value = hasAnyScores;
 
   // 处理学分构成
-  const creditsByType = {};
-  data.grade_distribution_by_course.forEach((course: any) => {
-    if (course.score >= 60) {
-      creditsByType[course.course_type] =
-        (creditsByType[course.course_type] || 0) + course.credit;
-    }
-  });
+  const creditsByType: { [key: string]: number } = {};
+  if (
+    data.grade_distribution_by_course &&
+    Array.isArray(data.grade_distribution_by_course)
+  ) {
+    data.grade_distribution_by_course.forEach((course: any) => {
+      if (course && course.score >= 60) {
+        const courseType = course.course_type || "未分类";
+        creditsByType[courseType] =
+          (creditsByType[courseType] || 0) + (parseFloat(course.credit) || 0);
+      }
+    });
+  }
   hasCreditsByTypeData.value = Object.keys(creditsByType).length > 0;
 
   showMainNotification("成绩分析报告已生成。", "success");

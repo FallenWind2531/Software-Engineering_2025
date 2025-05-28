@@ -35,7 +35,10 @@ apiClient.interceptors.response.use(function (response) {
       !window.location.pathname.includes("/login") &&
       !window.location.pathname.includes("/change-password")
     ) {
-      window.location.href = "@/login";
+      // 使用异步导入router
+      import("@/router").then(({ default: router }) => {
+        router.push("/login");
+      });
     }
   }
   return response;

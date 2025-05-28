@@ -1,19 +1,19 @@
 package com.Main.dto;
 
 public class GradeDistributionDTO {
-    private String courseName; // 课程名称
+    private String course_name; // 课程名称
     private double score; // 分数
     private double gpa; // GPA
     private float credit; // 学分
 
     public GradeDistributionDTO() {}
 
-    public String getCourseName() {
-        return courseName;
+    public String getCourse_name() {
+        return course_name;
     }
 
-    public void setCourseName(String courseName) {
-        this.courseName = courseName;
+    public void setCourse_name(String course_name) {
+        this.course_name = course_name;
     }
 
     public double getScore() {

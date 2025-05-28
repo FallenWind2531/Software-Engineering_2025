@@ -124,7 +124,6 @@
                   <th>学分</th>
                   <th>周学时</th>
                   <th>课程类别</th>
-                  <th>开课院系</th>
                   <th>操作</th>
                 </tr>
               </thead>
@@ -139,30 +138,34 @@
                     未查询到符合条件的课程。
                   </td>
                 </tr>
-                <tr v-else v-for="course in paginatedCourses" :key="course.id">
+                <tr
+                  v-else
+                  v-for="course in paginatedCourses"
+                  :key="course.course_id"
+                >
                   <td>{{ course.course_id }}</td>
                   <td>{{ course.course_name }}</td>
                   <td>{{ course.teacher_name || course.teacher_id || "-" }}</td>
-                  <td>{{ course.credits }}</td>
+                  <td>{{ course.credit }}</td>
                   <td>{{ course.hours_per_week }}</td>
                   <td>{{ course.category }}</td>
-                  <!--                  <td>{{ course.department }}</td>-->
-                  <!--                  <td class="actions-cell">-->
-                  <!--                    <button-->
-                  <!--                      class="btn btn-sm btn-primary edit-course-btn"-->
-                  <!--                      @click="openCourseModal('edit', course)"-->
-                  <!--                      title="编辑课程"-->
-                  <!--                    >-->
-                  <!--                      <i class="fas fa-edit"></i>-->
-                  <!--                    </button>-->
-                  <!--                    <button-->
-                  <!--                      class="btn btn-sm btn-danger delete-course-btn"-->
-                  <!--                      @click="handleDeleteCourse(course.course_id)"-->
-                  <!--                      title="删除课程"-->
-                  <!--                    >-->
-                  <!--                      <i class="fas fa-trash-alt"></i>-->
-                  <!--                    </button>-->
-                  <!--                  </td>-->
+                  <!-- <td>{{ course.department }}</td>-->
+                  <td class="actions-cell">
+                    <button
+                      class="btn btn-sm btn-primary edit-course-btn"
+                      @click="openCourseModal('edit', course)"
+                      title="编辑课程"
+                    >
+                      <FontAwesomeIcon icon="fas fa-edit" />
+                    </button>
+                    <button
+                      class="btn btn-sm btn-danger delete-course-btn"
+                      @click="handleDeleteCourse(course.course_id)"
+                      title="删除课程"
+                    >
+                      <FontAwesomeIcon icon="fas fa-trash-alt" />
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -215,11 +218,14 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { getCourses } from "@/api/course";
 import { createCourse, updateCourse, deleteCourse } from "@/api/teacher";
 import { useuserLoginStore } from "@/store/userLoginStore";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 type Course = {
   course_id: string;
   course_name: string;
-  credits: number;
+  credit: number;
   hours_per_week: number;
   category: string;
   course_description: string;
@@ -247,7 +253,7 @@ const saveButtonText = ref("添加课程");
 const courseData = ref<Course>({
   course_id: "",
   course_name: "",
-  credits: 0,
+  credit: 0,
   hours_per_week: 0,
   category: "",
   course_description: "",
@@ -262,9 +268,9 @@ const notification = ref({
 const filteredCourses = computed(() => {
   return courses.value.filter((course) => {
     return (
-      course.course_id.includes(filter.value.course_id) &&
-      course.course_name.includes(filter.value.course_name) &&
-      (course.teacher_name || course.teacher_id || "").includes(
+      String(course.course_id).includes(filter.value.course_id) &&
+      String(course.course_name).includes(filter.value.course_name) &&
+      String(course.teacher_name || course.teacher_id || "").includes(
         filter.value.teacher_name
       )
     );
@@ -372,7 +378,7 @@ const filterAndDisplayCourses = async () => {
   showNotification("正在查询课程列表...", "info");
   try {
     const response = await getCourses(filter.value);
-    courses.value = response.data;
+    courses.value = response.data.data.items;
     loading.value = false;
     if (courses.value.length > 0) {
       showNotification("课程列表加载完毕。", "success");
@@ -421,13 +427,13 @@ const handleLogout = () => {
   showNotification("正在退出登录...", "info");
   setTimeout(() => {
     loginUserStore.setLoginUserUnlogin();
-    window.location.href = "../login";
+    router.push("/login");
   }, 3000);
 };
 
 const handleChangePassword = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  //window.location.href = "../change-password";
+  router.push("/change-password");
 };
 </script>
 

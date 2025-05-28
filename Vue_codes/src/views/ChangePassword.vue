@@ -76,6 +76,9 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { updateCurrentUserPassword } from "@/api/account";
+import { useuserLoginStore } from "@/store/userLoginStore";
+
+const loginUserStore = useuserLoginStore();
 
 // 表单数据
 const oldPassword = ref("");
@@ -115,13 +118,14 @@ const handleSubmit = async () => {
 
   // 提取响应式对象的值
   const data = {
-    old_password: oldPassword.value,
-    new_password: newPassword.value,
+    oldPassword: oldPassword.value,
+    newPassword: newPassword.value,
   };
 
   try {
     await updateCurrentUserPassword(data);
     showNotificationFunc("密码重置成功！正在跳转到登录页面...", "success");
+    loginUserStore.setLoginUserUnlogin();
     setTimeout(() => {
       window.location.href = "../login"; // Redirect to login page
     }, 2000);

@@ -3,7 +3,7 @@
     <div class="top-bar">
       <div class="left-section">
         <router-link
-          to="../student/dashboard"
+          to="../admin/dashboard"
           class="back-icon"
           id="backToDashboard"
         >
@@ -177,7 +177,9 @@ import {
   uploadAvatar,
 } from "@/api/account";
 import { useuserLoginStore } from "@/store/userLoginStore";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const loginUserStore = useuserLoginStore();
 // 响应式数据
 const studentProfileData = ref({
@@ -205,7 +207,8 @@ const isUploading = ref(false);
 const fetchUserProfile = async () => {
   try {
     const response = await getCurrentUserProfile();
-    studentProfileData.value = response.data;
+    studentProfileData.value = response.data.data;
+    studentProfileData.value.role = "管理员";
   } catch (error) {
     showNotification("获取用户信息失败，请稍后重试。", "error");
   }
@@ -281,8 +284,8 @@ const handleLogout = () => {
 
 // 处理修改密码
 const handleChangePassword = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  //window.location.href = "../change-password";
+  router.push("/change-password");
 };
 
 const triggerAvatarUpload = () => {
@@ -306,7 +309,7 @@ const handleAvatarUpload = async (event: Event) => {
       showNotification("头像上传成功。", "success");
       console.log("头像上传成功:", response);
       // 假设响应中包含更新后的头像路径
-      studentProfileData.value.avatar_path = response.data.avatar_path;
+      studentProfileData.value.avatar_path = response.data.data.avatar_path;
     } catch (error) {
       showNotification("头像上传失败，请稍后重试。", "error");
       console.error("头像上传失败:", error);
