@@ -87,36 +87,36 @@
                   placeholder="请输入您的联系方式"
                 />
               </div>
-              <!--              <div class="form-group">-->
-              <!--                <label for="avatar_path">头像:</label>-->
-              <!--                <div class="avatar-wrapper">-->
-              <!--                  <img-->
-              <!--                    :src="studentProfileData.avatar_path || defaultAvatar"-->
-              <!--                    alt="User Avatar"-->
-              <!--                    class="avatar-preview"-->
-              <!--                  />-->
-              <!--                  <div v-if="isUploading" class="uploading-overlay">-->
-              <!--                    <FontAwesomeIcon icon="fas fa-spinner" spin />-->
-              <!--                  </div>-->
-              <!--                </div>-->
-              <!--                &lt;!&ndash; 上传头像按钮 &ndash;&gt;-->
-              <!--                <input-->
-              <!--                  type="file"-->
-              <!--                  id="avatarUpload"-->
-              <!--                  name="avatarUpload"-->
-              <!--                  @change="handleAvatarUpload"-->
-              <!--                  style="display: none"-->
-              <!--                />-->
-              <!--                <button-->
-              <!--                  type="button"-->
-              <!--                  class="btn btn-secondary"-->
-              <!--                  @click="triggerAvatarUpload"-->
-              <!--                  :disabled="isUploading"-->
-              <!--                >-->
-              <!--                  <FontAwesomeIcon icon="fas fa-upload" />-->
-              <!--                  {{ isUploading ? "上传中..." : "上传头像" }}-->
-              <!--                </button>-->
-              <!--              </div>-->
+              <div class="form-group">
+                <label for="avatar_path">头像:</label>
+                <div class="avatar-wrapper">
+                  <img
+                    :src="studentProfileData.avatar_path || defaultAvatar"
+                    alt="User Avatar"
+                    class="avatar-preview"
+                  />
+                  <div v-if="isUploading" class="uploading-overlay">
+                    <FontAwesomeIcon icon="fas fa-spinner" spin />
+                  </div>
+                </div>
+                <!-- 上传头像按钮 -->
+                <input
+                  type="file"
+                  id="avatarUpload"
+                  name="avatarUpload"
+                  @change="handleAvatarUpload"
+                  style="display: none"
+                />
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  @click="triggerAvatarUpload"
+                  :disabled="isUploading"
+                >
+                  <FontAwesomeIcon icon="fas fa-upload" />
+                  {{ isUploading ? "上传中..." : "上传头像" }}
+                </button>
+              </div>
             </div>
 
             <div class="form-actions">
@@ -199,7 +199,7 @@ const userDropdownVisible = ref(false);
 const notificationVisible = ref(false);
 const notificationMessage = ref("");
 const isUploading = ref(false);
-// const defaultAvatar = "@/assets/logo.png"; // 替换为默认头像的路径
+const defaultAvatar = "@/assets/logo.png"; // 替换为默认头像的路径
 
 // 获取当前用户信息
 const fetchUserProfile = async () => {
@@ -297,6 +297,21 @@ const handleAvatarUpload = async (event: Event) => {
   const files = (event.target as HTMLInputElement).files;
   if (files && files.length > 0) {
     const file = files[0];
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    // 验证文件类型
+    if (!allowedTypes.includes(file.type)) {
+      showNotification("请上传 JPEG/JPG或PNG 格式的图片。", "error");
+      return;
+    }
+
+    // 验证文件大小
+    if (file.size > maxSize) {
+      showNotification("图片大小不能超过 5MB。", "error");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("avatar", file);
     isUploading.value = true;
@@ -305,8 +320,7 @@ const handleAvatarUpload = async (event: Event) => {
       const response = await uploadAvatar(formData);
       showNotification("头像上传成功。", "success");
       console.log("头像上传成功:", response);
-      // 假设响应中包含更新后的头像路径
-      studentProfileData.value.avatar_path = response.data.avatar_path;
+      studentProfileData.value.avatar_path = response.data.data.avatar_path;
     } catch (error) {
       showNotification("头像上传失败，请稍后重试。", "error");
       console.error("头像上传失败:", error);
