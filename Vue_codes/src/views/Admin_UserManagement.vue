@@ -66,10 +66,10 @@
             <div class="form-group">
               <label for="filterUserRole">用户角色:</label>
               <select id="filterUserRole" v-model="filterUserRole">
-                <option value="all">所有角色</option>
-                <option value="student">学生</option>
-                <option value="teacher">教师</option>
-                <option value="admin">管理员</option>
+                <option value="">所有角色</option>
+                <option value="s">学生</option>
+                <option value="t">教师</option>
+                <option value="a">管理员</option>
               </select>
             </div>
             <div class="form-group">
@@ -139,9 +139,9 @@
                   <td>{{ user.name }}</td>
                   <td>
                     {{
-                      user.role === "student"
+                      user.role === "s"
                         ? "学生"
-                        : user.role === "teacher"
+                        : user.role === "t"
                         ? "教师"
                         : "管理员"
                     }}
@@ -167,7 +167,7 @@
                     </button>
                     <button
                       class="btn btn-sm btn-danger"
-                      @click="handleDeleteUser(user.id, user.name)"
+                      @click="handleDeleteUser(user.user_id, user.name)"
                     >
                       <FontAwesomeIcon icon="fas fa-trash-alt" />
                     </button>
@@ -241,9 +241,9 @@
             <label for="modalUserRoleSelect">角色:</label>
             <select id="modalUserRoleSelect" v-model="modalUser.role" required>
               <option value="">--选择角色--</option>
-              <option value="student">学生</option>
-              <option value="teacher">教师</option>
-              <option value="admin">管理员</option>
+              <option value="s">学生</option>
+              <option value="t">教师</option>
+              <option value="a">管理员</option>
             </select>
           </div>
           <div class="form-group">
@@ -328,8 +328,10 @@ import { ref, onMounted } from "vue";
 import { useuserLoginStore } from "@/store/userLoginStore";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { getUsers, createUser, updateUser, deleteUser } from "@/api/admin";
+import { useRouter } from "vue-router";
 
 type User = {
+  user_id: string;
   name: string;
   account: string;
   role: string;
@@ -339,6 +341,7 @@ type User = {
 };
 
 // 响应式数据
+const router = useRouter();
 const loginUserStore = useuserLoginStore();
 const isUserDropdownOpen = ref(false);
 const isUserModalOpen = ref(false);
@@ -348,7 +351,7 @@ const notificationMessage = ref("");
 const users = ref([]);
 const filterUserId = ref("");
 const filterUserName = ref("");
-const filterUserRole = ref("all");
+const filterUserRole = ref("");
 const filterUserDepartment = ref("");
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
@@ -382,8 +385,8 @@ const logout = () => {
 
 // 修改密码
 const logChange = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  //window.location.href = "../change-password";
+  router.push("/change-password");
 };
 
 // 显示通知
@@ -457,11 +460,12 @@ const fetchUsers = async () => {
   loading.value = true;
   try {
     const response = await getUsers({
+      account: filterUserId.value,
       name: filterUserName.value,
       role: filterUserRole.value,
       department: filterUserDepartment.value,
     });
-    users.value = response.data;
+    users.value = response.data.data.items;
     totalPages.value = Math.ceil(users.value.length / itemsPerPage.value);
     showMainNotification(
       `查询到 ${users.value.length} 条符合条件的用户。`,
@@ -485,7 +489,7 @@ const filterAndDisplayUsers = async () => {
 const resetUserFilters = () => {
   filterUserId.value = "";
   filterUserName.value = "";
-  filterUserRole.value = "all";
+  filterUserRole.value = "";
   filterUserDepartment.value = "";
   filterAndDisplayUsers();
 };
@@ -507,7 +511,7 @@ const openUserModal = (mode = "add", userData: User) => {
     modalShowPassword.value = true;
   } else if (mode === "edit" && userData) {
     modalTitle.value = `编辑用户 - ${userData.name}`;
-    // modalUserId.value = userData.id;
+    modalUserId.value = userData.user_id;
     modalUser.value = { ...userData };
     modalShowPassword.value = false;
   }
@@ -539,13 +543,13 @@ const saveUser = async () => {
     if (modalMode.value === "add") {
       const response = await createUser(modalUser.value);
       showMainNotification(
-        `新用户 ${response.data.name} 已成功添加。`,
+        `新用户 ${response.data.data.name} 已成功添加。`,
         "success"
       );
     } else {
       const response = await updateUser(modalUserId.value, modalUser.value);
       showMainNotification(
-        `用户 ${response.data.name} 信息已更新。`,
+        `用户 ${response.data.data.name} 信息已更新。`,
         "success"
       );
     }

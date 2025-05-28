@@ -125,7 +125,9 @@
 import { ref, onMounted } from "vue";
 import { useuserLoginStore } from "@/store/userLoginStore";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 // 响应式数据
 const loginUserStore = useuserLoginStore();
 const isUserDropdownOpen = ref(false);
@@ -152,8 +154,8 @@ const logout = () => {
 };
 
 const logChange = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  //window.location.href = "../change-password";
+  router.push("/change-password");
 };
 
 // 显示通知

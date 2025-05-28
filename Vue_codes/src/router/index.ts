@@ -24,7 +24,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
     name: "Home",
-    component: AdminDashboard,
+    redirect: "/login",
   },
   {
     path: "/admin/approve",

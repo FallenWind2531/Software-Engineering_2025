@@ -16,7 +16,7 @@
       <div class="right-section">
         <div class="user-info" id="userInfoToggle" @click="toggleUserDropdown">
           <div class="user-avatar">
-            <FontAwesomeIcon icon="fas fa-user-shield" />
+            <FontAwesomeIcon icon="fas fa-user-graduate" />
           </div>
           <span class="user-name" id="approveGradeAdminName">{{
             loginUserStore.loginUser.name
@@ -55,12 +55,8 @@
               <label for="filterSemesterGrades">选择学年:</label>
               <select id="filterSemesterGrades" v-model="filter.sec_year">
                 <option value="">所有</option>
-                <option
-                  v-for="semester in semesters"
-                  :key="semester"
-                  :value="semester.split('-')[0]"
-                >
-                  {{ formatYear(semester) }}
+                <option v-for="year in uniqueYears" :key="year" :value="year">
+                  {{ year }}学年
                 </option>
               </select>
             </div>
@@ -190,6 +186,7 @@ import { ref, onMounted, nextTick } from "vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { getStudentGrades } from "@/api/student";
 import { useuserLoginStore } from "@/store/userLoginStore";
+import { useRouter } from "vue-router";
 
 type Grade = {
   grade_id: number;
@@ -216,12 +213,13 @@ type Grade = {
 };
 
 const loginUserStore = useuserLoginStore();
+const router = useRouter();
 // 响应式数据
 const userDropdownVisible = ref(false);
 const filter = ref({
-  sec_year: null,
+  sec_year: "" as string | number | null,
   semester: "",
-  course_name: null,
+  course_name: "" as string | null,
 });
 const gradesFilterAll = ref({
   sec_year: "",
@@ -240,6 +238,7 @@ const notification = ref({
 const totalCreditsAttempted = ref(0);
 const totalCreditsEarned = ref(0);
 const gpa = ref("N/A");
+const uniqueYears = ref<number[]>([]);
 
 // 生命周期钩子
 onMounted(() => {
@@ -266,14 +265,13 @@ const handleLogout = () => {
   showNotification("正在退出登录...", "info");
   setTimeout(() => {
     loginUserStore.setLoginUserUnlogin();
-    window.location.href = "../login";
+    router.push("/login");
   }, 1500);
 };
 
 // 处理修改密码
 const handleChangePassword = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  router.push("/change-password");
 };
 
 const fetchGradesData = async () => {
@@ -301,6 +299,9 @@ const fetchGradesData = async () => {
       filter.value.sec_year = parseInt(semesters.value[0].split("-")[0]);
       filter.value.semester = semesters.value[0].split("-")[1];
     }
+    uniqueYears.value = [
+      ...new Set(allGradesData.value.map((g) => g.sec_year)),
+    ];
   } catch (error) {
     console.error("获取成绩数据失败:", error);
     showNotification("获取成绩数据失败", "error");
@@ -315,9 +316,18 @@ const filterAndDisplayGrades = async () => {
     grades.value = response.data.data;
     // const response = sampleGradesData;
     // grades.value = response;
-    const selectedOption = document.getElementById("filterSemesterGrades")
-      .selectedOptions[0];
-    filterText.value = selectedOption.text;
+
+    // 更新过滤文本
+    if (filter.value.sec_year && filter.value.semester) {
+      filterText.value = `${filter.value.sec_year}学年 ${filter.value.semester}学期`;
+    } else if (filter.value.sec_year) {
+      filterText.value = `${filter.value.sec_year}学年`;
+    } else if (filter.value.semester) {
+      filterText.value = `${filter.value.semester}学期`;
+    } else {
+      filterText.value = "全部学期";
+    }
+
     loading.value = false;
     if (grades.value.length > 0) {
       showNotification("成绩列表加载完毕。", "success");
@@ -335,15 +345,15 @@ const filterAndDisplayGrades = async () => {
 // 重置筛选条件
 const resetFilters = () => {
   filter.value = {
-    sec_year: "all",
-    semester: "all",
-    course_name: "all",
+    sec_year: "",
+    semester: "",
+    course_name: "",
   };
   setTimeout(filterAndDisplayGrades, 100);
 };
 
 // 显示通知
-const showNotification = (message, type = "info") => {
+const showNotification = (message: string, type: "info") => {
   notification.value = {
     message,
     type,
@@ -364,7 +374,7 @@ const calculateSummaryStats = () => {
   let validGpaCount = 0;
 
   grades.value.forEach((grade) => {
-    attempted += grade.credits;
+    attempted += grade.credit;
     if (typeof grade.gpa === "number") {
       totalGpa += grade.gpa;
       validGpaCount++;
@@ -377,7 +387,7 @@ const calculateSummaryStats = () => {
 };
 
 // 获取成绩的 CSS 类
-const getGradeClass = (score) => {
+const getGradeClass = (score: number) => {
   if (typeof score === "number") {
     if (score >= 60) {
       return "grade-value pass";

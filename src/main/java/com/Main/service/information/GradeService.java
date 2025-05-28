@@ -309,7 +309,7 @@ public class GradeService{
 
             // 创建成绩分布对象
             GradeDistributionDTO distribution = new GradeDistributionDTO();
-            distribution.setCourseName(course.getName());
+            distribution.setCourse_name(course.getName());
             distribution.setScore(studentGradeDTO.getScore());
             distribution.setGpa(studentGradeDTO.getGpa());
             distribution.setCredit(course.getCredit());
@@ -327,7 +327,7 @@ public class GradeService{
             performanceTrendDTO.setSec_year(year);
             performanceTrendDTO.setSemester(semester);
             performanceTrendDTO.setGpa(performanceTrendDTO.getGpa() + studentGradeDTO.getGpa());
-            performanceTrendDTO.setAverageScore(performanceTrendDTO.getAverageScore() + studentGradeDTO.getScore());
+            performanceTrendDTO.setAverage_score(performanceTrendDTO.getAverage_score() + studentGradeDTO.getScore());
             semesterDataMap.put(semesterKey, performanceTrendDTO);
 
             // 增加课程计数
@@ -336,19 +336,19 @@ public class GradeService{
 
         // 计算平均 GPA 和分数
         if (totalCourses > 0) {
-            analysisResult.setOverallGpa(totalGpa / totalCourses);
-            analysisResult.setAverageScore(totalScore / totalCourses);
+            analysisResult.setOverall_gpa(totalGpa / totalCourses);
+            analysisResult.setAverage_score(totalScore / totalCourses);
         } else {
-            analysisResult.setOverallGpa(0.0);
-            analysisResult.setAverageScore(0.0);
+            analysisResult.setOverall_gpa(0.0);
+            analysisResult.setAverage_score(0.0);
         }
 
         // 设置总学分
-        analysisResult.setTotalCreditsEarned((int) totalCreditsEarned);
-        analysisResult.setTotalCreditsTaken((int) totalCreditsTaken);
+        analysisResult.setTotal_credits_earned((int) totalCreditsEarned);
+        analysisResult.setTotal_credits_taken((int) totalCreditsTaken);
 
         // 设置成绩分布
-        analysisResult.setGradeDistributionByCourse(gradeDistribution);
+        analysisResult.setGrade_distribution_by_course(gradeDistribution);
 
         // 生成表现趋势
         List<PerformanceTrendDTO> performanceTrend = new ArrayList<>();
@@ -357,7 +357,7 @@ public class GradeService{
             int count = semesterCourseCountMap.get(entry.getKey()); // 使用该学期的课程数量
             if (count > 0) {
                 trend.setGpa(trend.getGpa() / count);
-                trend.setAverageScore(trend.getAverageScore() / count);
+                trend.setAverage_score(trend.getAverage_score() / count);
             }
             performanceTrend.add(trend);
         }
@@ -366,7 +366,7 @@ public class GradeService{
         performanceTrend.sort(Comparator.comparingInt(PerformanceTrendDTO::getSec_year)
                 .thenComparing(trend -> semesterOrder.get(trend.getSemester())));
 
-        analysisResult.setPerformanceTrend(performanceTrend);
+        analysisResult.setPerformance_trend(performanceTrend);
 
         return analysisResult;
     }

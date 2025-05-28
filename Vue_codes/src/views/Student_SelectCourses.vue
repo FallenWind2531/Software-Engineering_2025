@@ -14,20 +14,27 @@
         <span class="system-subname">信息管理子系统 - 已选课程</span>
       </div>
       <div class="right-section">
-        <div class="user-info" id="userInfoToggle">
+        <div class="user-info" id="userInfoToggle" @click="toggleUserDropdown">
           <div class="user-avatar">
             <FontAwesomeIcon icon="fas fa-user-graduate" />
           </div>
-          <span class="user-name" id="selectedCoursesUserName">学生姓名</span>
-          <FontAwesomeIcon icon="fas fa-angle-down" />
+          <span class="user-name" id="selectedCoursesUserName">{{
+            loginUserStore.loginUser.name
+          }}</span>
+          <FontAwesomeIcon
+            :icon="
+              userDropdownVisible ? 'fas fa-angle-up' : 'fas fa-angle-down'
+            "
+          />
         </div>
-        <div class="user-dropdown-menu" id="userDropdown">
-          <router-link href="../student_profile/student_profile.html"
-            >个人信息</router-link
-          >
-          <router-link href="#">修改密码</router-link>
+        <div
+          class="user-dropdown-menu"
+          id="userDropdown"
+          :style="{ display: userDropdownVisible ? 'block' : 'none' }"
+        >
+          <a @click="handleChangePassword">修改密码</a>
           <div class="divider"></div>
-          <router-link href="#" id="logoutLink">退出登录</router-link>
+          <a @click="handleLogout">退出登录</a>
         </div>
       </div>
     </div>
@@ -128,7 +135,37 @@
     </div>
   </div>
 </template>
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { useuserLoginStore } from "@/store/userLoginStore";
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+const loginUserStore = useuserLoginStore();
+const userDropdownVisible = ref(false);
+
+// 切换用户下拉菜单
+const toggleUserDropdown = () => {
+  userDropdownVisible.value = !userDropdownVisible.value;
+};
+
+// 处理退出登录
+const handleLogout = () => {
+  loginUserStore.setLoginUserUnlogin();
+  router.push("/login");
+};
+
+// 处理修改密码
+const handleChangePassword = () => {
+  router.push("/change-password");
+};
+
+// 跳转到个人信息页面
+const goToProfile = () => {
+  router.push("/student/profile");
+};
+</script>
 
 <style scoped>
 /* Global Styles */

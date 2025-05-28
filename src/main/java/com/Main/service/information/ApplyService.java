@@ -108,14 +108,14 @@ public class ApplyService {
         List<Object> params = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT a.*, t.name AS teacher_name, s.name, c.course_name FROM Apply a " +
                 "INNER JOIN GradeBase gb ON a.grade_id = gb.grade_id " +
-                "INNER JOIN User t ON a.teacher_id = t.user_Id " +
-                "INNER JOIN User s ON gb.student_id = s.user_Id " +
+                "INNER JOIN User t ON a.teacher_id = t.user_id " +
+                "INNER JOIN User s ON gb.student_id = s.user_id " +
                 "INNER JOIN Course c ON gb.course_id = c.course_id " +
                 "WHERE 1=1 ");
 
         if (auditStatus != null) {
             sql.append("AND a.audit_status = ? ");
-            params.add(auditStatus);
+            params.add(String.valueOf(auditStatus));
         }
 
         if (teacherId != null) {

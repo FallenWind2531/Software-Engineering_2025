@@ -210,7 +210,8 @@ const defaultAvatar = "path/to/default/avatar.png"; // 替换为默认头像的�
 const fetchUserProfile = async () => {
   try {
     const response = await getCurrentUserProfile();
-    studentProfileData.value = response.data; // 假设响应数据结构为 { data: {...} }
+    studentProfileData.value = response.data.data; // 假设响应数据结构为 { data: {...} }
+    studentProfileData.value.role = "学生";
   } catch (error) {
     showNotification("获取用户信息失败，请稍后重试。", "error");
   }

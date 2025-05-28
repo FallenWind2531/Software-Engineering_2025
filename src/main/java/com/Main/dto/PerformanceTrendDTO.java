@@ -4,7 +4,7 @@ public class PerformanceTrendDTO {
     private int sec_year;
     private String semester; // 学期
     private double gpa; // GPA
-    private double averageScore; // 平均分
+    private double average_score; // 平均分
 
     public PerformanceTrendDTO() {}
 
@@ -32,11 +32,11 @@ public class PerformanceTrendDTO {
         this.gpa = gpa;
     }
 
-    public double getAverageScore() {
-        return averageScore;
+    public double getAverage_score() {
+        return average_score;
     }
 
-    public void setAverageScore(double averageScore) {
-        this.averageScore = averageScore;
+    public void setAverage_score(double average_score) {
+        this.average_score = average_score;
     }
 }

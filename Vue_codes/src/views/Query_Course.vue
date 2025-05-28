@@ -54,7 +54,7 @@
               <input
                 type="text"
                 id="courseName"
-                v-model="filters.name"
+                v-model="filters.course_name"
                 placeholder="输入课程名关键词"
               />
             </div>
@@ -72,7 +72,7 @@
               <input
                 type="text"
                 id="courseTeacher"
-                v-model="filters.teacher"
+                v-model="filters.teacher_name"
                 placeholder="输入教师姓名"
               />
             </div>
@@ -141,8 +141,8 @@
                     v-for="course in paginatedCourses"
                     :key="course.course_id"
                   >
-                    <td>{{ course.name }}</td>
-                    <td>{{ course.description }}</td>
+                    <td>{{ course.course_name }}</td>
+                    <td>{{ course.course_description }}</td>
                     <td>{{ course.teacher_name }}</td>
                     <td>{{ course.credit }}</td>
                     <td>{{ course.hours_per_week }}</td>
@@ -219,8 +219,8 @@ const loginUserStore = useuserLoginStore();
 
 type Course = {
   course_id: number;
-  name: string;
-  description: string;
+  course_name: string;
+  course_description: string;
   teacher_id: number;
   teacher_name: string; // 联查得到
   credit: number;
@@ -230,9 +230,9 @@ type Course = {
 
 const isUserDropdownVisible = ref(false);
 const filters = ref({
-  name: "",
+  course_name: "",
   teacher_id: "",
-  teacher: "",
+  teacher_name: "",
   category: "",
 });
 const courses = ref<Course[]>([]);
