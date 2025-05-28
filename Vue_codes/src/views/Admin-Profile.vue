@@ -91,7 +91,7 @@
                 <label for="avatar_path">头像:</label>
                 <div class="avatar-wrapper">
                   <img
-                    :src="studentProfileData.avatar_path || defaultAvatar"
+                    :src="studentProfileData.avatar_path"
                     alt="User Avatar"
                     class="avatar-preview"
                   />
@@ -199,7 +199,7 @@ const userDropdownVisible = ref(false);
 const notificationVisible = ref(false);
 const notificationMessage = ref("");
 const isUploading = ref(false);
-const defaultAvatar = "@/assets/logo.png"; // 替换为默认头像的路径
+// const defaultAvatar = "@/assets/logo.png"; // 替换为默认头像的路径
 
 // 获取当前用户信息
 const fetchUserProfile = async () => {
@@ -297,20 +297,20 @@ const handleAvatarUpload = async (event: Event) => {
   const files = (event.target as HTMLInputElement).files;
   if (files && files.length > 0) {
     const file = files[0];
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    // 验证文件类型
-    if (!allowedTypes.includes(file.type)) {
-      showNotification("请上传 JPEG/JPG或PNG 格式的图片。", "error");
-      return;
-    }
-
-    // 验证文件大小
-    if (file.size > maxSize) {
-      showNotification("图片大小不能超过 5MB。", "error");
-      return;
-    }
+    // const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+    // const maxSize = 5 * 1024 * 1024; // 5MB
+    //
+    // // 验证文件类型
+    // if (!allowedTypes.includes(file.type)) {
+    //   showNotification("请上传 JPEG/JPG或PNG 格式的图片。", "error");
+    //   return;
+    // }
+    //
+    // // 验证文件大小
+    // if (file.size > maxSize) {
+    //   showNotification("图片大小不能超过 5MB。", "error");
+    //   return;
+    // }
 
     const formData = new FormData();
     formData.append("avatar", file);
