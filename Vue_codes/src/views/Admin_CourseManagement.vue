@@ -19,7 +19,7 @@
             <FontAwesomeIcon icon="fas fa-user-shield" />
           </div>
           <span class="user-name" id="approveGradeAdminName">{{
-            JSON.stringify(loginUserStore.loginUser.name)
+            loginUserStore.loginUser.name
           }}</span>
           <FontAwesomeIcon
             :icon="
@@ -147,6 +147,7 @@
                   <td>{{ course.course_name }}</td>
                   <td>{{ course.teacher_name || course.teacher_id || "-" }}</td>
                   <td>{{ course.credit }}</td>
+                  <td>{{ course.credit }}</td>
                   <td>{{ course.hours_per_week }}</td>
                   <td>{{ course.category }}</td>
                   <!-- <td>{{ course.department }}</td>-->
@@ -226,6 +227,7 @@ type Course = {
   course_id: string;
   course_name: string;
   credit: number;
+  credit: number;
   hours_per_week: number;
   category: string;
   course_description: string;
@@ -246,13 +248,10 @@ const filter = ref({
 const userDropdownVisible = ref(false);
 const currentPage = ref(1);
 const coursesPerPage = ref(10);
-const modalVisible = ref(false);
-const modalMode = ref("add");
-const modalTitle = ref("添加新课程");
-const saveButtonText = ref("添加课程");
 const courseData = ref<Course>({
   course_id: "",
   course_name: "",
+  credit: 0,
   credit: 0,
   hours_per_week: 0,
   category: "",
@@ -286,80 +285,6 @@ const paginatedCourses = computed(() => {
   const endIndex = startIndex + coursesPerPage.value;
   return filteredCourses.value.slice(startIndex, endIndex);
 });
-//
-// const openCourseModal = (mode: string, course?: Course) => {
-//   if (mode === "add") {
-//     modalTitle.value = "添加新课程";
-//     saveButtonText.value = "添加课程";
-//     courseData.value = {
-//       course_id: "",
-//       course_name: "",
-//       credits: 0,
-//       hours_per_week: 0,
-//       category: "",
-//       course_description: "",
-//       teacher_id: "",
-//       teacher_name: "",
-//     };
-//   } else if (mode === "edit" && course) {
-//     modalTitle.value = `编辑课程 - ${course.course_name}`;
-//     saveButtonText.value = "保存更改";
-//     courseData.value = { ...course };
-//   }
-//   modalVisible.value = true;
-// };
-//
-// const closeCourseModal = () => {
-//   modalVisible.value = false;
-// };
-//
-// const submitCourseForm = async () => {
-//   if (
-//     !courseData.value.course_id ||
-//     !courseData.value.course_name ||
-//     isNaN(courseData.value.credits) ||
-//     isNaN(courseData.value.hours_per_week) ||
-//     !courseData.value.category
-//   ) {
-//     showNotification("课程编号、名称、学分、周学时和类别为必填项。", "error");
-//     return;
-//   }
-//
-//   try {
-//     if (modalMode.value === "add") {
-//       const response = await createCourse(courseData.value);
-//       showNotification(
-//         `新课程 ${response.data.course_name} 已成功添加。`,
-//         "success"
-//       );
-//     } else {
-//       const response = await updateCourse(
-//         courseData.value.course_id,
-//         courseData.value
-//       );
-//       showNotification(
-//         `课程 ${response.data.course_name} 信息已更新。`,
-//         "success"
-//       );
-//     }
-//     closeCourseModal();
-//     filterAndDisplayCourses();
-//   } catch (error) {
-//     showNotification("操作失败，请稍后重试。", "error");
-//   }
-// };
-//
-// const handleDeleteCourse = async (course_id: string) => {
-//   if (confirm("确定要删除该课程吗？")) {
-//     try {
-//       await deleteCourse(course_id);
-//       showNotification("课程已被删除。", "success");
-//       filterAndDisplayCourses();
-//     } catch (error) {
-//       showNotification("删除课程失败，请稍后重试。", "error");
-//     }
-//   }
-// };
 
 const prevPage = () => {
   if (currentPage.value > 1) {

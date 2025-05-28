@@ -14,9 +14,7 @@
           <div class="user-avatar">
             <FontAwesomeIcon icon="fas fa-user-shield" />
           </div>
-          <span class="user-name">{{
-            JSON.stringify(loginUserStore.loginUser.name)
-          }}</span>
+          <span class="user-name">{{ loginUserStore.loginUser.name }}</span>
           <FontAwesomeIcon
             :icon="
               isUserDropdownOpen
@@ -260,7 +258,7 @@
           <div class="form-group">
             <label for="modalUserEmail">邮箱:</label>
             <input
-              type="contact"
+              type="text"
               id="modalUserEmail"
               v-model="modalUser.contact"
               required

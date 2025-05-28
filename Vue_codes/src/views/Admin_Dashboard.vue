@@ -11,9 +11,7 @@
           <div class="user-avatar">
             <FontAwesomeIcon icon="fas fa-user-graduate" />
           </div>
-          <span class="user-name">{{
-            JSON.stringify(loginUserStore.loginUser.name)
-          }}</span>
+          <span class="user-name">{{ loginUserStore.loginUser.name }}</span>
           <FontAwesomeIcon
             :icon="
               isUserDropdownOpen

@@ -11,7 +11,7 @@
           <div class="user-avatar">
             <FontAwesomeIcon icon="fas fa-chalkboard-teacher" />
           </div>
-          <span class="user-name">{{ teacherName }}</span>
+          <span class="user-name">{{ loginUserStore.loginUser.name }}</span>
           <FontAwesomeIcon
             :icon="
               userDropdownOpen
@@ -35,9 +35,7 @@
     <main class="page-main">
       <div class="container dashboard-container">
         <div class="welcome-banner">
-          <h1>
-            欢迎您，{{ JSON.stringify(loginUserStore.loginUser.name) }}老师！
-          </h1>
+          <h1>欢迎您，{{ loginUserStore.loginUser.name }}老师！</h1>
           <p>今天是 {{ currentDate }}</p>
         </div>
 
