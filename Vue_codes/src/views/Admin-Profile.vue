@@ -22,7 +22,13 @@
               alt="User Avatar"
               class="avatar-img"
             />
-            <FontAwesomeIcon v-else icon="fas fa-user" />
+            <img
+              v-else
+              :src="defaultAvatar"
+              alt="User Avatar"
+              class="avatar-img"
+            />
+            <!--            <FontAwesomeIcon v-else icon="fas fa-user" />-->
           </div>
           <span class="user-name" id="profileUserName">{{
             studentProfileData.name
@@ -100,7 +106,11 @@
                 <label for="avatarPath">头像:</label>
                 <div class="avatar-wrapper">
                   <img
-                    :src="getAvatarUrl(studentProfileData.avatarPath)"
+                    :src="
+                      !getAvatarUrl(studentProfileData.avatarPath)
+                        ? defaultAvatar
+                        : getAvatarUrl(studentProfileData.avatarPath)
+                    "
                     alt="User Avatar"
                     class="avatar-preview"
                   />
@@ -187,6 +197,7 @@ import {
 } from "@/api/account";
 import { useuserLoginStore } from "@/store/userLoginStore";
 import { useRouter } from "vue-router";
+import defaultAvatar from "@/assets/defaultAvatar.png";
 
 const router = useRouter();
 const loginUserStore = useuserLoginStore();
