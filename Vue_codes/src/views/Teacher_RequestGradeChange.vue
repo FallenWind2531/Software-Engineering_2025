@@ -30,6 +30,7 @@
         <div
           class="user-dropdown-menu"
           id="userDropdown"
+          `
           :style="{ display: userDropdownVisible ? 'block' : 'none' }"
         >
           <a @click="handleChangePassword">修改密码</a>

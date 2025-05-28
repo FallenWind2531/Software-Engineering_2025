@@ -1,5 +1,5 @@
 <template>
-  <div id="app" >
+  <div id="app">
     <div class="page-container">
       <!-- 顶部导航栏 -->
       <header>
@@ -9,7 +9,7 @@
           </div>
           <nav>
             <ul>
-              <router-link :to="{path: '/'}" custom v-slot="{ navigate }">
+              <router-link :to="{ path: '/' }" custom v-slot="{ navigate }">
                 <li><a @click="navigate">首页</a></li>
               </router-link>
               <router-link v-slot="{ navigate }">
@@ -26,10 +26,10 @@
         <h2>欢迎使用供货商智能搜索系统</h2>
         <div class="search-box" :class="{ expanded: isAdvanced }">
           <input
-              type="text"
-              id="search-bar"
-              v-model="searchContent"
-              :placeholder="placeholderText"
+            type="text"
+            id="search-bar"
+            v-model="searchContent"
+            :placeholder="placeholderText"
           />
           <button id="search-btn" @click="handleSearch">搜索</button>
         </div>
@@ -44,56 +44,76 @@
         <div class="filter-sidebar">
           <h3>供货商地区</h3>
           <ul>
-            <li v-for="(count, location) in locationFilterCounts" :key="location">
+            <li
+              v-for="(count, location) in locationFilterCounts"
+              :key="location"
+            >
               <input
-                  type="checkbox"
-                  :value="location"
-                  v-model="selectedLocations"
-                  @change="applyFilters"
+                type="checkbox"
+                :value="location"
+                v-model="selectedLocations"
+                @change="applyFilters"
               />
               {{ location }} ({{ count }})
             </li>
           </ul>
-          <button class="filter-reset-btn" @click="resetFilters">重置筛选</button>
+          <button class="filter-reset-btn" @click="resetFilters">
+            重置筛选
+          </button>
         </div>
         <div class="results-header">
           <h2>搜索结果</h2>
-          <span>共找到 <span style="color: deepskyblue; margin: 0 auto;">{{ searchResults.length }}</span> 个结果</span>
+          <span
+            >共找到
+            <span style="color: deepskyblue; margin: 0 auto">{{
+              searchResults.length
+            }}</span>
+            个结果</span
+          >
         </div>
         <table class="results-table">
           <thead>
-          <tr>
-            <th>商品名称</th>
-            <th>供货商</th>
-            <th>发货地</th>
-            <th>近日销量</th>
-            <th>星级评分</th>
-            <th>价格</th>
-            <th>操作</th>
-          </tr>
+            <tr>
+              <th>商品名称</th>
+              <th>供货商</th>
+              <th>发货地</th>
+              <th>近日销量</th>
+              <th>星级评分</th>
+              <th>价格</th>
+              <th>操作</th>
+            </tr>
           </thead>
           <tbody>
-          <tr v-for="(item, index) in paginatedResults" :key="index">
-            <td>{{ item.ProductName }}</td>  <!-- 显示商品名称 -->
-            <td>{{ item.StoreName }}</td>    <!-- 显示供货商 -->
-            <td>{{ item.ShippingLocation }}</td> <!-- 显示地区 -->
-            <td>{{ item.Turnover }}</td>    <!-- 显示销量 -->
-            <td>{{ item.DescribeRating }}</td>  <!-- 显示评分 -->
-            <td>{{ item.Price }}</td>      <!-- 显示价格 -->
-            <td>
-
-              <button class="details-btn" @click="goToDetail(item.LinkUrl)">查看详情</button>
-              <button class="favorite-btn" @click="handleCollection(item)">收藏</button>
-            </td>
-          </tr>
+            <tr v-for="(item, index) in paginatedResults" :key="index">
+              <td>{{ item.ProductName }}</td>
+              <!-- 显示商品名称 -->
+              <td>{{ item.StoreName }}</td>
+              <!-- 显示供货商 -->
+              <td>{{ item.ShippingLocation }}</td>
+              <!-- 显示地区 -->
+              <td>{{ item.Turnover }}</td>
+              <!-- 显示销量 -->
+              <td>{{ item.DescribeRating }}</td>
+              <!-- 显示评分 -->
+              <td>{{ item.Price }}</td>
+              <!-- 显示价格 -->
+              <td>
+                <button class="details-btn" @click="goToDetail(item.LinkUrl)">
+                  查看详情
+                </button>
+                <button class="favorite-btn" @click="handleCollection(item)">
+                  收藏
+                </button>
+              </td>
+            </tr>
           </tbody>
         </table>
 
         <!-- 分页组件 -->
         <Pagination
-            :currentPage="currentPage"
-            :totalPages="totalPages"
-            @updatePage="updatePage"
+          :currentPage="currentPage"
+          :totalPages="totalPages"
+          @updatePage="updatePage"
         />
       </div>
 
@@ -106,7 +126,7 @@
       <div class="loading-modal" v-if="isLoading">
         <div class="loading-spinner"></div>
         <p>正在进行智能分析...</p>
-        <p style="display: block;">大约需要十几秒，请耐心等待</p>
+        <p style="display: block">大约需要十几秒，请耐心等待</p>
       </div>
     </div>
   </div>
@@ -114,11 +134,11 @@
 
 <script>
 import axios from "axios";
-import Pagination from '../components/Pagination.vue'; // 导入分页组件
+import Pagination from "../components/Pagination.vue"; // 导入分页组件
 
 export default {
   components: {
-    Pagination
+    Pagination,
   },
   data() {
     return {
@@ -133,7 +153,7 @@ export default {
   },
   computed: {
     normalizedResults() {
-      return this.searchResults.map(item => {
+      return this.searchResults.map((item) => {
         return {
           productName: item.ProductName, // 映射为规范的属性名
           storeName: item.StoreName,
@@ -141,7 +161,7 @@ export default {
           turnover: item.Turnover,
           rating: item.DescribeRating,
           price: item.Price,
-          linkUrl: item.LinkUrl
+          linkUrl: item.LinkUrl,
         };
       });
     },
@@ -157,8 +177,8 @@ export default {
     filteredResults() {
       let filtered = this.searchResults;
       if (this.selectedLocations.length > 0) {
-        filtered = this.searchResults.filter((item) =>
-            this.selectedLocations.includes(item.ShippingLocation) // 使用正确的字段名
+        filtered = this.searchResults.filter(
+          (item) => this.selectedLocations.includes(item.ShippingLocation) // 使用正确的字段名
         );
       }
       console.log("filteredResults:", filtered); // 调试：输出过滤后的结果
@@ -188,24 +208,24 @@ export default {
       return paginated;
     },
   },
-  name: 'App',
+  name: "App",
   mounted() {
     this.handleClick(); // 页面加载时自动调用
   },
   methods: {
     goToDetail(linkurl) {
-      console.log('Received linkUrl:', linkurl); // 输出 linkUrl 值
-      if (!linkurl || linkurl === 'undefined') {
-        console.error('Invalid linkurl:', linkurl);
-        alert('链接无效，无法跳转。');
+      console.log("Received linkUrl:", linkurl); // 输出 linkUrl 值
+      if (!linkurl || linkurl === "undefined") {
+        console.error("Invalid linkurl:", linkurl);
+        alert("链接无效，无法跳转。");
         return; // 提示并返回
       }
 
       // 在新窗口中打开链接
-      const newWindow = window.open(linkurl, '_blank');
+      const newWindow = window.open(linkurl, "_blank");
       if (!newWindow) {
-        console.error('新窗口未能打开，请检查浏览器设置');
-        alert('无法在新窗口中打开链接');
+        console.error("新窗口未能打开，请检查浏览器设置");
+        alert("无法在新窗口中打开链接");
       }
     },
     resetFilters() {
@@ -215,41 +235,42 @@ export default {
     },
     handleClick() {
       // 调用后端接口检查是否登录
-      axios.get('http://localhost:8080/check-session', { withCredentials: true })
-          .then(response => {
-            const user = response.data.user; // 假设后端返回的用户信息存在 response.data.user
+      axios
+        .get("http://localhost:8080/check-session", { withCredentials: true })
+        .then((response) => {
+          const user = response.data.user; // 假设后端返回的用户信息存在 response.data.user
 
-            if (user) {
-
-            } else {
-              // 如果用户未登录，跳转到后端的 /signin 页面
-              window.location.href = 'http://localhost:8080/signin';  // 后端登录页面
-            }
-          })
-          .catch(error => {
-            console.error('获取用户信息失败:', error);
-            // 如果获取用户信息失败，跳转到后端登录页面
-            window.location.href = 'http://localhost:8080/signin';
-          });
+          if (user) {
+          } else {
+            // 如果用户未登录，跳转到后端的 /signin 页面
+            window.location.href = "http://localhost:8080/signin"; // 后端登录页面
+          }
+        })
+        .catch((error) => {
+          console.error("获取用户信息失败:", error);
+          // 如果获取用户信息失败，跳转到后端登录页面
+          window.location.href = "http://localhost:8080/signin";
+        });
     },
-    handleClicks(){
+    handleClicks() {
       // 调用后端接口检查是否登录
-      axios.get('http://localhost:8080/check-session', { withCredentials: true })
-          .then(response => {
-            const user = response.data.user; // 假设后端返回的用户信息存在 response.data.user
+      axios
+        .get("http://localhost:8080/check-session", { withCredentials: true })
+        .then((response) => {
+          const user = response.data.user; // 假设后端返回的用户信息存在 response.data.user
 
-            if (user) {
-              this.$router.push('/profile');
-            } else {
-              // 如果用户未登录，跳转到后端的 /signin 页面
-              window.location.href = 'http://localhost:8080/signin';  // 后端登录页面
-            }
-          })
-          .catch(error => {
-            console.error('获取用户信息失败:', error);
-            // 如果获取用户信息失败，跳转到后端登录页面
-            window.location.href = 'http://localhost:8080/signin';
-          });
+          if (user) {
+            this.$router.push("/profile");
+          } else {
+            // 如果用户未登录，跳转到后端的 /signin 页面
+            window.location.href = "http://localhost:8080/signin"; // 后端登录页面
+          }
+        })
+        .catch((error) => {
+          console.error("获取用户信息失败:", error);
+          // 如果获取用户信息失败，跳转到后端登录页面
+          window.location.href = "http://localhost:8080/signin";
+        });
     },
     handleSearch() {
       if (!this.searchContent.trim()) {
@@ -260,7 +281,7 @@ export default {
       if (this.isAdvanced) {
         console.log("高级搜索:", this.searchContent);
         // 触发高级搜索事件（示例接口）
-        this.searchAdvance(this.searchContent)
+        this.searchAdvance(this.searchContent);
       } else {
         console.log("普通搜索:", this.searchContent);
         // 触发普通搜索事件（发送请求到后端）
@@ -275,69 +296,73 @@ export default {
     handleCollection(item) {
       const productid = item.ProductId;
       // 发送请求
-      axios.get('http://localhost:8080/setcollection', {
-        params: {
-          productid: productid
-        },
-        withCredentials: true,
-        paramsSerializer: params => {
-          return Object.entries(params)
-              .map(([key, value]) =>
-                  `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-              .join('&');
-        }
-      })
-          .then(response => {
-            if (response.data === "收藏成功") {
-              alert("收藏成功！");
-            } else if (response.data === "该记录已存在") {
-              alert("该商品已在收藏列表中！");
-            }
-          })
-          .catch(error => {
-            console.error('收藏失败:', error);
-            console.log('请求参数:', shortProductName);
-            if (error.response) {
-              console.log('错误响应:', error.response);
-              alert("收藏失败：" + (error.response.data || "请稍后重试"));
-            } else if (error.request) {
-              alert("网络连接失败，请检查网络后重试");
-            } else {
-              alert("收藏失败，请稍后重试");
-            }
-          })
+      axios
+        .get("http://localhost:8080/setcollection", {
+          params: {
+            productid: productid,
+          },
+          withCredentials: true,
+          paramsSerializer: (params) => {
+            return Object.entries(params)
+              .map(
+                ([key, value]) =>
+                  `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+              )
+              .join("&");
+          },
+        })
+        .then((response) => {
+          if (response.data === "收藏成功") {
+            alert("收藏成功！");
+          } else if (response.data === "该记录已存在") {
+            alert("该商品已在收藏列表中！");
+          }
+        })
+        .catch((error) => {
+          console.error("收藏失败:", error);
+          console.log("请求参数:", shortProductName);
+          if (error.response) {
+            console.log("错误响应:", error.response);
+            alert("收藏失败：" + (error.response.data || "请稍后重试"));
+          } else if (error.request) {
+            alert("网络连接失败，请检查网络后重试");
+          } else {
+            alert("收藏失败，请稍后重试");
+          }
+        });
     },
     // 普通搜索方法
     searchNormal(content) {
       axios
-          .get(`/search/result_main?content=${content}`)
-          .then((response) => {
-            console.log("搜索结果:", response.data);
-            this.searchResults = response.data; // 更新搜索结果
-            this.currentPage = 1; // 每次搜索清除当前页
-          })
-          .catch((error) => {
-            console.error("搜索失败:", error);
-          });
+        .get(`/search/result_main?content=${content}`)
+        .then((response) => {
+          console.log("搜索结果:", response.data);
+          this.searchResults = response.data; // 更新搜索结果
+          this.currentPage = 1; // 每次搜索清除当前页
+        })
+        .catch((error) => {
+          console.error("搜索失败:", error);
+        });
     },
     // AI搜索方法
     searchAdvance(content) {
       this.isLoading = true; // 开始加载时显示弹窗
-      axios.get(`http://localhost:5000/search/result_advance?content=${content}`, {
-        withCredentials: true,  // 让请求携带当前 session 的 cookie
-      })
-          .then((response) => {
-            console.log("高级搜索结果:", response.data);
-            this.searchResults = response.data.recommended_products; // 更新搜索结果
-            console.log("单个搜索结果:", this.searchResults[0]);
-            this.currentPage = 1; // 每次搜索清除当前页
-          })
-          .catch((error) => {
-            console.error("搜索失败:", error);
-          })
-          .finally(() => {
-            this.isLoading = false; // 无论成功失败都关闭弹窗
-          });
+      axios
+        .get(`http://localhost:5000/search/result_advance?content=${content}`, {
+          withCredentials: true, // 让请求携带当前 session 的 cookie
+        })
+        .then((response) => {
+          console.log("高级搜索结果:", response.data);
+          this.searchResults = response.data.recommended_products; // 更新搜索结果
+          console.log("单个搜索结果:", this.searchResults[0]);
+          this.currentPage = 1; // 每次搜索清除当前页
+        })
+        .catch((error) => {
+          console.error("搜索失败:", error);
+        })
+        .finally(() => {
+          this.isLoading = false; // 无论成功失败都关闭弹窗
+        });
     },
     updatePage(page) {
       this.currentPage = page;
@@ -577,16 +602,15 @@ footer {
   text-decoration: underline;
 }
 
-.results-header h2{
+.results-header h2 {
   height: 40px;
   border-bottom: 5px solid #005bac;
   margin: 10px;
   border-radius: 2px;
 }
 
-.results-header span{
+.results-header span {
   margin-left: 20px;
-
 }
 
 /* 搜索结果表格样式 */
@@ -644,30 +668,30 @@ footer {
   color: white;
   margin-left: 20px;
 }
-.filter-sidebar h3{
+.filter-sidebar h3 {
   margin-left: 20px;
 }
-.filter-sidebar ul{
+.filter-sidebar ul {
   margin-left: 20px;
   padding: 0;
-  display: flex;  /* 使用 flex 布局 */
-  flex-wrap: wrap;  /* 允许换行 */
-  gap: 15px;  /* 选项之间的间距 */
-  list-style: none;  /* 移除默认的列表样式 */
+  display: flex; /* 使用 flex 布局 */
+  flex-wrap: wrap; /* 允许换行 */
+  gap: 15px; /* 选项之间的间距 */
+  list-style: none; /* 移除默认的列表样式 */
 }
 
 .filter-sidebar li {
   display: flex;
   align-items: center;
-  gap: 5px;  /* 复选框和文字之间的间距 */
-  min-width: 100px;  /* 每个选项的最小宽度 */
+  gap: 5px; /* 复选框和文字之间的间距 */
+  min-width: 100px; /* 每个选项的最小宽度 */
 }
 
 .filter-sidebar input[type="checkbox"] {
-  margin: 0;  /* 移除复选框默认边距 */
+  margin: 0; /* 移除复选框默认边距 */
 }
 
-.pagination{
+.pagination {
   margin-bottom: 40px;
 }
 #app {
@@ -707,8 +731,11 @@ footer {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
-
 </style>
