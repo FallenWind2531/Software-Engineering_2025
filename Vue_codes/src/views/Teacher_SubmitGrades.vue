@@ -54,10 +54,11 @@
                   v-model="selectedCourse"
                   @change="populateSectionSelect"
                 >
+                  <option value="">-- 请选择课程 --</option>
                   <option
                     v-for="course in courses"
                     :key="course.course_id"
-                    :value="course.course_id"
+                    :value="course"
                   >
                     {{ course.course_name }}
                   </option>
@@ -71,10 +72,11 @@
                   v-model="selectedSection"
                   :disabled="!selectedCourse"
                 >
+                  <option value="">-- 请选择开课时间 --</option>
                   <option
                     v-for="section in sections"
                     :key="section.section_id"
-                    :value="section.section_id"
+                    :value="section"
                   >
                     {{ section.sec_year }} 学年 {{ section.semester }} 学期
                   </option>
@@ -179,88 +181,24 @@ import {
   submitStudentGrades,
 } from "@/api/teacher";
 import { useuserLoginStore } from "@/store/userLoginStore";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const loginUserStore = useuserLoginStore();
 // 响应式数据
 const userDropdownVisible = ref(false);
-const selectedCourse = ref("");
-const selectedSection = ref("");
-const courses = ref([]);
-const sections = ref([]);
-const students = ref([]);
-const grades = ref([]);
+const selectedCourse = ref<any>(null);
+const selectedSection = ref<any>(null);
+const courses = ref<any[]>([]);
+const sections = ref<any[]>([]);
+const students = ref<any[]>([]);
+const grades = ref<any[]>([]);
 const loadingStudents = ref(false);
 const showGradeEntryCard = ref(false);
 const notification = ref({
   message: "",
   type: "info",
 });
-
-// const MockCourses = {
-//   item: [
-//     {
-//       course_id: "121",
-//       course_name: "课1",
-//     },
-//     {
-//       course_id: "122",
-//       course_name: "课2",
-//     },
-//     {
-//       course_id: "123",
-//       course_name: "课3",
-//     },
-//   ],
-// };
-//
-// const getMyCourses = async (params: any) => {
-//   return MockCourses;
-// };
-//
-// const MockSections = {
-//   data: [
-//     {
-//       section_id: "212",
-//       sec_year: 1999,
-//       semester: "awdawd",
-//     },
-//     {
-//       section_id: "awdwd",
-//       sec_year: 2000,
-//       semester: "aw22awd",
-//     },
-//   ],
-// };
-//
-// const getMyCourseSections = async (params: any) => {
-//   return MockSections;
-// };
-//
-// const MockSectionGrades = {
-//   data: {
-//     student_info: [
-//       {
-//         user_id: "11",
-//         name: "wwad",
-//       },
-//       {
-//         user_id: "12",
-//         name: "wwa123d",
-//       },
-//     ],
-//     grade_info: [
-//       {
-//         grade_base: {
-//           score: 111,
-//         },
-//       },
-//     ],
-//   },
-// };
-//
-// const getSectionGrades = async (params: any) => {
-//   return MockSectionGrades;
-// };
 
 // 生命周期钩子
 onMounted(() => {
@@ -294,8 +232,8 @@ const handleLogout = () => {
 
 // 处理修改密码
 const handleChangePassword = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  //window.location.href = "../change-password";
+  router.push("/change-password");
 };
 
 const populateCourseSelect = async () => {
@@ -303,8 +241,8 @@ const populateCourseSelect = async () => {
   sections.value = [];
   students.value = [];
   grades.value = [];
-  selectedCourse.value = "";
-  selectedSection.value = "";
+  selectedCourse.value = null;
+  selectedSection.value = null;
   showGradeEntryCard.value = false;
 
   try {
@@ -316,10 +254,26 @@ const populateCourseSelect = async () => {
       teacher_name: "",
       category: "",
     });
-    courses.value = response.item;
+
+    console.log("获取到的课程数据:", response);
+
+    // 防御性编程：检查数据结构
+    if (response && response.data) {
+      if (response.data.data && response.data.data.items) {
+        courses.value = response.data.data.items;
+      } else if (response.data.items) {
+        courses.value = response.data.items;
+      } else if (Array.isArray(response.data)) {
+        courses.value = response.data;
+      } else {
+        showNotification("API返回的课程数据结构不符合预期", "error");
+      }
+    } else {
+      showNotification("获取课程列表失败，返回数据为空", "error");
+    }
   } catch (error) {
     showNotification("获取课程列表失败，请稍后重试。", "error");
-    console.error(error);
+    console.error("获取课程列表错误:", error);
   }
 };
 
@@ -328,18 +282,35 @@ const populateSectionSelect = async () => {
   sections.value = [];
   students.value = [];
   grades.value = [];
-  selectedSection.value = "";
+  selectedSection.value = null;
   showGradeEntryCard.value = false;
 
+  if (!selectedCourse.value) return;
+
   try {
+    console.log("选择的课程:", selectedCourse.value);
     const response = await getMyCourseSections(selectedCourse.value.course_id, {
       semester: "",
       sec_year: null,
     });
-    sections.value = response.data;
+
+    console.log("获取到的开课数据:", response);
+
+    // 防御性编程：检查数据结构
+    if (response && response.data) {
+      if (Array.isArray(response.data)) {
+        sections.value = response.data;
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        sections.value = response.data.data;
+      } else {
+        showNotification("API返回的开课数据结构不符合预期", "error");
+      }
+    } else {
+      showNotification("获取开课列表失败，返回数据为空", "error");
+    }
   } catch (error) {
     showNotification("获取开课列表失败，请稍后重试。", "error");
-    console.error(error);
+    console.error("获取开课列表错误:", error);
   }
 };
 
@@ -347,18 +318,56 @@ const populateSectionSelect = async () => {
 const loadStudents = async () => {
   loadingStudents.value = true;
   showNotification("正在加载学生名单...", "info");
+
+  if (!selectedSection.value) {
+    loadingStudents.value = false;
+    showNotification("请先选择开课时间", "error");
+    return;
+  }
+
   try {
     const response = await getSectionGrades(selectedSection.value.section_id, {
       student_id: "",
       student_name: "",
     });
-    students.value = response.data.student_info;
-    grades.value = response.data.grade_info;
-    showGradeEntryCard.value = true;
-    showNotification("学生名单加载完毕。", "success");
+
+    console.log("获取到的学生成绩数据:", response);
+
+    // 防御性编程：检查数据结构
+    if (response && response.data) {
+      if (response.data.student_info) {
+        students.value = response.data.student_info;
+      } else if (response.data.data && response.data.data.student_info) {
+        // 处理可能的嵌套结构
+        students.value = response.data.data.student_info;
+      } else {
+        students.value = [];
+        showNotification("未找到学生数据", "error");
+      }
+
+      if (response.data.grade_info) {
+        grades.value = response.data.grade_info;
+      } else if (response.data.data && response.data.data.grade_info) {
+        // 处理可能的嵌套结构
+        grades.value = response.data.data.grade_info;
+      } else {
+        grades.value = [];
+        showNotification("未找到成绩数据", "error");
+      }
+
+      // 只有在两者都有数据时才显示成绩输入卡片
+      if (students.value.length > 0 && grades.value.length > 0) {
+        showGradeEntryCard.value = true;
+        showNotification("学生名单加载完毕。", "success");
+      } else {
+        showNotification("学生或成绩数据为空", "info");
+      }
+    } else {
+      showNotification("API返回数据结构不符合预期", "error");
+    }
   } catch (error) {
     showNotification("加载学生名单失败，请稍后重试。", "error");
-    console.error(error);
+    console.error("加载学生名单错误:", error);
   } finally {
     loadingStudents.value = false;
   }
@@ -366,6 +375,19 @@ const loadStudents = async () => {
 
 // 全部提交
 const submitAllGrades = async () => {
+  if (!selectedSection.value) {
+    showNotification("请先选择开课时间", "error");
+    return;
+  }
+
+  if (studentGrades.value.length === 0) {
+    showNotification("没有学生成绩可以提交", "error");
+    return;
+  }
+
+  console.log("即将提交的学生成绩:", studentGrades.value);
+  console.log("提交到的班级:", selectedSection.value);
+
   try {
     for (const studentGrade of studentGrades.value) {
       const data = {
@@ -373,20 +395,24 @@ const submitAllGrades = async () => {
         score: studentGrade.score,
         gpa: studentGrade.gpa,
       };
+      console.log(`提交学生(${studentGrade.name})的成绩:`, data);
       await submitStudentGrades(selectedSection.value.section_id, data);
     }
 
     showNotification("所有成绩已成功提交！", "success");
     showGradeEntryCard.value = false;
-    selectedSection.value = "";
+    selectedSection.value = null;
     courses.value = [];
     sections.value = [];
     students.value = [];
     grades.value = [];
-    selectedCourse.value = "";
+    selectedCourse.value = null;
+
+    // 重新加载课程列表
+    populateCourseSelect();
   } catch (error) {
     showNotification("提交成绩失败，请稍后重试。", "error");
-    console.error(error);
+    console.error("提交成绩错误:", error);
   }
 };
 
@@ -406,7 +432,10 @@ const submitAllGrades = async () => {
 // };
 
 // 显示通知
-const showNotification = (message, type = "info") => {
+const showNotification = (
+  message: string,
+  type: "info" | "error" | "success" = "info"
+) => {
   notification.value = {
     message,
     type,

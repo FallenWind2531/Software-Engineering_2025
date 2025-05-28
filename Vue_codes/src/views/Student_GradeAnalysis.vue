@@ -156,7 +156,7 @@
             </div>
           </div>
 
-          <div class="card chart-card">
+          <!-- <div class="card chart-card">
             <h3 class="sub-card-title">
               <FontAwesomeIcon icon="fas fa-chart-doughnut" /> 学分构成
             </h3>
@@ -166,7 +166,7 @@
                 暂无数据
               </p>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
     </main>
@@ -485,9 +485,10 @@ const generateAndDisplayLocalAnalysis = () => {
       (sum, grade) => sum + grade.credit,
       0
     );
-    analysisData.overall_gpa = totalCourses > 0 ? totalGpa / totalCourses : 0;
+    analysisData.overall_gpa =
+      totalCourses > 0 ? parseFloat((totalGpa / totalCourses).toFixed(2)) : 0;
     analysisData.average_score =
-      totalCourses > 0 ? totalScore / totalCourses : 0;
+      totalCourses > 0 ? parseFloat((totalScore / totalCourses).toFixed(2)) : 0;
     analysisData.total_credits_earned = earnedCredits;
     analysisData.total_credits_taken = totalCredits;
 
@@ -524,8 +525,11 @@ const generateAndDisplayLocalAnalysis = () => {
     analysisData.performance_trend = Object.values(semesterData).map((sem) => ({
       sec_year: sem.sec_year,
       semester: sem.semester,
-      gpa: sem.count > 0 ? sem.gpa / sem.count : 0,
-      average_score: sem.count > 0 ? sem.average_score / sem.count : 0,
+      gpa: sem.count > 0 ? parseFloat((sem.gpa / sem.count).toFixed(2)) : 0,
+      average_score:
+        sem.count > 0
+          ? parseFloat((sem.average_score / sem.count).toFixed(2))
+          : 0,
     }));
 
     // 按学期排序
@@ -567,7 +571,9 @@ const calculateAndDisplayAnalytics = (data: any) => {
 
   // 添加防御性检查，确保所有必要的字段都存在
   totalCreditsEarned.value = data.total_credits_earned?.toString() || "0";
-  overallGpa.value = data.overall_gpa?.toString() || "0";
+  overallGpa.value = data.overall_gpa
+    ? parseFloat(data.overall_gpa).toFixed(2)
+    : "0.00";
   averageScore.value = data.average_score?.toString() || "0";
   coursesTaken.value =
     data.grade_distribution_by_course?.length?.toString() || "0";
@@ -581,9 +587,9 @@ const calculateAndDisplayAnalytics = (data: any) => {
       gpaTrendLabels.push(
         trend.semester || (trend.sec_year ? trend.sec_year.toString() : "未知")
       );
-      gpaTrendData.push(
-        parseFloat(trend.gpa) || parseFloat(trend.average_score) || 0
-      );
+      const gpaValue =
+        parseFloat(trend.gpa) || parseFloat(trend.average_score) || 0;
+      gpaTrendData.push(parseFloat(gpaValue.toFixed(2)));
     });
   }
   hasGpaTrendData.value = gpaTrendLabels.length > 0;
