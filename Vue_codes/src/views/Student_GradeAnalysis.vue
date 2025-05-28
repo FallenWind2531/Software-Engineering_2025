@@ -332,13 +332,14 @@ const submitAnalysisForm = async () => {
   console.log("submitAnalysisForm函数被调用");
   showMainNotification("正在生成分析报告...", "info");
   try {
-    if (
-      startSem.value !== "all" &&
-      endSem.value !== "all" &&
-      startSem.value > endSem.value
-    ) {
-      showMainNotification("开始学期不能晚于结束学期。", "error");
-      return;
+    // 检查学期范围
+    if (startSem.value !== "all" && endSem.value !== "all") {
+      // 使用新的比较函数
+      const compareResult = compareSemesters(startSem.value, endSem.value);
+      if (compareResult > 0) {
+        showMainNotification("开始学期不能晚于结束学期。", "error");
+        return;
+      }
     }
 
     const startYear =
@@ -363,7 +364,7 @@ const submitAnalysisForm = async () => {
       console.log("正在调用getStudentGradeAnalysis API...");
 
       // 临时注释掉API调用，直接使用前端分析
-      /*
+
       const response = await getStudentGradeAnalysis(params);
       console.log("获取分析响应:", response);
 
@@ -380,11 +381,10 @@ const submitAnalysisForm = async () => {
         // 当后端API失败时，尝试前端数据分析
         generateAndDisplayLocalAnalysis();
       }
-      */
 
       // 直接使用前端分析
-      console.log("跳过API调用，直接使用前端分析");
-      generateAndDisplayLocalAnalysis();
+      // console.log("跳过API调用，直接使用前端分析");
+      // generateAndDisplayLocalAnalysis();
     } catch (error) {
       console.error("后端分析API调用失败:", error);
       console.log("当前allGradesData值:", allGradesData.value);
@@ -417,27 +417,20 @@ const generateAndDisplayLocalAnalysis = () => {
     // 根据学期范围筛选
     if (startSem.value !== "all" || endSem.value !== "all") {
       filteredGrades = filteredGrades.filter((grade) => {
-        const semesterKey = `${grade.sec_year}-${grade.semester}`;
+        const gradeSemester = `${grade.sec_year}-${grade.semester}`;
+
         if (startSem.value !== "all") {
-          const [startYear, startTerm] = startSem.value.split("-");
-          if (grade.sec_year < parseInt(startYear)) return false;
-          if (
-            grade.sec_year === parseInt(startYear) &&
-            startTerm === "秋冬" &&
-            grade.semester === "春夏"
-          )
+          // 使用比较函数：如果成绩学期早于开始学期，则排除
+          if (compareSemesters(gradeSemester, startSem.value) < 0) {
             return false;
+          }
         }
 
         if (endSem.value !== "all") {
-          const [endYear, endTerm] = endSem.value.split("-");
-          if (grade.sec_year > parseInt(endYear)) return false;
-          if (
-            grade.sec_year === parseInt(endYear) &&
-            endTerm === "春夏" &&
-            grade.semester === "秋冬"
-          )
+          // 使用比较函数：如果成绩学期晚于结束学期，则排除
+          if (compareSemesters(gradeSemester, endSem.value) > 0) {
             return false;
+          }
         }
 
         return true;
@@ -537,10 +530,11 @@ const generateAndDisplayLocalAnalysis = () => {
 
     // 按学期排序
     analysisData.performance_trend.sort((a, b) => {
-      if (a.sec_year !== b.sec_year) {
-        return a.sec_year - b.sec_year;
-      }
-      return a.semester === "秋冬" ? -1 : 1;
+      // 使用compareSemesters函数进行排序
+      return compareSemesters(
+        `${a.sec_year}-${a.semester}`,
+        `${b.sec_year}-${b.semester}`
+      );
     });
 
     console.log("前端生成的分析数据:", analysisData);
@@ -844,6 +838,24 @@ onMounted(() => {
 const formatSemester = (semester: string) => {
   const [year, term] = semester.split("-");
   return `${year}学年 ${term}学期`;
+};
+
+// 比较两个学期的先后顺序
+// 返回值: 1表示semester1在semester2之后，-1表示semester1在semester2之前，0表示相等
+const compareSemesters = (semester1: string, semester2: string) => {
+  const [year1, term1] = semester1.split("-");
+  const [year2, term2] = semester2.split("-");
+
+  const yearNum1 = parseInt(year1);
+  const yearNum2 = parseInt(year2);
+
+  if (yearNum1 !== yearNum2) {
+    return yearNum1 > yearNum2 ? 1 : -1;
+  }
+
+  // 同一学年，春夏学期在秋冬学期之后
+  if (term1 === term2) return 0;
+  return term1 === "春夏" ? 1 : -1;
 };
 </script>
 

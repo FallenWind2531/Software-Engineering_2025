@@ -124,7 +124,7 @@
                   <th>学分</th>
                   <th>周学时</th>
                   <th>课程类别</th>
-                  <th>操作</th>
+                  <!-- <th>操作</th> -->
                 </tr>
               </thead>
               <tbody>
@@ -147,11 +147,10 @@
                   <td>{{ course.course_name }}</td>
                   <td>{{ course.teacher_name || course.teacher_id || "-" }}</td>
                   <td>{{ course.credit }}</td>
-                  <td>{{ course.credit }}</td>
                   <td>{{ course.hours_per_week }}</td>
                   <td>{{ course.category }}</td>
                   <!-- <td>{{ course.department }}</td>-->
-                  <td class="actions-cell">
+                  <!-- <td class="actions-cell">
                     <button
                       class="btn btn-sm btn-primary edit-course-btn"
                       @click="openCourseModal('edit', course)"
@@ -166,7 +165,7 @@
                     >
                       <FontAwesomeIcon icon="fas fa-trash-alt" />
                     </button>
-                  </td>
+                  </td> -->
                 </tr>
               </tbody>
             </table>

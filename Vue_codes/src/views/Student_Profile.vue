@@ -15,11 +15,15 @@
       <div class="right-section">
         <div class="user-info" id="userInfoToggle" @click="toggleUserDropdown">
           <!-- 显示头像 -->
-          <img
-            :src="studentProfileData.avatar_path || defaultAvatar"
-            alt="User Avatar"
-            class="user-avatar"
-          />
+          <div class="user-avatar">
+            <img
+              v-if="studentProfileData.avatarPath"
+              :src="getAvatarUrl(studentProfileData.avatarPath)"
+              alt="User Avatar"
+              class="avatar-img"
+            />
+            <FontAwesomeIcon v-else icon="fas fa-user" />
+          </div>
           <span class="user-name" id="profileUserName">{{
             studentProfileData.name
           }}</span>
@@ -93,10 +97,10 @@
                 />
               </div>
               <div class="form-group">
-                <label for="avatar_path">头像:</label>
+                <label for="avatarPath">头像:</label>
                 <div class="avatar-wrapper">
                   <img
-                    :src="studentProfileData.avatar_path || defaultAvatar"
+                    :src="getAvatarUrl(studentProfileData.avatarPath)"
                     alt="User Avatar"
                     class="avatar-preview"
                   />
@@ -192,7 +196,7 @@ const studentProfileData = ref({
   role: "",
   department: "",
   contact: "",
-  avatar_path: "",
+  avatarPath: "",
 });
 const originalEditableData = ref({
   name: "",
@@ -204,7 +208,18 @@ const userDropdownVisible = ref(false);
 const notificationVisible = ref(false);
 const notificationMessage = ref("");
 const isUploading = ref(false);
-const defaultAvatar = "path/to/default/avatar.png"; // 替换为默认头像的路径
+//const defaultAvatar = "path/to/default/avatar.png"; // 替换为默认头像的路径
+
+const getAvatarUrl = (path: string) => {
+  if (!path) return ""; // 如果路径为空，返回空字符串
+
+  // 如果路径已经是完整URL，则直接返回
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+
+  return `http://localhost:8080${path}`;
+};
 
 // 获取当前用户信息
 const fetchUserProfile = async () => {
@@ -312,7 +327,7 @@ const handleAvatarUpload = async (event: Event) => {
       showNotification("头像上传成功。", "success");
       console.log("头像上传成功:", response);
       // 假设响应中包含更新后的头像路径
-      studentProfileData.value.avatar_path = response.data.avatar_path;
+      studentProfileData.value.avatarPath = response.data.avatarPath;
     } catch (error) {
       showNotification("头像上传失败，请稍后重试。", "error");
       console.error("头像上传失败:", error);
@@ -424,6 +439,12 @@ router-link:hover {
   justify-content: center;
   align-items: center;
   margin-right: 8px;
+  overflow: hidden;
+}
+.top-bar .user-avatar .avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .top-bar .user-name {
   margin: 0 8px 0 0;
