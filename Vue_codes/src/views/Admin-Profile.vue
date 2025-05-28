@@ -87,36 +87,36 @@
                   placeholder="请输入您的联系方式"
                 />
               </div>
-              <!--              <div class="form-group">-->
-              <!--                <label for="avatar_path">头像:</label>-->
-              <!--                <div class="avatar-wrapper">-->
-              <!--                  <img-->
-              <!--                    :src="studentProfileData.avatar_path || defaultAvatar"-->
-              <!--                    alt="User Avatar"-->
-              <!--                    class="avatar-preview"-->
-              <!--                  />-->
-              <!--                  <div v-if="isUploading" class="uploading-overlay">-->
-              <!--                    <FontAwesomeIcon icon="fas fa-spinner" spin />-->
-              <!--                  </div>-->
-              <!--                </div>-->
-              <!--                &lt;!&ndash; 上传头像按钮 &ndash;&gt;-->
-              <!--                <input-->
-              <!--                  type="file"-->
-              <!--                  id="avatarUpload"-->
-              <!--                  name="avatarUpload"-->
-              <!--                  @change="handleAvatarUpload"-->
-              <!--                  style="display: none"-->
-              <!--                />-->
-              <!--                <button-->
-              <!--                  type="button"-->
-              <!--                  class="btn btn-secondary"-->
-              <!--                  @click="triggerAvatarUpload"-->
-              <!--                  :disabled="isUploading"-->
-              <!--                >-->
-              <!--                  <FontAwesomeIcon icon="fas fa-upload" />-->
-              <!--                  {{ isUploading ? "上传中..." : "上传头像" }}-->
-              <!--                </button>-->
-              <!--              </div>-->
+              <div class="form-group">
+                <label for="avatar_path">头像:</label>
+                <div class="avatar-wrapper">
+                  <img
+                    :src="studentProfileData.avatar_path"
+                    alt="User Avatar"
+                    class="avatar-preview"
+                  />
+                  <div v-if="isUploading" class="uploading-overlay">
+                    <FontAwesomeIcon icon="fas fa-spinner" spin />
+                  </div>
+                </div>
+                <!-- 上传头像按钮 -->
+                <input
+                  type="file"
+                  id="avatarUpload"
+                  name="avatarUpload"
+                  @change="handleAvatarUpload"
+                  style="display: none"
+                />
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  @click="triggerAvatarUpload"
+                  :disabled="isUploading"
+                >
+                  <FontAwesomeIcon icon="fas fa-upload" />
+                  {{ isUploading ? "上传中..." : "上传头像" }}
+                </button>
+              </div>
             </div>
 
             <div class="form-actions">

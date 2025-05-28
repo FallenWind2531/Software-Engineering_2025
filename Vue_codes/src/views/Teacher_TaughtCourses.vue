@@ -864,7 +864,7 @@ router-link:hover {
 
 .create-form-grid {
   display: grid;
-  //grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* 响应式列 */
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* 响应式列 */
   gap: 15px 20px; /* 行间隙 列间隙 */
   align-items: end; /* 使按钮与最后一行的输入框底部对齐 */
 }
@@ -872,7 +872,7 @@ router-link:hover {
   margin-bottom: 0;
 } /* grid的gap处理间距 */
 .create-form-grid .form-action-group {
-  //grid-column: 1 / -1; /* 让按钮组横跨所有列，或根据需要调整 */
+  grid-column: auto; /* 让按钮组横跨所有列，或根据需要调整 */
   display: flex;
   justify-content: flex-end; /* 按钮靠右 */
   gap: 10px;

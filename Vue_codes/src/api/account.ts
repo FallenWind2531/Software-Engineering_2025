@@ -32,7 +32,7 @@ export const uploadAvatar = async (params: any) => {
       "Content-Type": "multipart/form-data",
     },
     url: "account/avatar",
-    method: "PUT",
+    method: "POST",
     data: params,
   });
 };

@@ -4,10 +4,12 @@
       <div class="inner">
         <div class="header-right fr">
           <div class="search">
-            <router-link :to="{path: '/'}" custom v-slot="{ navigate }">
-              <button class="search-btn" @click="navigate" style="left: 100px">回到首页</button>
+            <router-link :to="{ path: '/' }" custom v-slot="{ navigate }">
+              <button class="search-btn" @click="navigate" style="left: 100px">
+                回到首页
+              </button>
             </router-link>
-            <router-link :to="{path: '/member'}" custom v-slot="{ navigate }">
+            <router-link :to="{ path: '/member' }" custom v-slot="{ navigate }">
               <button class="search-btn" @click="navigate">成为会员</button>
             </router-link>
           </div>
@@ -16,8 +18,8 @@
     </header>
     <div class="cl"></div>
     <div class="content">
-      <div class="inner" style="width: 1100px;display: flex;">
-        <div id="left" style="width: 240px;height: 1135px;">
+      <div class="inner" style="width: 1100px; display: flex">
+        <div id="left" style="width: 240px; height: 1135px">
           <div class="content-left fl">
             <nav>
               <ul>
@@ -47,19 +49,26 @@
               <div class="top">
                 <div class="top-left">
                   <div class="user-pic">
-                    <img src="/images/avatars/1733455945341_OIP.jpg" alt="">
+                    <img src="/images/avatars/1733455945341_OIP.jpg" alt="" />
                   </div>
                   <div class="user-info">
                     <div class="user-name">{{ username }}</div>
                     <div class="account">
                       我的账号 {{ username }}
-                      <a href="#" class="address" @click="editAddress">收货地址: {{address}}}</a>
+                      <a href="#" class="address" @click="editAddress"
+                        >收货地址: {{ address }}}</a
+                      >
                     </div>
                   </div>
                 </div>
                 <div class="top-right">
                   <div id="membership-status">
-                    <img v-if="isMember" :src="memberImage" alt="会员专属图片" style="width: 80px; height: auto;">
+                    <img
+                      v-if="isMember"
+                      :src="memberImage"
+                      alt="会员专属图片"
+                      style="width: 80px; height: auto"
+                    />
                   </div>
                 </div>
               </div>
@@ -72,10 +81,13 @@
                 <ul>
                   <li>
                     <div class="history-img">
-                      <img src="/images/img1.jpg" alt="">
+                      <img src="/images/img1.jpg" alt="" />
                     </div>
                     <div class="txts">
-                      <p>直液式速干走珠中性笔 0.5针管式速干水笔碳素笔学生考试签字黑笔</p>
+                      <p>
+                        直液式速干走珠中性笔
+                        0.5针管式速干水笔碳素笔学生考试签字黑笔
+                      </p>
                     </div>
                     <div class="price-box">
                       <div class="price1">￥</div>
@@ -85,10 +97,12 @@
                   </li>
                   <li>
                     <div class="history-img">
-                      <img src="/images/img2.jpg" alt="">
+                      <img src="/images/img2.jpg" alt="" />
                     </div>
                     <div class="txts">
-                      <p>【直充】bilibili大会员哔哩哔哩vip周卡30天一个月季年卡B站会员</p>
+                      <p>
+                        【直充】bilibili大会员哔哩哔哩vip周卡30天一个月季年卡B站会员
+                      </p>
                     </div>
                     <div class="price-box">
                       <div class="price1">￥</div>
@@ -98,10 +112,13 @@
                   </li>
                   <li>
                     <div class="history-img">
-                      <img src="/images/img1.jpg" alt="">
+                      <img src="/images/img1.jpg" alt="" />
                     </div>
                     <div class="txts">
-                      <p>直液式速干走珠中性笔 0.5针管式速干水笔碳素笔学生考试签字黑笔</p>
+                      <p>
+                        直液式速干走珠中性笔
+                        0.5针管式速干水笔碳素笔学生考试签字黑笔
+                      </p>
                     </div>
                     <div class="price-box">
                       <div class="price1">￥</div>
@@ -116,22 +133,22 @@
               <div class="title">我的收藏</div>
               <table class="results-table">
                 <thead>
-                <tr>
-                  <th>商品名</th>
-                  <th>卖家店铺名</th>
-                  <th>发货地</th>
-                  <th>近期购买数量</th>
-                  <th>价格</th>
-                </tr>
+                  <tr>
+                    <th>商品名</th>
+                    <th>卖家店铺名</th>
+                    <th>发货地</th>
+                    <th>近期购买数量</th>
+                    <th>价格</th>
+                  </tr>
                 </thead>
                 <tbody>
-                <tr v-for="favorite in favorites" :key="favorite.name">
-                  <td>{{ favorite.productName }}</td>
-                  <td>{{ favorite.storeName }}</td>
-                  <td>{{ favorite.shippingLocation }}</td>
-                  <td>{{ favorite.turnover }}</td>
-                  <td>¥{{ favorite.price.toFixed(2) }}</td>
-                </tr>
+                  <tr v-for="favorite in favorites" :key="favorite.name">
+                    <td>{{ favorite.productName }}</td>
+                    <td>{{ favorite.storeName }}</td>
+                    <td>{{ favorite.shippingLocation }}</td>
+                    <td>{{ favorite.turnover }}</td>
+                    <td>¥{{ favorite.price.toFixed(2) }}</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -140,20 +157,28 @@
             <div class="title">编辑个人资料</div>
             <div id="change">
               <div id="modify_name" class="modify" @click="editName">
-                <div class="tubiao"><img src="/images/modify_name.svg"></div>
+                <div class="tubiao"><img src="/images/modify_name.svg" /></div>
                 <p>修改用户名</p>
               </div>
               <div id="modify_image" class="modify" @click="triggerFileInput">
-                <div class="tubiao"><img src="/images/modify_image.svg"></div>
+                <div class="tubiao"><img src="/images/modify_image.svg" /></div>
                 <p>修改头像</p>
-                <input type="file" accept="image/*" @change="uploadAvatar" style="display: none" ref="fileInput" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  @change="uploadAvatar"
+                  style="display: none"
+                  ref="fileInput"
+                />
               </div>
               <div id="modify_email" class="modify" @click="editEmail">
-                <div class="tubiao"><img src="/images/modify_email.svg"></div>
+                <div class="tubiao"><img src="/images/modify_email.svg" /></div>
                 <p>修改邮箱</p>
               </div>
               <div id="modify_address" class="modify" @click="editAddress">
-                <div class="tubiao"><img src="/images/modify_address.svg"></div>
+                <div class="tubiao">
+                  <img src="/images/modify_address.svg" />
+                </div>
                 <p>修改收货地址</p>
               </div>
             </div>
@@ -162,29 +187,65 @@
       </div>
     </div>
     <!-- 编辑简介对话框 -->
-    <div id="edit-name" class="modal" v-if="isEditNameModalOpen" @click.self="closeModal">
+    <div
+      id="edit-name"
+      class="modal"
+      v-if="isEditNameModalOpen"
+      @click.self="closeModal"
+    >
       <div class="modal-content">
         <span class="close" @click="closeModal">&times;</span>
         <h3>修改用户名</h3>
-        <input type="text" id="username" name="username" placeholder="请输入新用户名..." v-model="username" required>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          placeholder="请输入新用户名..."
+          v-model="username"
+          required
+        />
         <button type="button" class="save" @click="saveBio">保存</button>
       </div>
     </div>
 
-    <div id="edit-email" class="modal" v-if="isEditEmailModalOpen" @click.self="closeModal">
+    <div
+      id="edit-email"
+      class="modal"
+      v-if="isEditEmailModalOpen"
+      @click.self="closeModal"
+    >
       <div class="modal-content">
         <span class="close" @click="closeModal">&times;</span>
         <h3>修改邮箱</h3>
-        <input type="text" id="email" name="email" placeholder="请输入新邮箱..." v-model="email" required>
+        <input
+          type="text"
+          id="email"
+          name="email"
+          placeholder="请输入新邮箱..."
+          v-model="email"
+          required
+        />
         <button type="button" class="save" @click="saveBio">保存</button>
       </div>
     </div>
 
-    <div id="edit-address" class="modal" v-if="isEditAddressModalOpen" @click.self="closeModal">
+    <div
+      id="edit-address"
+      class="modal"
+      v-if="isEditAddressModalOpen"
+      @click.self="closeModal"
+    >
       <div class="modal-content">
         <span class="close" @click="closeModal">&times;</span>
         <h3>修改收货地址</h3>
-        <input type="text" id="Address" name="Address" placeholder="请输入新地址..." v-model="address" required>
+        <input
+          type="text"
+          id="Address"
+          name="Address"
+          placeholder="请输入新地址..."
+          v-model="address"
+          required
+        />
         <button type="button" class="save" @click="saveBio">保存</button>
       </div>
     </div>
@@ -192,28 +253,28 @@
 </template>
 
 <script>
-import axios from 'axios';
-import '../assets/style.css'
+import axios from "axios";
+import "../assets/style.css";
 
 export default {
-  name: 'UserProfile',
+  name: "UserProfile",
   data() {
     return {
-      username: '',
-      userAvatar: '/images/avatar/1733455945341_OIP.jpg', // 默认头像
+      username: "",
+      userAvatar: "/images/avatar/1733455945341_OIP.jpg", // 默认头像
       isMember: false,
       favorites: [],
       browsingHistory: [],
       isEditNameModalOpen: false,
       isEditEmailModalOpen: false,
       isEditAddressModalOpen: false,
-      email: '',
-      address: '',
-      memberImage:'/images/member.svg'
+      email: "",
+      address: "",
+      memberImage: "/images/member.svg",
     };
   },
   mounted() {
-    this.getUserInfo();  // 获取用户信息
+    this.getUserInfo(); // 获取用户信息
     this.getFavorites();
     this.checkMembership();
   },
@@ -236,44 +297,50 @@ export default {
       // 保存息的逻辑
     },
     getUserInfo() {
-      axios.get("http://localhost:8080/getUserInfo", { withCredentials: true })
-          .then(response => {
-            const userInfo = response.data;
-            this.username = userInfo.username;
-            this.email = userInfo.email;
-            this.address = userInfo.address;
-            // 你可以根据用户信息设置头像等其他数据
-            this.userAvatar = userInfo.avatar || this.userAvatar; // 假设后端返回了头像的 URL
-          })
-          .catch(error => {
-            console.error('获取用户信息失败:', error);
-          });
+      axios
+        .get("http://localhost:8080/getUserInfo", { withCredentials: true })
+        .then((response) => {
+          const userInfo = response.data;
+          this.username = userInfo.username;
+          this.email = userInfo.email;
+          this.address = userInfo.address;
+          // 你可以根据用户信息设置头像等其他数据
+          this.userAvatar = userInfo.avatar || this.userAvatar; // 假设后端返回了头像的 URL
+        })
+        .catch((error) => {
+          console.error("获取用户信息失败:", error);
+        });
     },
     getFavorites() {
-      axios.get("http://localhost:8080/getcollections",{ withCredentials: true })
-          .then(response => {
-            this.favorites = response.data;
-          })
-          .catch(error => {
-            console.error('获取收藏数据失败:', error);
-          });
+      axios
+        .get("http://localhost:8080/getcollections", { withCredentials: true })
+        .then((response) => {
+          this.favorites = response.data;
+        })
+        .catch((error) => {
+          console.error("获取收藏数据失败:", error);
+        });
     },
     async checkMembership() {
       try {
         // 如果需要使用用户邮箱作为请求的一部分，确保在请求中使用它
-        const userEmail = localStorage.getItem('userId'); // 假设这里存储的是用户的邮箱
+        const userEmail = localStorage.getItem("userId"); // 假设这里存储的是用户的邮箱
         // 发送 POST 请求
-        const response = await axios.post('http://localhost:8080/ismember', {
-          // 如果后端需要用户邮箱作为参数，可以在这里添加
-          // email: userEmail
-        }, {
-          withCredentials: true  // 确保携带 Session Cookie
-        });
+        const response = await axios.post(
+          "http://localhost:8080/ismember",
+          {
+            // 如果后端需要用户邮箱作为参数，可以在这里添加
+            // email: userEmail
+          },
+          {
+            withCredentials: true, // 确保携带 Session Cookie
+          }
+        );
         // 处理响应数据
         this.isMember = response.data;
       } catch (error) {
         // 处理错误
-        console.error('检查会员状态失败:', error);
+        console.error("检查会员状态失败:", error);
       }
     },
     triggerFileInput() {
@@ -283,32 +350,32 @@ export default {
       const file = event.target.files[0];
       if (file) {
         const formData = new FormData();
-        formData.append('avatar', file);
+        formData.append("avatar", file);
 
-        axios.post('/api/uploadAvatar', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        })
-            .then(response => {
-              if (response.data.success) {
-                alert('头像上传成功');
-              } else {
-                alert('头像上传失败');
-              }
-            })
-            .catch(error => {
-              console.error('Error:', error);
-              alert('头像上传失败');
-            });
+        axios
+          .post("/api/uploadAvatar", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          })
+          .then((response) => {
+            if (response.data.success) {
+              alert("头像上传成功");
+            } else {
+              alert("头像上传失败");
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("头像上传失败");
+          });
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
 <style scoped>
-
 .modal {
   position: fixed;
   top: 0;
@@ -363,5 +430,4 @@ export default {
 .close:hover {
   color: #000;
 }
-
 </style>
