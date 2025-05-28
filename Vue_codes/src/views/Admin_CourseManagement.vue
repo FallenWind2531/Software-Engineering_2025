@@ -227,7 +227,6 @@ type Course = {
   course_id: string;
   course_name: string;
   credit: number;
-  credit: number;
   hours_per_week: number;
   category: string;
   course_description: string;
@@ -251,7 +250,6 @@ const coursesPerPage = ref(10);
 const courseData = ref<Course>({
   course_id: "",
   course_name: "",
-  credit: 0,
   credit: 0,
   hours_per_week: 0,
   category: "",

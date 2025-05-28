@@ -45,7 +45,7 @@
             <FontAwesomeIcon icon="fas fa-cogs" /> 分析设置
           </h2>
           <form
-            @submit.prevent="submitAnalysisForm"
+            @submit.stop.prevent="submitAnalysisForm"
             id="analysisFilterForm"
             class="filter-form-grid"
           >
@@ -96,7 +96,11 @@
               </select>
             </div>
             <div class="form-action-group">
-              <button type="submit" class="btn btn-primary">
+              <button
+                @click.prevent="submitAnalysisForm"
+                type="submit"
+                class="btn btn-primary"
+              >
                 <FontAwesomeIcon icon="fas fa-sync-alt" /> 生成分析报告
               </button>
             </div>
@@ -325,6 +329,7 @@ const fetchGradesData = async () => {
 
 // 提交分析表单
 const submitAnalysisForm = async () => {
+  console.log("submitAnalysisForm函数被调用");
   showMainNotification("正在生成分析报告...", "info");
   try {
     if (
@@ -355,6 +360,10 @@ const submitAnalysisForm = async () => {
     console.log("发送分析请求参数:", params);
 
     try {
+      console.log("正在调用getStudentGradeAnalysis API...");
+
+      // 临时注释掉API调用，直接使用前端分析
+      /*
       const response = await getStudentGradeAnalysis(params);
       console.log("获取分析响应:", response);
 
@@ -371,8 +380,14 @@ const submitAnalysisForm = async () => {
         // 当后端API失败时，尝试前端数据分析
         generateAndDisplayLocalAnalysis();
       }
+      */
+
+      // 直接使用前端分析
+      console.log("跳过API调用，直接使用前端分析");
+      generateAndDisplayLocalAnalysis();
     } catch (error) {
       console.error("后端分析API调用失败:", error);
+      console.log("当前allGradesData值:", allGradesData.value);
       showMainNotification("后端分析API调用失败，尝试前端分析", "warn");
       // 当后端API失败时，尝试前端数据分析
       generateAndDisplayLocalAnalysis();
@@ -385,6 +400,7 @@ const submitAnalysisForm = async () => {
 
 // 从本地成绩数据生成分析数据
 const generateAndDisplayLocalAnalysis = () => {
+  console.log("开始前端本地分析数据生成");
   try {
     if (
       !allGradesData.value ||
@@ -538,6 +554,14 @@ const generateAndDisplayLocalAnalysis = () => {
 // 计算并显示分析结果
 const calculateAndDisplayAnalytics = (data: any) => {
   console.log("开始处理分析数据:", data);
+  console.log(
+    "数据类型:",
+    typeof data,
+    "是否为数组:",
+    Array.isArray(data),
+    "是否为对象:",
+    typeof data === "object" && data !== null
+  );
   // 先销毁现有图表
   destroyCharts();
 
