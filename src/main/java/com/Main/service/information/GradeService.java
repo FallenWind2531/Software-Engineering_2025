@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class GradeService{
@@ -146,7 +147,7 @@ public class GradeService{
         String sql;
         if (count != null && count > 0) {
             // 更新成绩
-            sql = "UPDATE GradeBase SET score = ?, gpa = ? WHERE student_id = ? AND section_id = ? AND course_id = ?";
+            sql = "UPDATE GradeBase SET score = ?, gpa = ?, submit_status = \"1\" WHERE student_id = ? AND section_id = ? AND course_id = ?";
         } else {
             // 插入新成绩
             sql = "INSERT INTO GradeBase (student_id, section_id, course_id, score, gpa, submit_status) " +
@@ -160,7 +161,6 @@ public class GradeService{
             } else {
                 rowsAffected = jdbcTemplate.update(sql, studentId, sectionId, courseId, score, gpa);
             }
-
             if (rowsAffected <= 0) {
                 logger.warn("Failed to update/insert grade for sectionId: {} and studentId: {}", sectionId, studentId);
                 return false;
@@ -181,68 +181,93 @@ public class GradeService{
      */
     public SectionGradeDTO getSectionStudentGrades(int sectionId, String studentName, int studentId) {
         SectionGradeDTO sectionGradeDTO = new SectionGradeDTO();
-        List<User> userList;
+        List<User> userList = new ArrayList<>();
         List<GradeDTO> gradeList = new ArrayList<>();
 
-        // 查询用户
-        StringBuilder userSql = new StringBuilder("SELECT * FROM User WHERE 1=1");
-        List<Object> userParams = new ArrayList<>();
-
-        if (studentName != null && !studentName.isEmpty()) {
-            userSql.append(" AND UserName LIKE ?");
-            userParams.add("%" + studentName + "%");
-        }
-
-        if(studentId > 0) {
-            userSql.append(" AND UserId = ?");
-            userParams.add(studentId);
-        }
-        userSql.append(" AND role = 's'"); // 只查询学生
-
-        logger.info("User SQL: {}, Params: {}", userSql.toString(), userParams);
-
         try {
+            // 1. 首先获取该section下所有学生的成绩记录
+            String gradeSql = "SELECT * FROM GradeBase WHERE section_id = ?";
+            List<Object> gradeParams = new ArrayList<>();
+            gradeParams.add(sectionId);
+            
+            if (studentId > 0) {
+                gradeSql += " AND student_id = ?";
+                gradeParams.add(studentId);
+            }
+            
+            List<GradeBase> allGrades = jdbcTemplate.query(gradeSql, gradeParams.toArray(), gradeBaseRowMapper);
+            logger.info("查询到section_id={}的成绩记录数: {}", sectionId, allGrades.size());
+            
+            if (allGrades.isEmpty()) {
+                logger.info("该section没有任何成绩记录");
+                return sectionGradeDTO; // 返回空结果
+            }
+            
+            // 2. 提取所有学生ID
+            Set<Integer> studentIds = allGrades.stream()
+                .map(GradeBase::getStudentId)
+                .collect(Collectors.toSet());
+            
+            // 3. 查询这些学生的信息
+            StringBuilder userSql = new StringBuilder("SELECT * FROM User WHERE role = 's' AND user_id IN (");
+            for (int i = 0; i < studentIds.size(); i++) {
+                userSql.append(i == 0 ? "?" : ", ?");
+            }
+            userSql.append(")");
+            
+            // 如果有姓名筛选，添加条件
+            if (studentName != null && !studentName.isEmpty()) {
+                userSql.append(" AND UserName LIKE ?");
+            }
+            
+            List<Object> userParams = new ArrayList<>();
+            studentIds.forEach(userParams::add);
+            
+            if (studentName != null && !studentName.isEmpty()) {
+                userParams.add("%" + studentName + "%");
+            }
+            
             userList = jdbcTemplate.query(userSql.toString(), userParams.toArray(), userRowMapper);
-        } catch (DataAccessException e) {
-            logger.warn("没有查询到学生信息");
-            return new SectionGradeDTO();
-        }
-
-        // 查询成绩
-        for (User user : userList) {
-            int userId = user.getUser_id();
-            String gradeSql = "SELECT * FROM GradeBase WHERE section_id = ? AND student_id = ?";
-            List<GradeBase> gradeBases = new ArrayList<>();
-
-            try {
-                gradeBases = jdbcTemplate.query(gradeSql, new Object[]{sectionId, userId}, gradeBaseRowMapper);
-            } catch (DataAccessException e) {
-                logger.warn("没有查询到成绩信息");
-                throw new DataAccessException("没有查询到成绩信息") {};
-            }
-
-            // 对于每个成绩，查询其组件
-            for (GradeBase gradeBase : gradeBases) {
-                GradeDTO gradeDTO = new GradeDTO();
-                gradeDTO.setGradeBase(gradeBase);
-
-                String componentSql = "SELECT * FROM GradeComponent WHERE grade_id = ?";
-                List<GradeComponent> components;
-
-                try {
-                    components = jdbcTemplate.query(componentSql, new Object[]{gradeBase.getGradeId()}, gradeComponentRowMapper);
-                } catch (DataAccessException e) {
-                    logger.warn("No GradeComponent found for gradeId: {}", gradeBase.getGradeId());
-                    components = new ArrayList<>();
+            logger.info("查询到符合条件的学生数量: {}", userList.size());
+            
+            // 4. 为每个学生关联成绩记录
+            for (User user : userList) {
+                List<GradeBase> studentGrades = allGrades.stream()
+                    .filter(grade -> grade.getStudentId() == user.getUser_id())
+                    .collect(Collectors.toList());
+                
+                for (GradeBase gradeBase : studentGrades) {
+                    GradeDTO gradeDTO = new GradeDTO();
+                    gradeDTO.setGradeBase(gradeBase);
+                    
+                    // 查询成绩组件
+                    if (gradeBase.getGradeId() > 0) {
+                        try {
+                            List<GradeComponent> components = jdbcTemplate.query(
+                                "SELECT * FROM GradeComponent WHERE grade_id = ?", 
+                                new Object[]{gradeBase.getGradeId()}, 
+                                gradeComponentRowMapper
+                            );
+                            gradeDTO.setGradeComponent(components);
+                        } catch (DataAccessException e) {
+                            logger.warn("查询成绩组件失败: {}", e.getMessage());
+                            gradeDTO.setGradeComponent(new ArrayList<>());
+                        }
+                    } else {
+                        gradeDTO.setGradeComponent(new ArrayList<>());
+                    }
+                    
+                    gradeList.add(gradeDTO);
                 }
-
-                gradeDTO.setGradeComponent(components);
-                gradeList.add(gradeDTO);
             }
+            
+            sectionGradeDTO.setUser(userList);
+            sectionGradeDTO.setGrade(gradeList);
+            
+        } catch (Exception e) {
+            logger.error("获取班级成绩失败: {}", e.getMessage(), e);
         }
-
-        sectionGradeDTO.setUser(userList);
-        sectionGradeDTO.setGrade(gradeList);
+        
         return sectionGradeDTO;
     }
 

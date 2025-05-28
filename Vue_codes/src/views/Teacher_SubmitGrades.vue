@@ -75,10 +75,12 @@
                   <option value="">-- 请选择开课时间 --</option>
                   <option
                     v-for="section in sections"
-                    :key="section.section_id"
+                    :key="section.sectionId"
                     :value="section"
                   >
-                    {{ section.sec_year }} 学年 {{ section.semester }} 学期
+                    {{ section.secYear }} 学年 {{ section.semester }} 学期 -
+                    {{ section.classroom_location || "未知教室" }}
+                    {{ section.secTime ? "(" + section.secTime + ")" : "" }}
                   </option>
                 </select>
               </div>
@@ -109,12 +111,14 @@
                 <tr>
                   <th>序号</th>
                   <th>姓名</th>
-                  <th>总评成绩(自动计算)</th>
+                  <th>总评成绩</th>
+                  <th>GPA</th>
+                  <th>状态</th>
                 </tr>
               </thead>
               <tbody id="studentListBody">
                 <tr v-if="loadingStudents">
-                  <td colspan="3" style="text-align: center; padding: 20px">
+                  <td colspan="5" style="text-align: center; padding: 20px">
                     正在加载学生数据... <i class="fas fa-spinner fa-spin"></i>
                   </td>
                 </tr>
@@ -126,6 +130,15 @@
                   <td>{{ index + 1 }}</td>
                   <td>{{ studentGrade.name }}</td>
                   <td>{{ studentGrade.score }}</td>
+                  <td>{{ studentGrade.gpa }}</td>
+                  <td>
+                    <span
+                      v-if="studentGrade.submit_status === 1"
+                      class="status-submitted"
+                      >已提交</span
+                    >
+                    <span v-else class="status-draft">未提交</span>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -206,13 +219,43 @@ onMounted(() => {
 });
 
 const studentGrades = computed(() => {
+  // 检查数据是否存在
+  if (
+    !students.value ||
+    !grades.value ||
+    students.value.length === 0 ||
+    grades.value.length === 0
+  ) {
+    return [];
+  }
+
+  console.log("计算studentGrades, students:", students.value);
+  console.log("计算studentGrades, grades:", grades.value);
+
   return students.value.map((student, index) => {
-    const grade = grades.value[index];
+    // 找到与学生匹配的成绩记录
+    const gradeRecord = grades.value.find(
+      (g) => g.gradeBase && g.gradeBase.studentId === student.user_id
+    );
+
+    if (!gradeRecord || !gradeRecord.gradeBase) {
+      console.warn(
+        `未找到学生(${student.name}, ID: ${student.user_id})的成绩记录`
+      );
+      return {
+        student_id: student.user_id,
+        name: student.name,
+        score: 0,
+        gpa: 0,
+      };
+    }
+
     return {
       student_id: student.user_id,
       name: student.name,
-      score: grade.grade_base.score,
-      gpa: grade.grade_base.gpa,
+      score: gradeRecord.gradeBase.score,
+      gpa: gradeRecord.gradeBase.gpa,
+      submit_status: gradeRecord.gradeBase.submitStatus,
     };
   });
 });
@@ -291,7 +334,7 @@ const populateSectionSelect = async () => {
     console.log("选择的课程:", selectedCourse.value);
     const response = await getMyCourseSections(selectedCourse.value.course_id, {
       semester: "",
-      sec_year: null,
+      secYear: null,
     });
 
     console.log("获取到的开课数据:", response);
@@ -325,8 +368,26 @@ const loadStudents = async () => {
     return;
   }
 
+  // 记录选中的开课section信息，帮助调试
+  console.log("选中的开课section:", selectedSection.value);
+  console.log("section属性:", Object.keys(selectedSection.value));
+
+  // 使用sectionId或fallback到section_id
+  const sectionId =
+    selectedSection.value.sectionId || selectedSection.value.section_id;
+
+  if (!sectionId) {
+    loadingStudents.value = false;
+    showNotification("无法获取开课ID，请重新选择", "error");
+    console.error(
+      "选中的section没有sectionId或section_id属性:",
+      selectedSection.value
+    );
+    return;
+  }
+
   try {
-    const response = await getSectionGrades(selectedSection.value.section_id, {
+    const response = await getSectionGrades(sectionId, {
       student_id: "",
       student_name: "",
     });
@@ -335,21 +396,21 @@ const loadStudents = async () => {
 
     // 防御性编程：检查数据结构
     if (response && response.data) {
-      if (response.data.student_info) {
-        students.value = response.data.student_info;
-      } else if (response.data.data && response.data.data.student_info) {
+      if (response.data.user) {
+        students.value = response.data.user;
+      } else if (response.data.data && response.data.data.user) {
         // 处理可能的嵌套结构
-        students.value = response.data.data.student_info;
+        students.value = response.data.data.user;
       } else {
         students.value = [];
         showNotification("未找到学生数据", "error");
       }
 
-      if (response.data.grade_info) {
-        grades.value = response.data.grade_info;
-      } else if (response.data.data && response.data.data.grade_info) {
+      if (response.data.grade) {
+        grades.value = response.data.grade;
+      } else if (response.data.data && response.data.data.grade) {
         // 处理可能的嵌套结构
-        grades.value = response.data.data.grade_info;
+        grades.value = response.data.data.grade;
       } else {
         grades.value = [];
         showNotification("未找到成绩数据", "error");
@@ -385,21 +446,71 @@ const submitAllGrades = async () => {
     return;
   }
 
-  console.log("即将提交的学生成绩:", studentGrades.value);
-  console.log("提交到的班级:", selectedSection.value);
+  // 记录选中的开课section信息，帮助调试
+  console.log("提交成绩时选中的section:", selectedSection.value);
+
+  // 使用sectionId或fallback到section_id
+  const sectionId =
+    selectedSection.value.sectionId || selectedSection.value.section_id;
+
+  if (!sectionId) {
+    showNotification("无法获取开课ID，请重新选择", "error");
+    console.error(
+      "选中的section没有sectionId或section_id属性:",
+      selectedSection.value
+    );
+    return;
+  }
 
   try {
+    // 统计需要提交的成绩数量
+    let totalSubmissions = 0;
+    let successSubmissions = 0;
+
     for (const studentGrade of studentGrades.value) {
-      const data = {
-        student_id: studentGrade.student_id,
-        score: studentGrade.score,
-        gpa: studentGrade.gpa,
-      };
+      // 如果已经提交过，就跳过
+      if (studentGrade.submit_status === 1) {
+        console.log(`学生(${studentGrade.name})的成绩已提交，跳过`);
+        continue;
+      }
+
+      totalSubmissions++;
+      // 将数据包装在数组中，符合后端期望的格式
+      const data = [
+        {
+          student_id: studentGrade.student_id,
+          score: studentGrade.score,
+          gpa: studentGrade.gpa,
+        },
+      ];
       console.log(`提交学生(${studentGrade.name})的成绩:`, data);
-      await submitStudentGrades(selectedSection.value.section_id, data);
+
+      try {
+        await submitStudentGrades(sectionId, data);
+        successSubmissions++;
+      } catch (submissionError) {
+        console.error(
+          `提交学生(${studentGrade.name})的成绩失败:`,
+          submissionError
+        );
+      }
     }
 
-    showNotification("所有成绩已成功提交！", "success");
+    if (totalSubmissions === 0) {
+      showNotification("所有成绩已经提交过，无需重复提交", "info");
+    } else if (successSubmissions === totalSubmissions) {
+      showNotification(
+        `所有成绩(${successSubmissions}条)已成功提交！`,
+        "success"
+      );
+    } else {
+      showNotification(
+        `部分成绩提交成功(${successSubmissions}/${totalSubmissions})，请检查日志`,
+        "info"
+      );
+    }
+
+    // 重新加载数据
     showGradeEntryCard.value = false;
     selectedSection.value = null;
     courses.value = [];
@@ -882,5 +993,21 @@ tbody td input[readonly] {
     font-size: 12px;
     padding: 5px;
   }
+}
+
+.status-submitted {
+  background-color: #67c23a;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.status-draft {
+  background-color: #909399;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
 }
 </style>
