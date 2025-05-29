@@ -538,6 +538,53 @@ const saveUser = async () => {
     showMainNotification("新用户必须设置初始密码。", "error");
     return;
   }
+  // 定义各字段长度限制
+  const MAX_DEPARTMENT_LENGTH = 20;
+  const MAX_EMAIL_LENGTH = 20;
+  const MIN_LOGIN_ID_LENGTH = 6;
+  const MAX_LOGIN_ID_LENGTH = 20;
+  const MIN_PASSWORD_LENGTH = 8;
+  const MAX_PASSWORD_LENGTH = 20;
+
+  // 院系/部门长度检查
+  if (modalUser.value.department.length > MAX_DEPARTMENT_LENGTH) {
+    showMainNotification(
+      `院系/部门长度不能超过 ${MAX_DEPARTMENT_LENGTH} 个字符。`,
+      "error"
+    );
+    return;
+  }
+  // 邮箱长度检查
+  if (modalUser.value.contact.length > MAX_EMAIL_LENGTH) {
+    showMainNotification(
+      `邮箱长度不能超过 ${MAX_EMAIL_LENGTH} 个字符。`,
+      "error"
+    );
+    return;
+  }
+  // 登录ID长度检查
+  if (
+    modalUser.value.account.length < MIN_LOGIN_ID_LENGTH ||
+    modalUser.value.account.length > MAX_LOGIN_ID_LENGTH
+  ) {
+    showMainNotification(
+      `初始登录ID长度必须在 ${MIN_LOGIN_ID_LENGTH} 到 ${MAX_LOGIN_ID_LENGTH} 个字符之间。`,
+      "error"
+    );
+    return;
+  }
+  // 密码长度检查
+  if (
+    (modalMode.value === "add" || modalUser.value.password) &&
+    (modalUser.value.password.length < MIN_PASSWORD_LENGTH ||
+      modalUser.value.password.length > MAX_PASSWORD_LENGTH)
+  ) {
+    showMainNotification(
+      `初始密码长度必须在 ${MIN_PASSWORD_LENGTH} 到 ${MAX_PASSWORD_LENGTH} 个字符之间。`,
+      "error"
+    );
+    return;
+  }
 
   try {
     if (modalMode.value === "add") {
