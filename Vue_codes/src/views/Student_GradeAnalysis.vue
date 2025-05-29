@@ -83,7 +83,7 @@
                 </select>
               </div>
             </div>
-            <div class="form-group">
+            <!-- <div class="form-group">
               <label for="analysisCourseType">课程性质:</label>
               <select
                 v-model="courseType"
@@ -94,7 +94,7 @@
                 <option value="compulsory">必修课</option>
                 <option value="elective">选修课</option>
               </select>
-            </div>
+            </div> -->
             <div class="form-action-group">
               <button
                 @click.prevent="submitAnalysisForm"
@@ -574,7 +574,9 @@ const calculateAndDisplayAnalytics = (data: any) => {
   overallGpa.value = data.overall_gpa
     ? parseFloat(data.overall_gpa).toFixed(2)
     : "0.00";
-  averageScore.value = data.average_score?.toString() || "0";
+  averageScore.value = data.average_score
+    ? parseFloat(data.average_score).toFixed(1)
+    : "0.0";
   coursesTaken.value =
     data.grade_distribution_by_course?.length?.toString() || "0";
 
@@ -726,8 +728,6 @@ const calculateAndDisplayAnalytics = (data: any) => {
     });
   }
 };
-
-// const mockStudentGradesResponse = {
 //   data: [
 //     {
 //       sec_year: 2023,
@@ -859,9 +859,9 @@ const compareSemesters = (semester1: string, semester2: string) => {
     return yearNum1 > yearNum2 ? 1 : -1;
   }
 
-  // 同一学年，春夏学期在秋冬学期之后
+  // 同一学年，秋冬学期在春夏学期之后
   if (term1 === term2) return 0;
-  return term1 === "春夏" ? 1 : -1;
+  return term1 === "秋冬" ? 1 : -1;
 };
 </script>
 

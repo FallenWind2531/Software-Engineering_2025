@@ -284,7 +284,7 @@ public class GradeService{
         StudentAnalyseDTO analysisResult = new StudentAnalyseDTO();
         logger.info("studentId={}",studentId);
         // 学期顺序定义
-        List<String> semesters = Arrays.asList("秋冬", "春夏");
+        List<String> semesters = Arrays.asList("春夏", "秋冬");
         Map<String, Integer> semesterOrder = new HashMap<>();
         for (int i = 0; i < semesters.size(); i++) {
             semesterOrder.put(semesters.get(i), i);

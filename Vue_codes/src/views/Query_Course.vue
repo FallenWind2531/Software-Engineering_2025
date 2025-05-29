@@ -80,9 +80,9 @@
               <label for="courseType">课程类别:</label>
               <select id="courseType" v-model="filters.category">
                 <option value="">全部类别</option>
-                <option value="compulsory">普通</option>
-                <option value="specialized_compulsory">实验</option>
-                <option value="elective">体育</option>
+                <option value="普通">普通</option>
+                <option value="实验">实验</option>
+                <option value="体育">体育</option>
                 <!--                <option value="specialized_elective">专业选修</option>-->
               </select>
             </div>

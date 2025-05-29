@@ -61,10 +61,9 @@
               <label for="filterCourseType">课程类别:</label>
               <select id="filterCourseType" name="courseType">
                 <option value="all">全部类别</option>
-                <option value="compulsory">公共必修</option>
-                <option value="specialized_compulsory">专业必修</option>
-                <option value="elective">通识选修</option>
-                <option value="specialized_elective">专业选修</option>
+                <option value="普通">普通</option>
+                <option value="实验">实验</option>
+                <option value="体育">体育</option>
               </select>
             </div>
             <div class="form-action-group">
