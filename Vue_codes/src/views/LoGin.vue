@@ -84,7 +84,7 @@ const loginUserStore = useuserLoginStore();
 const router = useRouter();
 // 表单数据
 const formData = ref({
-  role: "student",
+  role: "s",
   account: "",
   password: "",
 });
@@ -121,27 +121,40 @@ const handleLogin = async () => {
 
   try {
     const response = await login(formData.value);
-    if (response.status === 200) {
-      showNotification("登录成功！正在跳转...", "success");
-      loginUserStore.setLoginUser(response);
-      setTimeout(() => {
-        if (role === "t") {
-          alert("将跳转到教师导航页 (../teacher/dashboard)");
-          router.push("/teacher/dashboard");
-        } else if (role === "s") {
-          alert("将跳转到学生导航页 (../student/dashboard)");
-          router.push("/student/dashboard");
-        } else if (role === "a") {
-          alert("将跳转到管理员导航页 (../admin/dashboard)");
-          router.push("/admin/dashboard");
-        }
-      }, 150);
+    console.log("登录响应:", response);
+
+    // 检查响应状态和数据
+    if (response.status === 200 && response.data.code === 200) {
+      // 使用setLoginUser的返回值判断登录状态设置是否成功
+      const loginSuccess = await loginUserStore.setLoginUser(response);
+
+      if (loginSuccess) {
+        showNotification("登录成功！正在跳转...", "success");
+        setTimeout(() => {
+          if (role === "t") {
+            router.push("/teacher/dashboard");
+          } else if (role === "s") {
+            router.push("/student/dashboard");
+          } else if (role === "a") {
+            router.push("/admin/dashboard");
+          }
+        }, 1000);
+      } else {
+        showNotification("登录失败：无法获取用户信息。", "error");
+      }
     } else {
+      // 登录失败但API请求成功的情况
       showNotification("登录失败：账号或密码错误，或身份不匹配。", "error");
+      console.error("登录失败，服务器响应:", response.data);
+      // 确保用户处于未登录状态
+      loginUserStore.setLoginUserUnlogin();
     }
   } catch (error) {
+    // API请求失败的情况
     showNotification("登录失败：网络错误，请稍后重试。", "error");
     console.error("登录请求出错:", error);
+    // 确保用户处于未登录状态
+    loginUserStore.setLoginUserUnlogin();
   }
 };
 </script>

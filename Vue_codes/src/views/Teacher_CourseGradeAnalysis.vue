@@ -59,27 +59,29 @@
                 v-model="selectedCourse"
                 @change="populateSectionSelect"
               >
+                <option :value="null">-- 请选择课程 --</option>
                 <option
                   v-for="course in courses"
                   :key="course.course_id"
-                  :value="course.course_id"
+                  :value="course"
                 >
                   {{ course.course_name }}
                 </option>
               </select>
             </div>
             <div class="form-group">
-              <label for="requestStudent">选择开课时间:</label>
+              <label for="requestSection">选择开课时间:</label>
               <select
-                id="requestStudent"
-                name="studentId"
+                id="requestSection"
+                name="sectionId"
                 v-model="selectedSection"
                 :disabled="!selectedCourse"
               >
+                <option :value="null">-- 请选择开课时间 --</option>
                 <option
                   v-for="section in sections"
                   :key="section.section_id"
-                  :value="section.section_id"
+                  :value="section"
                 >
                   {{ section.sec_year }} 学年 {{ section.semester }} 学期
                 </option>
@@ -112,27 +114,51 @@
             <div class="overall-course-stats">
               <div class="stat-item">
                 <span class="stat-label">总人数:</span>
-                <span class="stat-value">{{ totalStudents }}</span>
+                <span class="stat-value">{{
+                  totalStudents !== undefined && totalStudents !== null
+                    ? totalStudents
+                    : "--"
+                }}</span>
               </div>
               <div class="stat-item">
                 <span class="stat-label">最高分:</span>
-                <span class="stat-value">{{ highestScore }}</span>
+                <span class="stat-value">{{
+                  highestScore !== undefined && highestScore !== null
+                    ? highestScore
+                    : "--"
+                }}</span>
               </div>
               <div class="stat-item">
                 <span class="stat-label">最低分:</span>
-                <span class="stat-value">{{ lowestScore }}</span>
+                <span class="stat-value">{{
+                  lowestScore !== undefined && lowestScore !== null
+                    ? lowestScore
+                    : "--"
+                }}</span>
               </div>
               <div class="stat-item">
                 <span class="stat-label">平均分:</span>
-                <span class="stat-value">{{ medianScore }}</span>
+                <span class="stat-value">{{
+                  medianScore !== undefined && medianScore !== null
+                    ? medianScore
+                    : "--"
+                }}</span>
               </div>
               <div class="stat-item">
                 <span class="stat-label">及格率:</span>
-                <span class="stat-value">{{ passRate }}</span>
+                <span class="stat-value">{{
+                  passRate !== undefined && passRate !== null
+                    ? `${passRate}%`
+                    : "--"
+                }}</span>
               </div>
               <div class="stat-item">
                 <span class="stat-label">优秀率 (>=90):</span>
-                <span class="stat-value">{{ excellentRate }}</span>
+                <span class="stat-value">{{
+                  excellentRate !== undefined && excellentRate !== null
+                    ? `${excellentRate}%`
+                    : "--"
+                }}</span>
               </div>
             </div>
           </div>
@@ -169,8 +195,8 @@
                   </thead>
                   <tbody>
                     <tr v-for="(student, index) in rankedStudents" :key="index">
-                      <td>{{ index + 1 }}</td>
-                      <td>{{ student.student_name }}</td>
+                      <td>{{ student.rank }}</td>
+                      <td>{{ student.studentName }}</td>
                       <td>{{ student.score }}</td>
                     </tr>
                   </tbody>
@@ -217,23 +243,75 @@ import {
   getMyCourseSections,
   getSectionGradeAnalysis,
 } from "@/api/teacher";
+import router from "@/router";
 
 const loginUserStore = useuserLoginStore();
 
+// 定义接口
+interface Course {
+  course_id: string;
+  course_name: string;
+  // 其他可能的属性
+}
+
+interface Section {
+  section_id: string;
+  sec_year: number;
+  semester: string;
+  // 其他可能的属性
+}
+
+// 分析数据相关接口
+interface SectionInfo {
+  courseId: number;
+  classroomId: number;
+  capacity: number;
+  semester: string;
+  secYear: number;
+  secTime: string;
+  id: number;
+  availableCapacity: number;
+}
+
+interface GradeSegment {
+  segment: string;
+  count: number;
+  percentage: number;
+}
+
+interface StudentRanking {
+  studentId: number;
+  studentName: string;
+  score: number;
+  rank: number;
+}
+
+interface GradeAnalysisData {
+  section: SectionInfo;
+  averageScore: number;
+  highestScore: number;
+  lowestScore: number;
+  medianScore: number;
+  passRate: number;
+  excellentRate: number;
+  gradeDistributionSegments: GradeSegment[];
+  scoreRanking: StudentRanking[];
+}
+
 // 响应式数据
 const userDropdownVisible = ref(false);
-const selectedSection = ref<string>("");
-const selectedCourse = ref<string>("");
-const sections = ref([]);
-const courses = ref<any[]>([]);
+const selectedSection = ref<Section | null>(null);
+const selectedCourse = ref<Course | null>(null);
+const sections = ref<Section[]>([]);
+const courses = ref<Course[]>([]);
 const showResults = ref<boolean>(false);
 const analyzedCourseName = ref<string>("");
-const totalStudents = ref<string>("--");
-const highestScore = ref<string>("--");
-const lowestScore = ref<string>("--");
-const medianScore = ref<string>("--");
-const passRate = ref<string>("--");
-const excellentRate = ref<string>("--");
+const totalStudents = ref<number>(0);
+const highestScore = ref<number>(0);
+const lowestScore = ref<number>(0);
+const medianScore = ref<number>(0);
+const passRate = ref<number>(0);
+const excellentRate = ref<number>(0);
 const rankedStudents = ref<any[]>([]);
 const showNotification = ref<boolean>(false);
 const notificationMessage = ref<string>("");
@@ -241,7 +319,6 @@ const notificationMessage = ref<string>("");
 let scoreDistChartInstance: Chart | null = null;
 let gradePercentageChartInstance: Chart | null = null;
 
-// const MockCourses = {
 //   item: [
 //     {
 //       course_id: "121",
@@ -341,8 +418,8 @@ const handleLogout = () => {
 
 // 处理修改密码
 const handleChangePassword = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  //window.location.href = "../change-password";
+  router.push("/change-password");
 };
 
 // 销毁现有图表
@@ -360,8 +437,8 @@ const destroyCharts = () => {
 const populateCourseSelect = async () => {
   courses.value = [];
   sections.value = [];
-  selectedCourse.value = "";
-  selectedSection.value = "";
+  selectedCourse.value = null;
+  selectedSection.value = null;
   showResults.value = false;
 
   try {
@@ -373,7 +450,7 @@ const populateCourseSelect = async () => {
       teacher_name: "",
       category: "",
     });
-    courses.value = response.item;
+    courses.value = response.data.data.items;
   } catch (error) {
     showMainNotification("获取课程列表失败，请稍后重试。", "error");
     console.error(error);
@@ -383,124 +460,268 @@ const populateCourseSelect = async () => {
 // 选择课程后填充开课列表
 const populateSectionSelect = async () => {
   sections.value = [];
-  selectedSection.value = "";
+  selectedSection.value = null;
   showResults.value = false;
 
+  if (!selectedCourse.value) {
+    showMainNotification("请先选择课程", "error");
+    return;
+  }
+
   try {
+    console.log("选择的课程ID:", selectedCourse.value.course_id);
+
     const response = await getMyCourseSections(selectedCourse.value.course_id, {
       semester: "",
-      sec_year: null,
+      // 不传递sec_year参数，避免后端将其设为0
     });
-    sections.value = response.data;
+
+    console.log("API返回的开课数据:", response);
+
+    // 检查并处理API返回的数据
+    if (response && response.data) {
+      let sectionsData = [];
+
+      // 尝试从不同可能的数据结构中获取开课列表
+      if (Array.isArray(response.data)) {
+        sectionsData = response.data;
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        sectionsData = response.data.data;
+      } else if (
+        response.data.data &&
+        response.data.data.items &&
+        Array.isArray(response.data.data.items)
+      ) {
+        sectionsData = response.data.data.items;
+      } else {
+        console.error("API返回的开课数据结构不符合预期:", response.data);
+        showMainNotification("API返回的开课数据结构不符合预期", "error");
+        return;
+      }
+
+      // 将返回的数据映射到我们的Section接口
+      sections.value = sectionsData.map((item: any) => ({
+        section_id: item.section_id || item.sectionId,
+        sec_year: item.sec_year || item.secYear || 0,
+        semester: item.semester || "",
+      }));
+
+      console.log("处理后的开课列表:", sections.value);
+
+      if (sections.value.length === 0) {
+        showMainNotification("该课程暂无开课信息", "info");
+      }
+    } else {
+      showMainNotification("获取开课列表失败，返回数据为空", "error");
+    }
   } catch (error) {
     showMainNotification("获取开课列表失败，请稍后重试。", "error");
-    console.error(error);
+    console.error("获取开课列表错误:", error);
   }
 };
 
 // 提交分析表单
 const submitAnalysisForm = async () => {
+  if (!selectedSection.value || !selectedCourse.value) {
+    showMainNotification("请先选择课程和开课时间", "error");
+    return;
+  }
+
   showMainNotification("正在生成分析报告...", "info");
+
   try {
+    console.log("选择的开课ID:", selectedSection.value.section_id);
+
     destroyCharts();
     const result = await getSectionGradeAnalysis(
       selectedSection.value.section_id
     );
-    if (result) {
-      showResults.value = true;
-      analyzedCourseName.value = selectedCourse.value.course_name;
-      totalStudents.value =
-        result.data.section_info.capacity -
-        result.data.section_info.available_capacity;
-      highestScore.value = result.data.highest_score;
-      lowestScore.value = result.data.lowest_score;
-      medianScore.value = result.data.median_score;
-      passRate.value = result.data.pass_rate;
-      excellentRate.value = result.data.excellent_rate;
-      rankedStudents.value = result.data.score_ranking;
-      const labels = result.data.grade_distribution_segments.map(
-        (item) => item.segment
-      );
-      const counts = result.data.grade_distribution_segments.map(
-        (item) => item.count
-      );
-      const percentages = result.data.grade_distribution_segments.map(
-        (item) => item.percentage
-      );
 
-      // 绘制分数段分布图
-      const scoreDistChartCtx = document.getElementById(
-        "courseScoreDistributionChart"
-      ) as HTMLCanvasElement;
-      if (scoreDistChartCtx) {
-        // hasScoreDistributionData.value = Object.values(result.scoreRanges).some(
-        //   (val) => val > 0
-        // );
-        scoreDistChartInstance = new Chart(scoreDistChartCtx, {
-          type: "bar",
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                label: "学生人数",
-                data: counts,
-                backgroundColor: [
-                  "#4CAF50",
-                  "#8BC34A",
-                  "#CDDC39",
-                  "#FFEB3B",
-                  "#F44336",
-                ],
-                borderColor: [
-                  "#388E3C",
-                  "#689F38",
-                  "#AFB42B",
-                  "#FBC02D",
-                  "#D32F2F",
-                ],
-                borderWidth: 1,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
-          },
+    console.log("API返回的分析数据:", result);
+    console.log("API返回的data内容:", result.data);
+
+    // 尝试确定数据结构
+    let analysisData: GradeAnalysisData | null = null;
+
+    // 检查是否有额外的嵌套
+    if (result.data && result.data.data) {
+      console.log("检测到数据在data.data中，使用嵌套数据");
+      analysisData = result.data.data as GradeAnalysisData;
+    } else if (result.data) {
+      analysisData = result.data as GradeAnalysisData;
+    }
+
+    if (analysisData) {
+      try {
+        console.log("处理的分析数据结构:", analysisData);
+
+        // 检查必要的数据是否存在
+        if (!analysisData.section) {
+          console.error(
+            "找不到section字段，可用字段:",
+            Object.keys(analysisData)
+          );
+          throw new Error("缺少课程部分信息(section)");
+        }
+
+        if (
+          analysisData.section.capacity === undefined ||
+          analysisData.section.availableCapacity === undefined
+        ) {
+          console.error("section字段内容:", analysisData.section);
+          throw new Error("缺少课程容量信息");
+        }
+
+        showResults.value = true;
+        analyzedCourseName.value = selectedCourse.value.course_name || "";
+
+        // 更新统计信息，根据后端返回的实际数据结构
+        console.log("容量信息:", {
+          capacity: analysisData.section.capacity,
+          availableCapacity: analysisData.section.availableCapacity,
+          type: typeof analysisData.section.capacity,
         });
-      }
 
-      // 绘制成绩段百分比饼状图
-      const gradePercentageChartCtx = document.getElementById(
-        "gradePercentageChart"
-      ) as HTMLCanvasElement;
-      if (gradePercentageChartCtx) {
-        gradePercentageChartInstance = new Chart(gradePercentageChartCtx, {
-          type: "pie",
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                label: "成绩段百分比",
-                data: percentages,
-                backgroundColor: [
-                  "rgb(255, 99, 132)",
-                  "rgb(54, 162, 235)",
-                  "rgb(255, 205, 86)",
-                  "rgb(75, 192, 192)",
-                  "rgb(153, 102, 255)",
-                ],
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-          },
-        });
-      }
+        // 确保使用数值而非字符串进行计算
+        const capacity = Number(analysisData.section.capacity || 0);
+        const availableCapacity = Number(
+          analysisData.section.availableCapacity || 0
+        );
+        const calculatedStudents = capacity - availableCapacity;
 
-      showMainNotification("课程成绩分析报告已生成。", "success");
+        console.log("计算的学生人数:", calculatedStudents);
+
+        // 确保总人数至少为0（防止负数）
+        totalStudents.value = Math.max(0, calculatedStudents);
+        highestScore.value = analysisData.highestScore || 0;
+        lowestScore.value = analysisData.lowestScore || 0;
+        medianScore.value = analysisData.medianScore || 0;
+        passRate.value = analysisData.passRate || 0;
+        excellentRate.value = analysisData.excellentRate || 0;
+
+        // 检查排名数据
+        if (!analysisData.scoreRanking) {
+          console.warn("缺少成绩排名数据");
+          rankedStudents.value = [];
+        } else {
+          rankedStudents.value = analysisData.scoreRanking;
+        }
+
+        // 检查是否有分数段数据
+        if (
+          !analysisData.gradeDistributionSegments ||
+          analysisData.gradeDistributionSegments.length === 0
+        ) {
+          console.warn("缺少分数段分布数据");
+          showMainNotification("无法显示分数段分布图表，数据不完整", "error");
+          return;
+        }
+
+        // 检查是否所有分数段的count都为0
+        const hasNonZeroCount = analysisData.gradeDistributionSegments.some(
+          (item) => item.count > 0
+        );
+
+        if (!hasNonZeroCount) {
+          console.warn("所有分数段的人数都为0");
+          showMainNotification("当前暂无学生成绩数据", "info");
+        }
+
+        // 准备图表数据
+        const labels = analysisData.gradeDistributionSegments.map(
+          (item: any) => item.segment
+        );
+        const counts = analysisData.gradeDistributionSegments.map(
+          (item: any) => item.count
+        );
+        const percentages = analysisData.gradeDistributionSegments.map(
+          (item: any) => item.percentage
+        );
+
+        // 绘制分数段分布图
+        const scoreDistChartCtx = document.getElementById(
+          "courseScoreDistributionChart"
+        ) as HTMLCanvasElement;
+        if (scoreDistChartCtx) {
+          scoreDistChartInstance = new Chart(scoreDistChartCtx, {
+            type: "bar",
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: "学生人数",
+                  data: counts,
+                  backgroundColor: [
+                    "#4CAF50",
+                    "#8BC34A",
+                    "#CDDC39",
+                    "#FFEB3B",
+                    "#F44336",
+                  ],
+                  borderColor: [
+                    "#388E3C",
+                    "#689F38",
+                    "#AFB42B",
+                    "#FBC02D",
+                    "#D32F2F",
+                  ],
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+            },
+          });
+        } else {
+          console.warn("无法找到图表容器: courseScoreDistributionChart");
+        }
+
+        // 绘制成绩段百分比饼状图
+        const gradePercentageChartCtx = document.getElementById(
+          "gradePercentageChart"
+        ) as HTMLCanvasElement;
+        if (gradePercentageChartCtx) {
+          gradePercentageChartInstance = new Chart(gradePercentageChartCtx, {
+            type: "pie",
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: "成绩段百分比",
+                  data: percentages,
+                  backgroundColor: [
+                    "rgb(255, 99, 132)",
+                    "rgb(54, 162, 235)",
+                    "rgb(255, 205, 86)",
+                    "rgb(75, 192, 192)",
+                    "rgb(153, 102, 255)",
+                  ],
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+            },
+          });
+        } else {
+          console.warn("无法找到图表容器: gradePercentageChart");
+        }
+
+        showMainNotification("课程成绩分析报告已生成。", "success");
+      } catch (error) {
+        showResults.value = false;
+        console.error("分析数据处理失败:", error);
+        showMainNotification(
+          `分析数据处理失败: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+          "error"
+        );
+      }
     } else {
       showResults.value = false;
       showMainNotification("未找到所选课程的成绩数据。", "error");
@@ -508,7 +729,12 @@ const submitAnalysisForm = async () => {
   } catch (error) {
     showResults.value = false;
     console.error("生成分析报告失败:", error);
-    showMainNotification("生成分析报告失败", "error");
+    showMainNotification(
+      `生成分析报告失败: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+      "error"
+    );
   }
 };
 

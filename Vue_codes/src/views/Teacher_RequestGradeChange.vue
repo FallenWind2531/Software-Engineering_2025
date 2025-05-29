@@ -30,7 +30,6 @@
         <div
           class="user-dropdown-menu"
           id="userDropdown"
-          `
           :style="{ display: userDropdownVisible ? 'block' : 'none' }"
         >
           <a @click="handleChangePassword">修改密码</a>
@@ -56,31 +55,39 @@
                 v-model="selectedCourse"
                 @change="populateSectionSelect"
               >
+                <option :value="null">-- 请选择课程 --</option>
                 <option
                   v-for="course in courses"
                   :key="course.course_id"
-                  :value="course.course_id"
+                  :value="course"
                 >
                   {{ course.course_name }}
                 </option>
               </select>
             </div>
             <div class="form-group">
-              <label for="requestStudent">选择开课时间:</label>
+              <label for="requestSection">选择开课时间:</label>
               <select
-                id="requestStudent"
-                name="studentId"
+                id="requestSection"
+                name="sectionId"
                 v-model="selectedSection"
                 :disabled="!selectedCourse"
                 @change="populateStudentSelect"
               >
-                <option value="">-- 请先选择课程 --</option>
+                <option :value="null">-- 请先选择课程 --</option>
                 <option
                   v-for="section in sections"
                   :key="section.section_id"
-                  :value="section.section_id"
+                  :value="section"
                 >
-                  {{ section.sec_year }} 学年 {{ section.semester }} 学期
+                  {{ section.sec_year || "未知学年" }} 学年
+                  {{ section.semester || "未知学期" }} 学期
+                  {{
+                    section.classroom_location
+                      ? `- ${section.classroom_location}`
+                      : ""
+                  }}
+                  {{ section.sec_time ? `(${section.sec_time})` : "" }}
                 </option>
               </select>
             </div>
@@ -92,11 +99,11 @@
                 v-model="selectedStudent"
                 :disabled="!selectedSection"
               >
-                <option value="">-- 请先选择开课 --</option>
+                <option :value="null">-- 请先选择开课 --</option>
                 <option
                   v-for="student in students"
                   :key="student.user_id"
-                  :value="student.user_id"
+                  :value="student"
                 >
                   {{ student.name }}
                 </option>
@@ -146,8 +153,8 @@
               <div class="info-item">
                 <label>当前总评成绩:</label>
                 <strong id="displayCurrentGrade">{{
-                  selectedGradeInfo?.grade_base.score !== null
-                    ? selectedGradeInfo?.grade_base.score
+                  selectedGradeInfo?.grade_base?.score !== null
+                    ? selectedGradeInfo?.grade_base?.score
                     : "--"
                 }}</strong>
               </div>
@@ -200,7 +207,7 @@
           id="notificationArea"
           class="notification"
           :style="{ display: notificationVisible ? 'block' : 'none' }"
-          :class="`notification-${notificationType}`"
+          :class="notificationType"
         >
           {{ notificationMessage }}
         </div>
@@ -227,16 +234,45 @@ import {
 } from "@/api/teacher";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { useuserLoginStore } from "@/store/userLoginStore";
+import { useRouter } from "vue-router";
 
+// 定义接口
+interface Course {
+  course_id: string;
+  course_name: string;
+  // 其他可能的属性
+}
+
+interface Section {
+  section_id: string;
+  sec_year: number;
+  semester: string;
+  classroom_location?: string;
+  sec_time?: string;
+  // 其他可能的属性
+}
+
+interface Student {
+  user_id: string;
+  name: string;
+  account: string;
+  role: string;
+  department: string;
+  contact: string;
+  avatarPath: string;
+  // 其他可能的属性
+}
+
+const router = useRouter();
 const loginUserStore = useuserLoginStore();
 // 响应式数据
 const userDropdownVisible = ref(false);
-const selectedCourse = ref("");
-const selectedSection = ref("");
-const selectedStudent = ref("");
-const courses = ref<any[]>([]);
-const sections = ref<any[]>([]);
-const students = ref<any[]>([]);
+const selectedCourse = ref<Course | null>(null);
+const selectedSection = ref<Section | null>(null);
+const selectedStudent = ref<Student | null>(null);
+const courses = ref<Course[]>([]);
+const sections = ref<Section[]>([]);
+const students = ref<Student[]>([]);
 const gradeModificationCardVisible = ref(false);
 const selectedGradeInfo = ref<any>(null);
 const newGrade = ref("");
@@ -245,7 +281,6 @@ const notificationVisible = ref(false);
 const notificationMessage = ref("");
 const notificationType = ref("info");
 
-// const MockCourses = {
 //   item: [
 //     {
 //       course_id: "121",
@@ -316,9 +351,9 @@ const populateCourseSelect = async () => {
   courses.value = [];
   sections.value = [];
   students.value = [];
-  selectedCourse.value = "";
-  selectedSection.value = "";
-  selectedStudent.value = "";
+  selectedCourse.value = null;
+  selectedSection.value = null;
+  selectedStudent.value = null;
   gradeModificationCardVisible.value = false;
 
   try {
@@ -330,7 +365,7 @@ const populateCourseSelect = async () => {
       teacher_name: "",
       category: "",
     });
-    courses.value = response.item;
+    courses.value = response.data.data.items;
   } catch (error) {
     showNotification("获取课程列表失败，请稍后重试。", "error");
     console.error(error);
@@ -341,37 +376,118 @@ const populateCourseSelect = async () => {
 const populateSectionSelect = async () => {
   sections.value = [];
   students.value = [];
-  selectedSection.value = "";
-  selectedStudent.value = "";
+  selectedSection.value = null;
+  selectedStudent.value = null;
   gradeModificationCardVisible.value = false;
 
+  if (!selectedCourse.value) {
+    showNotification("请先选择课程", "error");
+    return;
+  }
+
   try {
-    const response = await getMyCourseSections(selectedCourse.value.course_id, {
-      semester: "",
-      sec_year: null,
-    });
-    sections.value = response.data;
+    console.log("选择的课程ID:", selectedCourse.value.course_id);
+
+    const response = await getMyCourseSections(
+      selectedCourse.value?.course_id,
+      {
+        semester: "",
+        // 不传递sec_year参数
+      }
+    );
+
+    console.log("API返回的开课数据:", response);
+
+    // 检查并处理API返回的数据
+    if (response && response.data) {
+      let sectionsData = [];
+
+      // 尝试从不同可能的数据结构中获取开课列表
+      if (Array.isArray(response.data)) {
+        sectionsData = response.data;
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        sectionsData = response.data.data;
+      } else if (
+        response.data.data &&
+        response.data.data.items &&
+        Array.isArray(response.data.data.items)
+      ) {
+        sectionsData = response.data.data.items;
+      } else {
+        console.error("API返回的开课数据结构不符合预期:", response.data);
+        showNotification("API返回的开课数据结构不符合预期", "error");
+        return;
+      }
+
+      // 将返回的数据映射到我们的Section接口
+      sections.value = sectionsData.map((item: any) => ({
+        section_id: item.section_id || item.sectionId,
+        sec_year: item.sec_year || item.secYear || 0,
+        semester: item.semester || "",
+        classroom_location: item.classroom_location || "",
+        sec_time: item.sec_time || item.secTime || "",
+      }));
+
+      console.log("处理后的开课列表:", sections.value);
+
+      if (sections.value.length === 0) {
+        showNotification("该课程暂无开课信息", "info");
+      }
+    } else {
+      showNotification("获取开课列表失败，返回数据为空", "error");
+    }
   } catch (error) {
     showNotification("获取开课列表失败，请稍后重试。", "error");
-    console.error(error);
+    console.error("获取开课列表错误:", error);
   }
 };
 
 // 选择开课后填充学生列表
 const populateStudentSelect = async () => {
   students.value = [];
-  selectedStudent.value = "";
+  selectedStudent.value = null;
   gradeModificationCardVisible.value = false;
 
+  if (!selectedSection.value) {
+    showNotification("请先选择开课时间", "error");
+    return;
+  }
+
   try {
-    const response = await getSectionGrades(selectedSection.value.section_id, {
+    console.log("选择的开课ID:", selectedSection.value.section_id);
+
+    const response = await getSectionGrades(selectedSection.value?.section_id, {
       student_name: "",
       student_id: "",
     });
-    students.value = response.data.student_info;
+
+    console.log("API返回的学生数据:", response);
+
+    // 确保API返回了有效数据
+    if (response && response.data.data && response.data.data.user) {
+      // 将返回的数据映射到我们的Student接口
+      students.value = response.data.data.user.map((item: any) => ({
+        user_id: item.user_id,
+        name: item.name || "",
+        account: item.account,
+        role: item.role,
+        department: item.department,
+        contact: item.contact,
+        avatarPath: item.avatarPath,
+      }));
+
+      console.log("处理后的学生列表:", students.value);
+
+      if (students.value.length === 0) {
+        showNotification("该开课暂无学生信息", "info");
+      }
+    } else {
+      showNotification("获取学生列表失败，返回数据格式不符合预期", "error");
+      console.error("API返回的学生数据结构不符合预期:", response);
+    }
   } catch (error) {
     showNotification("获取学生列表失败，请稍后重试。", "error");
-    console.error(error);
+    console.error("获取学生列表错误:", error);
   }
 };
 
@@ -387,25 +503,52 @@ const loadGradeInfo = async () => {
   }
 
   try {
-    const response = await getSectionGrades(selectedSection.value.section_id, {
-      student_name: selectedStudent.value.name,
-      student_id: selectedStudent.value.user_id,
+    console.log("加载成绩信息，学生ID:", selectedStudent.value?.user_id);
+
+    const response = await getSectionGrades(selectedSection.value?.section_id, {
+      student_name: selectedStudent.value?.name,
+      student_id: selectedStudent.value?.user_id,
     });
-    selectedGradeInfo.value = response.data.grade_info[0];
-    newGrade.value = "";
-    modificationReason.value = "";
-    gradeModificationCardVisible.value = true;
-    showNotification("已加载成绩信息，请填写修改详情。", "info");
+
+    console.log("获取到的成绩数据:", response);
+
+    // 确保API返回了有效数据
+    if (
+      response &&
+      response.data &&
+      response.data.data.grade &&
+      response.data.data.grade.length > 0
+    ) {
+      selectedGradeInfo.value = {
+        grade_id: response.data.data.grade[0].gradeBase.gradeId,
+        score: response.data.data.grade[0].gradeBase.score,
+        grade_base: {
+          score: response.data.data.grade[0].gradeBase.score,
+        },
+        // 保存原始数据，以便可能需要的其他字段
+        original: response.data.data.grade[0],
+      };
+
+      console.log("处理后的成绩信息:", selectedGradeInfo.value);
+
+      newGrade.value = "";
+      modificationReason.value = "";
+      gradeModificationCardVisible.value = true;
+      showNotification("已加载成绩信息，请填写修改详情。", "info");
+    } else {
+      showNotification("未找到学生成绩信息，或数据格式不符合预期", "error");
+      console.error("API返回的成绩数据不符合预期:", response);
+    }
   } catch (error) {
     showNotification("加载成绩信息失败，请稍后重试。", "error");
-    console.error(error);
+    console.error("获取成绩信息错误:", error);
   }
 };
 
 // 取消修改
 const cancelModification = () => {
   gradeModificationCardVisible.value = false;
-  selectedStudent.value = "";
+  selectedStudent.value = null;
   showNotification("修改已取消。", "info");
 };
 
@@ -437,24 +580,40 @@ const submitGradeChangeRequest = async () => {
     return;
   }
 
+  // 构建请求数据
   const requestData = {
-    grade_id: selectedGradeInfo.value.grade_id,
-    old_score: selectedGradeInfo.value.score,
-    new_score: newGradeValue,
-    reason: modificationReason.value,
+    grade_id: selectedGradeInfo.value.grade_id, // 成绩ID
+    old_score: selectedGradeInfo.value.score, // 原始成绩
+    new_score: newGradeValue, // 新成绩
+    reason: modificationReason.value, // 修改原因
+    studentName: selectedStudent.value?.name || "",
+    courseName: selectedCourse.value?.course_name || "",
+    // 可能需要其他数据
+    student_id: selectedStudent.value?.user_id,
+    course_id: selectedCourse.value?.course_id,
+    section_id: selectedSection.value?.section_id,
   };
+
+  console.log("提交的申请数据:", requestData);
 
   try {
     showNotification("正在提交修改申请...", "info");
     const response = await submitGradeApply(requestData);
+
+    console.log("申请提交响应:", response);
+
     showNotification(
-      `已成功为 ${requestData.studentName} 的《${requestData.courseName}》提交成绩修改申请，等待管理员审核。`,
+      `已成功为 ${selectedStudent.value?.name || ""} 的《${
+        selectedCourse.value?.course_name || ""
+      }》提交成绩修改申请，等待管理员审核。`,
       "success"
     );
+
+    // 重置状态
     gradeModificationCardVisible.value = false;
-    selectedSection.value = "";
-    selectedCourse.value = "";
-    selectedStudent.value = "";
+    selectedSection.value = null;
+    selectedCourse.value = null;
+    selectedStudent.value = null;
     sections.value = [];
     courses.value = [];
     students.value = [];
@@ -463,7 +622,7 @@ const submitGradeChangeRequest = async () => {
     modificationReason.value = "";
   } catch (error) {
     showNotification("提交申请失败，请稍后重试。", "error");
-    console.error(error);
+    console.error("提交申请错误:", error);
   }
 };
 
@@ -483,8 +642,8 @@ const handleLogout = () => {
 
 // 处理修改密码
 const handleChangePassword = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  //window.location.href = "../change-password";
+  router.push("/change-password");
 };
 
 onMounted(() => {

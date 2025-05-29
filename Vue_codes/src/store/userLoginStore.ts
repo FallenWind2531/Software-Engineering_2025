@@ -42,15 +42,33 @@ export const useuserLoginStore = defineStore("userLogin", {
 
     async function setLoginUser(response: AxiosResponse<any, any>) {
       const res = response;
-      if (res.status === 200) {
-        loginUser.value.user_id = res.data.data.userInfo.user_id;
-        loginUser.value.name = res.data.data.userInfo.name;
-        loginUser.value.role = res.data.data.userInfo.role;
-        loginUser.value.department = res.data.data.userInfo.department;
-        loginUser.value.contact = res.data.data.userInfo.contact;
-        loginUser.value.avatar_path = res.data.data.userInfo.avatarPath;
-        loginUser.value.token = res.data.data.token;
-      } else await setLoginUserUnlogin();
+      try {
+        // 确保响应状态和数据都是有效的
+        if (
+          res.status === 200 &&
+          res.data.code === 200 &&
+          res.data.data &&
+          res.data.data.userInfo
+        ) {
+          loginUser.value.user_id = res.data.data.userInfo.user_id;
+          loginUser.value.name = res.data.data.userInfo.name;
+          loginUser.value.role = res.data.data.userInfo.role;
+          loginUser.value.department = res.data.data.userInfo.department;
+          loginUser.value.contact = res.data.data.userInfo.contact;
+          loginUser.value.avatar_path = res.data.data.userInfo.avatarPath;
+          loginUser.value.token = res.data.data.token;
+          console.log("用户登录状态已更新:", loginUser.value);
+          return true;
+        } else {
+          console.error("登录响应数据无效:", res.data);
+          await setLoginUserUnlogin();
+          return false;
+        }
+      } catch (error) {
+        console.error("处理登录数据时出错:", error);
+        await setLoginUserUnlogin();
+        return false;
+      }
     }
 
     async function setLoginUserUnlogin() {

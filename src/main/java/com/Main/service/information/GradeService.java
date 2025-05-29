@@ -217,7 +217,7 @@ public class GradeService{
             
             // 如果有姓名筛选，添加条件
             if (studentName != null && !studentName.isEmpty()) {
-                userSql.append(" AND UserName LIKE ?");
+                userSql.append(" AND name LIKE ?");
             }
             
             List<Object> userParams = new ArrayList<>();
