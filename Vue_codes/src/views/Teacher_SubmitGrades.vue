@@ -129,15 +129,41 @@
                 >
                   <td>{{ index + 1 }}</td>
                   <td>{{ studentGrade.name }}</td>
-                  <td>{{ studentGrade.score }}</td>
-                  <td>{{ studentGrade.gpa }}</td>
+                  <td>
+                    <input
+                      type="number"
+                      v-model="studentGrade.score"
+                      min="0"
+                      max="100"
+                      :disabled="studentGrade.submit_status === 1"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      v-model="studentGrade.gpa"
+                      min="0"
+                      max="4"
+                      step="0.1"
+                      :disabled="studentGrade.submit_status === 1"
+                    />
+                  </td>
                   <td>
                     <span
                       v-if="studentGrade.submit_status === 1"
                       class="status-submitted"
                       >已提交</span
                     >
-                    <span v-else class="status-draft">未提交</span>
+                    <span v-else>
+                      <input
+                        type="checkbox"
+                        v-model="studentGrade.selected"
+                        :id="`select-student-${studentGrade.student_id}`"
+                      />
+                      <label :for="`select-student-${studentGrade.student_id}`"
+                        >未提交</label
+                      >
+                    </span>
                   </td>
                 </tr>
               </tbody>
@@ -148,18 +174,20 @@
               type="button"
               class="btn btn-success"
               id="submitAllGradesBtn"
-              @click="submitAllGrades"
+              @click="submitSelectedGrades"
+              :disabled="!hasSelectedGrades"
             >
-              <FontAwesomeIcon icon="fas fa-check-circle" /> 全部提交
+              <FontAwesomeIcon icon="fas fa-check-circle" /> 提交选中成绩
             </button>
-            <!--            <button-->
-            <!--              type="button"-->
-            <!--              class="btn btn-secondary"-->
-            <!--              id="saveDraftBtn"-->
-            <!--              @click="saveDraft"-->
-            <!--            >-->
-            <!--              <FontAwesomeIcon icon="fas fa-save" /> 暂存草稿-->
-            <!--            </button>-->
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="selectAllBtn"
+              @click="selectAllUnsubmitted"
+              :disabled="allSubmitted"
+            >
+              <FontAwesomeIcon icon="fas fa-check-square" /> 全选未提交
+            </button>
           </div>
         </div>
 
@@ -212,53 +240,33 @@ const notification = ref({
   message: "",
   type: "info",
 });
+const studentGrades = ref<any[]>([]);
 
 // 生命周期钩子
 onMounted(() => {
   populateCourseSelect();
 });
 
-const studentGrades = computed(() => {
-  // 检查数据是否存在
-  if (
-    !students.value ||
-    !grades.value ||
-    students.value.length === 0 ||
-    grades.value.length === 0
-  ) {
-    return [];
-  }
-
-  console.log("计算studentGrades, students:", students.value);
-  console.log("计算studentGrades, grades:", grades.value);
-
-  return students.value.map((student, index) => {
-    // 找到与学生匹配的成绩记录
-    const gradeRecord = grades.value.find(
-      (g) => g.gradeBase && g.gradeBase.studentId === student.user_id
-    );
-
-    if (!gradeRecord || !gradeRecord.gradeBase) {
-      console.warn(
-        `未找到学生(${student.name}, ID: ${student.user_id})的成绩记录`
-      );
-      return {
-        student_id: student.user_id,
-        name: student.name,
-        score: 0,
-        gpa: 0,
-      };
-    }
-
-    return {
-      student_id: student.user_id,
-      name: student.name,
-      score: gradeRecord.gradeBase.score,
-      gpa: gradeRecord.gradeBase.gpa,
-      submit_status: gradeRecord.gradeBase.submitStatus,
-    };
-  });
+// 检查是否有选中的成绩
+const hasSelectedGrades = computed(() => {
+  return studentGrades.value.some(
+    (grade) => !grade.submit_status && grade.selected
+  );
 });
+
+// 检查是否所有成绩都已提交
+const allSubmitted = computed(() => {
+  return studentGrades.value.every((grade) => grade.submit_status === 1);
+});
+
+// 全选未提交的成绩
+const selectAllUnsubmitted = () => {
+  studentGrades.value.forEach((grade) => {
+    if (grade.submit_status !== 1) {
+      grade.selected = true;
+    }
+  });
+};
 
 // 切换用户下拉菜单
 const toggleUserDropdown = () => {
@@ -332,7 +340,20 @@ const populateSectionSelect = async () => {
 
   try {
     console.log("选择的课程:", selectedCourse.value);
-    const response = await getMyCourseSections(selectedCourse.value.course_id, {
+
+    // 获取课程ID，处理可能的不同属性名
+    const courseId =
+      selectedCourse.value.course_id ||
+      selectedCourse.value.courseId ||
+      selectedCourse.value.id;
+
+    if (!courseId) {
+      console.error("无法获取课程ID，选中的课程对象:", selectedCourse.value);
+      showNotification("无法获取课程ID，请重新选择课程", "error");
+      return;
+    }
+
+    const response = await getMyCourseSections(courseId, {
       semester: "",
       secYear: null,
     });
@@ -416,12 +437,43 @@ const loadStudents = async () => {
         showNotification("未找到成绩数据", "error");
       }
 
-      // 只有在两者都有数据时才显示成绩输入卡片
-      if (students.value.length > 0 && grades.value.length > 0) {
+      // 计算studentGrades
+      if (students.value.length > 0) {
+        studentGrades.value = students.value.map((student, index) => {
+          // 找到与学生匹配的成绩记录
+          const gradeRecord = grades.value.find(
+            (g) => g.gradeBase && g.gradeBase.studentId === student.user_id
+          );
+
+          if (!gradeRecord || !gradeRecord.gradeBase) {
+            console.warn(
+              `未找到学生(${student.name}, ID: ${student.user_id})的成绩记录`
+            );
+            return {
+              student_id: student.user_id,
+              name: student.name,
+              score: 0,
+              gpa: 0,
+              submit_status: 0,
+              selected: false,
+            };
+          }
+
+          return {
+            student_id: student.user_id,
+            name: student.name,
+            score: gradeRecord.gradeBase.score,
+            gpa: gradeRecord.gradeBase.gpa,
+            submit_status: gradeRecord.gradeBase.submitStatus,
+            selected: false,
+          };
+        });
+
+        // 只有在有数据时才显示成绩输入卡片
         showGradeEntryCard.value = true;
         showNotification("学生名单加载完毕。", "success");
       } else {
-        showNotification("学生或成绩数据为空", "info");
+        showNotification("学生数据为空", "info");
       }
     } else {
       showNotification("API返回数据结构不符合预期", "error");
@@ -434,15 +486,19 @@ const loadStudents = async () => {
   }
 };
 
-// 全部提交
-const submitAllGrades = async () => {
+// 提交选中的成绩
+const submitSelectedGrades = async () => {
   if (!selectedSection.value) {
     showNotification("请先选择开课时间", "error");
     return;
   }
 
-  if (studentGrades.value.length === 0) {
-    showNotification("没有学生成绩可以提交", "error");
+  const selectedGrades = studentGrades.value.filter(
+    (grade) => grade.selected && grade.submit_status !== 1
+  );
+
+  if (selectedGrades.length === 0) {
+    showNotification("请选择至少一个未提交的成绩", "error");
     return;
   }
 
@@ -463,18 +519,10 @@ const submitAllGrades = async () => {
   }
 
   try {
-    // 统计需要提交的成绩数量
-    let totalSubmissions = 0;
     let successSubmissions = 0;
+    const totalSubmissions = selectedGrades.length;
 
-    for (const studentGrade of studentGrades.value) {
-      // 如果已经提交过，就跳过
-      if (studentGrade.submit_status === 1) {
-        console.log(`学生(${studentGrade.name})的成绩已提交，跳过`);
-        continue;
-      }
-
-      totalSubmissions++;
+    for (const studentGrade of selectedGrades) {
       // 将数据包装在数组中，符合后端期望的格式
       const data = [
         {
@@ -488,6 +536,14 @@ const submitAllGrades = async () => {
       try {
         await submitStudentGrades(sectionId, data);
         successSubmissions++;
+        // 更新学生成绩状态为已提交
+        const index = studentGrades.value.findIndex(
+          (grade) => grade.student_id === studentGrade.student_id
+        );
+        if (index !== -1) {
+          studentGrades.value[index].submit_status = 1;
+          studentGrades.value[index].selected = false;
+        }
       } catch (submissionError) {
         console.error(
           `提交学生(${studentGrade.name})的成绩失败:`,
@@ -496,11 +552,9 @@ const submitAllGrades = async () => {
       }
     }
 
-    if (totalSubmissions === 0) {
-      showNotification("所有成绩已经提交过，无需重复提交", "info");
-    } else if (successSubmissions === totalSubmissions) {
+    if (successSubmissions === totalSubmissions) {
       showNotification(
-        `所有成绩(${successSubmissions}条)已成功提交！`,
+        `选中的成绩(${successSubmissions}条)已成功提交！`,
         "success"
       );
     } else {
@@ -509,38 +563,11 @@ const submitAllGrades = async () => {
         "info"
       );
     }
-
-    // 重新加载数据
-    showGradeEntryCard.value = false;
-    selectedSection.value = null;
-    courses.value = [];
-    sections.value = [];
-    students.value = [];
-    grades.value = [];
-    selectedCourse.value = null;
-
-    // 重新加载课程列表
-    populateCourseSelect();
   } catch (error) {
     showNotification("提交成绩失败，请稍后重试。", "error");
     console.error("提交成绩错误:", error);
   }
 };
-
-// // 暂存草稿
-// const saveDraft = async () => {
-//   try {
-//     const data = {
-//       courseId: selectedCourse.value,
-//       students: studentGrades.value,
-//     };
-//     await saveGradeDraft(data);
-//     showNotification("成绩草稿已保存。", "info");
-//   } catch (error) {
-//     showNotification("保存草稿失败，请稍后重试。", "error");
-//     console.error(error);
-//   }
-// };
 
 // 显示通知
 const showNotification = (

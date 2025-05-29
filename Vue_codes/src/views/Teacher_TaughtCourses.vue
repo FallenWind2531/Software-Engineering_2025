@@ -54,7 +54,7 @@
               <input
                 type="text"
                 id="courseName"
-                v-model="filters.name"
+                v-model="filters.course_name"
                 placeholder="输入课程名关键词"
               />
             </div>
@@ -62,9 +62,9 @@
               <label for="courseType">课程类别:</label>
               <select id="courseType" v-model="filters.category">
                 <option value="">全部类别</option>
-                <option value="compulsory">普通</option>
-                <option value="specialized_compulsory">实验</option>
-                <option value="elective">体育</option>
+                <option value="普通">普通</option>
+                <option value="实验">实验</option>
+                <option value="体育">体育</option>
               </select>
             </div>
             <div class="form-action-group">
@@ -174,7 +174,7 @@
                 <input
                   type="text"
                   id="newCourseName"
-                  v-model="newCourse.name"
+                  v-model="newCourse.course_name"
                   placeholder="输入课程名称"
                   required
                 />
@@ -183,7 +183,7 @@
                 <label for="newCourseDescription">课程描述:</label>
                 <textarea
                   id="newCourseDescription"
-                  v-model="newCourse.description"
+                  v-model="newCourse.course_description"
                   placeholder="输入课程描述"
                 ></textarea>
               </div>
@@ -213,16 +213,16 @@
                   type="text"
                   id="newCourseTeacher"
                   v-model="newCourse.hours_per_week"
-                  placeholder="输入周学时"
+                  placeholder="输入周学时(整数)"
                   required
                 />
               </div>
               <div class="form-group">
                 <label for="newCourseCategory">课程类别:</label>
                 <select id="newCourseCategory" v-model="newCourse.category">
-                  <option value="compulsory">普通</option>
-                  <option value="specialized_compulsory">实验</option>
-                  <option value="elective">体育</option>
+                  <option value="普通">普通</option>
+                  <option value="实验">实验</option>
+                  <option value="体育">体育</option>
                 </select>
               </div>
               <div class="form-action-group">
@@ -266,8 +266,10 @@ import { ref, onMounted } from "vue";
 import { getMyCourses, createCourse, deleteCourse } from "@/api/teacher";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { useuserLoginStore } from "@/store/userLoginStore";
+import { useRouter } from "vue-router";
 
 const loginUserStore = useuserLoginStore();
+const router = useRouter();
 
 type Course = {
   course_id: number;
@@ -282,7 +284,7 @@ type Course = {
 
 const isUserDropdownVisible = ref(false);
 const filters = ref({
-  name: "",
+  course_name: "",
   category: "",
 });
 const courses = ref<Course[]>([]);
@@ -315,8 +317,8 @@ const handleLogout = () => {
 
 // 处理修改密码
 const handleChangePassword = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  //window.location.href = "../change-password";
+  router.push("/change-password");
 };
 
 // 显示通知消息
@@ -337,252 +339,13 @@ const calculatePaginatedCourses = () => {
   totalPages.value = Math.ceil(courses.value.length / itemsPerPage.value);
 };
 
-const sampleCourses: Course[] = [
-  {
-    course_id: 1001,
-    course_name: "数据结构与算法",
-    course_description:
-      "介绍常用的数据结构和算法，培养学生的算法设计和分析能力。",
-    teacher_id: 2001,
-    teacher_name: "张教授",
-    credit: 4,
-    category: "专业必修",
-    hours_per_week: 4,
-  },
-  {
-    course_id: 1002,
-    course_name: "计算机组成原理",
-    course_description: "讲解计算机硬件系统的基本组成原理和工作机制。",
-    teacher_id: 2002,
-    teacher_name: "李教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1003,
-    course_name: "操作系统",
-    course_description:
-      "研究操作系统的设计原理和实现技术，包括进程管理、内存管理等。",
-    teacher_id: 2003,
-    teacher_name: "王教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1001,
-    course_name: "数据结构与算法",
-    course_description:
-      "介绍常用的数据结构和算法，培养学生的算法设计和分析能力。",
-    teacher_id: 2001,
-    teacher_name: "张教授",
-    credit: 4,
-    category: "专业必修",
-    hours_per_week: 4,
-  },
-  {
-    course_id: 1002,
-    course_name: "计算机组成原理",
-    course_description: "讲解计算机硬件系统的基本组成原理和工作机制。",
-    teacher_id: 2002,
-    teacher_name: "李教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1003,
-    course_name: "操作系统",
-    course_description:
-      "研究操作系统的设计原理和实现技术，包括进程管理、内存管理等。",
-    teacher_id: 2003,
-    teacher_name: "王教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1001,
-    course_name: "数据结构与算法",
-    course_description:
-      "介绍常用的数据结构和算法，培养学生的算法设计和分析能力。",
-    teacher_id: 2001,
-    teacher_name: "张教授",
-    credit: 4,
-    category: "专业必修",
-    hours_per_week: 4,
-  },
-  {
-    course_id: 1002,
-    course_name: "计算机组成原理",
-    course_description: "讲解计算机硬件系统的基本组成原理和工作机制。",
-    teacher_id: 2002,
-    teacher_name: "李教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1003,
-    course_name: "操作系统",
-    course_description:
-      "研究操作系统的设计原理和实现技术，包括进程管理、内存管理等。",
-    teacher_id: 2003,
-    teacher_name: "王教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1001,
-    course_name: "数据结构与算法",
-    course_description:
-      "介绍常用的数据结构和算法，培养学生的算法设计和分析能力。",
-    teacher_id: 2001,
-    teacher_name: "张教授",
-    credit: 4,
-    category: "专业必修",
-    hours_per_week: 4,
-  },
-  {
-    course_id: 1002,
-    course_name: "计算机组成原理",
-    course_description:
-      "讲解计算机硬件系统的基本组成原理和工作机制讲解计算机硬件系统的基本组成原理和工作机制。",
-    teacher_id: 2002,
-    teacher_name: "李教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1001,
-    course_name: "数据结构与算法",
-    course_description:
-      "介绍常用的数据结构和算法，培养学生的算法设计和分析能力。",
-    teacher_id: 2001,
-    teacher_name: "张教授",
-    credit: 4,
-    category: "专业必修",
-    hours_per_week: 4,
-  },
-  {
-    course_id: 1002,
-    course_name: "计算机组成原理",
-    course_description: "讲解计算机硬件系统的基本组成原理和工作机制。",
-    teacher_id: 2002,
-    teacher_name: "李教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1003,
-    course_name: "操作系统",
-    course_description:
-      "研究操作系统的设计原理和实现技术，包括进程管理、内存管理等。",
-    teacher_id: 2003,
-    teacher_name: "王教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1003,
-    course_name: "操作系统",
-    course_description:
-      "研究操作系统的设计原理和实现技术，包括进程管理、内存管理等。",
-    teacher_id: 2003,
-    teacher_name: "王教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1004,
-    course_name: "人工智能导论",
-    course_description:
-      "介绍人工智能的基本概念、方法和应用，包括机器学习、自然语言处理等。",
-    teacher_id: 2004,
-    teacher_name: "赵教授",
-    credit: 3,
-    category: "专业选修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1005,
-    course_name: "计算机网络",
-    course_description: "讲解计算机网络的体系结构、协议和实现技术。",
-    teacher_id: 2005,
-    teacher_name: "孙教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1006,
-    course_name: "数据库系统",
-    course_description: "介绍数据库系统的基本原理、设计方法和应用技术。",
-    teacher_id: 2006,
-    teacher_name: "周教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1007,
-    course_name: "软件工程",
-    course_description:
-      "研究软件开发的工程化方法和技术，培养学生的软件项目管理能力。",
-    teacher_id: 2007,
-    teacher_name: "吴教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1008,
-    course_name: "编译原理",
-    course_description:
-      "讲解编译程序的构造原理和实现技术，包括词法分析、语法分析等。",
-    teacher_id: 2008,
-    teacher_name: "郑教授",
-    credit: 3,
-    category: "专业必修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1009,
-    course_name: "信息安全技术",
-    course_description:
-      "介绍信息安全的基本概念、技术和方法，包括密码学、网络安全等。",
-    teacher_id: 2009,
-    teacher_name: "钱教授",
-    credit: 3,
-    category: "专业选修",
-    hours_per_week: 3,
-  },
-  {
-    course_id: 1010,
-    course_name: "大数据分析技术",
-    course_description:
-      "介绍大数据处理和分析的基本技术和方法，包括Hadoop、Spark等。",
-    teacher_id: 2010,
-    teacher_name: "冯教授",
-    credit: 3,
-    category: "专业选修",
-    hours_per_week: 3,
-  },
-];
-
 // 查询课程
 const queryCourses = async () => {
   isLoading.value = true;
   showNotification("正在查询课程...", "info");
   try {
-    // const response = await getMyCourses(filters.value);
-    courses.value = sampleCourses;
+    const response = await getMyCourses(filters.value);
+    courses.value = response.data.data.items;
     currentPage.value = 1;
     calculatePaginatedCourses();
     if (courses.value.length > 0) {
@@ -604,7 +367,7 @@ const queryCourses = async () => {
 // 重置表单
 const resetFilterForm = () => {
   filters.value = {
-    name: "",
+    course_name: "",
     category: "",
   };
   courses.value = [];

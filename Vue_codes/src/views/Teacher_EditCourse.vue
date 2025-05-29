@@ -164,12 +164,24 @@
                 v-model="selectedSection"
                 :disabled="!selectedCourse"
               >
+                <option value="">-- 请选择开课时间 --</option>
                 <option
                   v-for="section in sections"
-                  :key="section.section_id"
-                  :value="section.section_id"
+                  :key="section.section_id || section.sectionId"
+                  :value="section.section_id || section.sectionId"
                 >
-                  {{ section.sec_year }} 学年 {{ section.semester }} 学期
+                  {{ section.sec_year || section.secYear }} 学年
+                  {{ section.semester }} 学期
+                  {{
+                    section.classroom_location
+                      ? ` - ${section.classroom_location}`
+                      : ""
+                  }}
+                  {{
+                    section.sec_time || section.secTime
+                      ? `(${section.sec_time || section.secTime})`
+                      : ""
+                  }}
                 </option>
               </select>
             </div>
@@ -201,9 +213,10 @@
             <div class="form-group">
               <label for="courseCodeDisplay">所在学年:</label>
               <input
-                type="text"
+                type="number"
                 id="courseYearDisplay"
-                :value="currentSection.sec_year"
+                v-model="currentSection.sec_year"
+                required
               />
             </div>
             <div class="form-group">
@@ -212,10 +225,11 @@
                 id="courseSemesterDisplay"
                 name="Category"
                 v-model="currentSection.semester"
+                required
               >
-                <option>{{ currentSection.semester }}</option>
-                <option>春夏</option>
-                <option>秋冬</option>
+                <option value="">请选择学期</option>
+                <option value="春夏">春夏</option>
+                <option value="秋冬">秋冬</option>
               </select>
             </div>
             <div class="form-group">
@@ -223,15 +237,19 @@
               <input
                 type="text"
                 id="courseTimeDisplay"
-                :value="currentSection.sec_time"
+                v-model="currentSection.sec_time"
+                placeholder="例如: 周一 1-2节;周三 6-8节"
+                required
               />
             </div>
             <div class="form-group">
               <label for="courseCreditsDisplay">课程容量:</label>
               <input
-                type="text"
+                type="number"
                 id="courseCapacityDisplay"
-                :value="currentSection.capacity"
+                v-model="currentSection.capacity"
+                min="1"
+                required
               />
             </div>
             <div class="form-group">
@@ -240,7 +258,7 @@
                 type="text"
                 id="courseClassroomDisplay"
                 readonly
-                :value="currentSection.classroom_location"
+                v-model="currentSection.classroom_location"
               />
             </div>
             <div class="form-group">
@@ -249,7 +267,7 @@
                 type="text"
                 id="courseAvailableCapacityDisplay"
                 readonly
-                :value="currentSection.available_capacity"
+                v-model="currentSection.available_capacity"
               />
             </div>
 
@@ -312,16 +330,43 @@ import {
 } from "@/api/teacher";
 import { getSectionDetails } from "@/api/section";
 import { getCourseDetails } from "@/api/course";
+import { useRouter } from "vue-router";
 
+// 定义课程类型接口
+interface Course {
+  course_id: string | number;
+  course_name: string;
+  course_description: string;
+  credit: number;
+  category: string;
+  hours_per_week: number;
+  teacher_id?: string | number;
+  teacher_name?: string;
+}
+
+// 定义开课信息类型接口
+interface Section {
+  section_id: string | number;
+  sec_year: number;
+  semester: string;
+  sec_time: string;
+  capacity: number;
+  classroom_id: string | number;
+  classroom_location?: string;
+  available_capacity?: number;
+  name?: string;
+}
+
+const router = useRouter();
 const loginUserStore = useuserLoginStore();
 const userDropdownVisible = ref(false);
 const selectedCourse = ref("");
 const selectedSection = ref("");
 const courses = ref<any[]>([]);
 const sections = ref<any[]>([]);
-const currentCourse = ref({});
+const currentCourse = ref<Course>({} as Course);
 const showCourseDetails = ref(false);
-const currentSection = ref({});
+const currentSection = ref<Section>({} as Section);
 const showSectionDetails = ref(false);
 const notification = ref({
   message: "",
@@ -337,14 +382,15 @@ const handleLogout = () => {
   showNotification("正在退出登录...", "info");
   setTimeout(() => {
     loginUserStore.setLoginUserUnlogin();
-    window.location.href = "../login";
+    //window.location.href = "../login";
+    router.push("/login");
   }, 1500);
 };
 
 // 处理修改密码
 const handleChangePassword = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  //window.location.href = "../change-password";
+  router.push("/change-password");
 };
 
 // const MockCourses = {
@@ -462,7 +508,7 @@ const populateCourseSelect = async () => {
       teacher_name: "",
       category: "",
     });
-    courses.value = response.item;
+    courses.value = response.data.data.items;
   } catch (error) {
     showNotification("获取课程列表失败，请稍后重试。", "error");
     console.error(error);
@@ -474,22 +520,61 @@ const populateSectionSelect = async () => {
   selectedSection.value = "";
   showCourseDetails.value = false;
 
+  if (!selectedCourse.value) {
+    showNotification("请先选择课程", "error");
+    return;
+  }
+
   try {
-    const response = await getMyCourseSections(selectedCourse.value.course_id, {
+    console.log("选择的课程ID:", selectedCourse.value);
+
+    // 正确传递参数：
+    // 1. 不传递sec_year参数，后端会将其视为null并设为0
+    // 2. 传递空字符串作为semester
+    const params = {
       semester: "",
-      sec_year: null,
-    });
-    sections.value = response.data;
+      // 不传sec_year参数
+    };
+
+    console.log("发送请求参数:", params);
+    const response = await getMyCourseSections(selectedCourse.value, params);
+
+    console.log("获取到的开课数据:", response);
+
+    // 防御性编程：检查数据结构
+    if (response && response.data) {
+      if (Array.isArray(response.data)) {
+        sections.value = response.data;
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        sections.value = response.data.data;
+      } else if (
+        response.data.data &&
+        Array.isArray(response.data.data.items)
+      ) {
+        sections.value = response.data.data.items;
+      } else {
+        console.error("API返回的开课数据结构不符合预期:", response.data);
+        showNotification("API返回的开课数据结构不符合预期", "error");
+      }
+
+      console.log("处理后的开课列表:", sections.value);
+
+      if (sections.value.length === 0) {
+        showNotification("该课程暂无开课信息", "info");
+      }
+    } else {
+      showNotification("获取开课列表失败，返回数据为空", "error");
+    }
   } catch (error) {
     showNotification("获取开课列表失败，请稍后重试。", "error");
-    console.error(error);
+    console.error("获取开课列表错误:", error);
   }
 };
 
 const loadCourseDetails = async () => {
   try {
-    const response = await getCourseDetails(selectedCourse.value.course_id);
-    currentCourse.value = response.data;
+    const response = await getCourseDetails(selectedCourse.value);
+    currentCourse.value = response.data.data;
     showCourseDetails.value = true;
     showNotification(
       `已加载课程《${currentCourse.value.course_name}》的详细信息。`,
@@ -541,48 +626,105 @@ const cancelCourseEdit = () => {
 };
 
 const loadSectionDetails = async () => {
+  if (!selectedSection.value) {
+    showNotification("请先选择开课时间", "error");
+    return;
+  }
+
   try {
-    const response = await getSectionDetails(selectedSection.value.section_id);
-    currentSection.value = response.data;
-    showSectionDetails.value = true;
-    showNotification(
-      `已加载课程《${currentCourse.value.course_name}》的开课信息。`,
-      "info"
-    );
+    console.log("选择的开课ID:", selectedSection.value);
+    const response = await getSectionDetails(selectedSection.value);
+
+    console.log("获取到的开课详情:", response);
+
+    if (response && response.data) {
+      let sectionData;
+
+      // 处理不同的数据结构
+      if (response.data.data) {
+        sectionData = response.data.data;
+      } else {
+        sectionData = response.data;
+      }
+
+      console.log("解析后的开课详情:", sectionData);
+
+      // 确保所有必要的字段都存在
+      currentSection.value = {
+        section_id: sectionData.sectionId || sectionData.section_id,
+        sec_year: Number(sectionData.secYear || sectionData.sec_year || 0),
+        semester: sectionData.semester || "",
+        sec_time: sectionData.secTime || sectionData.sec_time || "",
+        capacity: Number(sectionData.capacity || 0),
+        classroom_id: sectionData.classroomId || sectionData.classroom_id,
+        classroom_location: sectionData.classroom_location || "",
+        available_capacity: Number(sectionData.available_capacity || 0),
+      };
+
+      console.log("最终开课详情对象:", currentSection.value);
+
+      showSectionDetails.value = true;
+      showNotification(
+        `已加载课程《${currentCourse.value.course_name}》的开课信息。`,
+        "info"
+      );
+    } else {
+      showNotification("获取开课详情失败，返回数据为空", "error");
+    }
   } catch (error) {
     showNotification("无法加载开课详情。", "error");
     showSectionDetails.value = false;
-    console.error(error);
+    console.error("获取开课详情错误:", error);
   }
 };
 
 const saveSectionDetails = async () => {
+  // 添加调试信息
+  console.log("准备提交的开课信息:", currentSection.value);
+
+  // 检查所有必填字段
   if (
     !currentSection.value.sec_year ||
     !currentSection.value.semester ||
     !currentSection.value.sec_time ||
     !currentSection.value.capacity
   ) {
+    console.error("缺少必填字段:", {
+      sec_year: currentSection.value.sec_year,
+      semester: currentSection.value.semester,
+      sec_time: currentSection.value.sec_time,
+      capacity: currentSection.value.capacity,
+    });
     showNotification("开课学年,开课学期,上课时间,课程容量不能为空！", "error");
     return;
   }
 
   try {
     showNotification("正在保存开课信息...", "info");
-    const response = await updateSection(selectedSection.value.section_id, {
-      classroom_id: selectedSection.value.classroom_id,
-      capacity: selectedSection.value.capacity,
-      semester: selectedSection.value.semester,
-      sec_year: selectedSection.value.sec_year,
-      sec_time: selectedSection.value.sec_time,
-    });
+
+    // 构建API请求数据，确保使用正确的字段名
+    const requestData = {
+      classroom_id: currentSection.value.classroom_id,
+      capacity: Number(currentSection.value.capacity), // 确保是数字类型
+      semester: currentSection.value.semester,
+      sec_year: Number(currentSection.value.sec_year), // 确保是数字类型
+      sec_time: currentSection.value.sec_time,
+    };
+
+    console.log("发送到API的数据:", requestData);
+
+    // 使用section_id
+    const sectionId = currentSection.value.section_id;
+    const response = await updateSection(sectionId, requestData);
+
+    console.log("API响应:", response);
     showNotification(
-      `课程《${currentSection.value.name}》的开课信息已成功更新！`,
+      `课程《${currentCourse.value.course_name}》的开课信息已成功更新！`,
       "success"
     );
   } catch (error) {
     showNotification("保存开课信息失败，请稍后重试。", "error");
-    console.error(error);
+    console.error("保存开课信息错误:", error);
   }
 };
 
@@ -595,7 +737,7 @@ const cancelSectionEdit = () => {
   showSectionDetails.value = false;
 };
 
-const showNotification = (message, type = "info") => {
+const showNotification = (message: string, type = "info") => {
   notification.value = {
     message,
     type,
