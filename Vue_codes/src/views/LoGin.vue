@@ -112,8 +112,21 @@ const showNotification = (
 const handleLogin = async () => {
   const { role, account, password } = formData.value;
 
+  // 检查账号和密码是否为空
   if (!account || !password) {
     showNotification("账号和密码不能为空！", "error");
+    return;
+  }
+
+  // 检查账号长度
+  if (account.length > 20) {
+    showNotification("账号长度必须小于 20 个字符！", "error");
+    return;
+  }
+
+  // 检查密码长度
+  if (password.length > 20) {
+    showNotification("密码长度必须小于 20 个字符！", "error");
     return;
   }
 
