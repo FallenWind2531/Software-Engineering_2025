@@ -10,6 +10,7 @@ public class Apply {
     private int oldScore;    // 原成绩
     private int newScore;   // 申请修改后的新成绩
     private String reason;   // 修改理由
+    private String audit_reason; // 管理员审核理由
     private int auditStatus; // 审核状态 (例如: 0-待审核, 1-已通过, 2-已拒绝)
     private Timestamp applyTime;  // 申请提交时间 (后端自动生成)
     private Timestamp reviewTime; // 审核时间 (管理员审核时后端自动生成)
@@ -94,9 +95,17 @@ public class Apply {
         this.reviewTime = reviewTime;
     }
 
+    public String getAudit_reason() {
+        return audit_reason;
+    }
+
+    public void setAudit_reason(String audit_reason) {
+        this.audit_reason = audit_reason;
+    }
+
     @Override
     public String toString() {
-        return String.format("Apply[applyId=%d, teacherId=%d, adminId=%d, gradeId=%d, oldScore=%d, newScore=%d, reason='%s', auditStatus='%s', applyTime='%s', reviewTime='%s']",
-                applyId, teacherId, adminId, gradeId, oldScore, newScore, reason, auditStatus, applyTime, reviewTime);
+        return String.format("Apply[applyId=%d, teacherId=%d, adminId=%d, gradeId=%d, oldScore=%d, newScore=%d, reason='%s',audit_reason='%s', auditStatus='%s', applyTime='%s', reviewTime='%s']",
+                applyId, teacherId, adminId, gradeId, oldScore, newScore, reason, audit_reason, auditStatus, applyTime, reviewTime);
     }
 }

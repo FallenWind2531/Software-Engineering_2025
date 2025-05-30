@@ -173,10 +173,11 @@ public class ApplyController {
             HttpServletRequest request
     ) {
         int audit_status = reviewApplyDTO.getAuditStatus();
+        String audit_reason = reviewApplyDTO.getAuditReason();
         logger.info("管理员审核成绩修改申请, apply_id: {}, audit_status: {}", apply_id, audit_status);
         int admin_id = (int) request.getAttribute("userId");
         try {
-            Apply apply = applyService.reviewApply(apply_id, admin_id, audit_status);
+            Apply apply = applyService.reviewApply(apply_id, admin_id, audit_status,audit_reason);
             return ResponseEntity.ok(ApiResponseDTO.success("审核操作成功",apply));
         } catch (Exception e) {
             logger.error("管理员审核成绩修改申请失败", e);

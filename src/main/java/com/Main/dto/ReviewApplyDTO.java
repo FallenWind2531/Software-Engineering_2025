@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ReviewApplyDTO {
     @JsonProperty("audit_status")
     private int auditStatus; // 0-待审核, 1-通过, 2-拒绝
+    @JsonProperty("audit_reason")
+    private String auditReason;
 
     public ReviewApplyDTO() {
     }
@@ -14,5 +16,13 @@ public class ReviewApplyDTO {
 
     public void setAuditStatus(int auditStatus) {
         this.auditStatus = auditStatus;
+    }
+
+    public String getAuditReason() {
+        return auditReason;
+    }
+
+    public void setAuditReason(String auditReason) {
+        this.auditReason = auditReason;
     }
 }

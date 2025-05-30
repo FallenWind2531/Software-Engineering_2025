@@ -136,7 +136,7 @@ public class ApplyService {
      * @param auditStatus 审核状态
      * @return Apply 申请数据
      */
-    public Apply reviewApply(int applyId, int adminId, int auditStatus) {
+    public Apply reviewApply(int applyId, int adminId, int auditStatus, String audit_Reason) {
         Apply apply = null;
         logger.info("Reviewing apply with ID: {}, Admin ID: {}, Audit Status: {}", applyId, adminId, auditStatus);
         try {
@@ -154,8 +154,8 @@ public class ApplyService {
         apply.setAuditStatus(auditStatus);
         apply.setReviewTime(new Timestamp(System.currentTimeMillis()));
 
-        String sql = "UPDATE Apply SET admin_id = ?, audit_status = ?, review_time = ? WHERE apply_id = ?";
-        int rowsAffected = jdbcTemplate.update(sql, adminId, String.valueOf(auditStatus), apply.getReviewTime(), applyId);
+        String sql = "UPDATE Apply SET admin_id = ?, audit_status = ?, review_time = ? , audit_reason = ? WHERE apply_id = ?";
+        int rowsAffected = jdbcTemplate.update(sql, adminId, String.valueOf(auditStatus), apply.getReviewTime(),audit_Reason , applyId);
 
         if (rowsAffected > 0) {
             logger.info("Apply {} reviewed successfully.", applyId);

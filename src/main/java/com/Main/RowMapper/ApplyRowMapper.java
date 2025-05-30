@@ -23,6 +23,7 @@ public class ApplyRowMapper implements RowMapper<Apply> {
         apply.setOldScore(rs.getInt("old_score"));
         apply.setNewScore(rs.getInt("new_score"));
         apply.setReason(rs.getString("reason"));
+        apply.setAudit_reason(rs.getString("audit_reason"));
         apply.setAuditStatus(rs.getInt("audit_status"));
 
         // Handle Timestamp for apply_time and review_time
