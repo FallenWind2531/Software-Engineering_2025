@@ -229,7 +229,7 @@ public class SectionService {
             throw new IllegalArgumentException("上课时间不能为空");
         }
         Classroom classroom = jdbcTemplate.queryForObject("select * from classroom where classroom_id = ?",classroomRowMapper, classroomId);
-        if(capacity < classroom.getCapacity()) {
+        if(capacity > classroom.getCapacity()) {
             logger.warn("Invalid capacity: {}, 教室容量为: {}", capacity, classroom.getCapacity());
             throw new IllegalArgumentException("开课容量不能小于教室容量");
         }
