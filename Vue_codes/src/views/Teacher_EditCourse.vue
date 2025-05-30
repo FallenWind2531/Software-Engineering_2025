@@ -52,7 +52,7 @@
               <select
                 id="requestCourse"
                 name="courseId"
-                v-model="selectedCourse"
+                v-model="selectedCourseId"
                 @change="populateSectionSelect"
               >
                 <option
@@ -68,7 +68,7 @@
               <button
                 type="button"
                 class="btn btn-primary"
-                :disabled="!selectedCourse"
+                :disabled="!selectedCourseId"
                 @click="loadCourseDetails"
               >
                 <FontAwesomeIcon icon="fas fa-cogs" /> 加载课程详情
@@ -85,7 +85,7 @@
           <h2 class="card-title">
             <FontAwesomeIcon icon="fas fa-book-open" /> 课程《<span
               id="editingCourseNameTitle"
-              >{{ currentCourse.course_name }}</span
+              >{{ selectedCourse }}</span
             >》信息编辑
           </h2>
           <form id="editCourseDetailsForm" @submit.prevent="saveCourseDetails">
@@ -162,7 +162,7 @@
                 id="requestStudent"
                 name="studentId"
                 v-model="selectedSection"
-                :disabled="!selectedCourse"
+                :disabled="!selectedCourseId"
               >
                 <option value="">-- 请选择开课时间 --</option>
                 <option
@@ -206,7 +206,7 @@
           <h2 class="card-title">
             <FontAwesomeIcon icon="fas fa-book-open" /> 课程《<span
               id="editingCourseNameTitle"
-              >{{ currentCourse.course_name }}</span
+              >{{ selectedCourse }}</span
             >》开课信息编辑
           </h2>
           <form id="editCourseDetailsForm" @submit.prevent="saveSectionDetails">
@@ -259,6 +259,15 @@
                 id="courseClassroomDisplay"
                 readonly
                 v-model="currentSection.classroom_location"
+              />
+            </div>
+            <div class="form-group">
+              <label for="courseCreditsDisplay">教室容量:</label>
+              <input
+                type="text"
+                id="courseAvailableCapacityDisplay"
+                readonly
+                v-model="currentSection.classroom_capacity"
               />
             </div>
             <div class="form-group">
@@ -354,12 +363,14 @@ interface Section {
   classroom_id: string | number;
   classroom_location?: string;
   available_capacity?: number;
+  classroom_capacity: number;
   name?: string;
 }
 
 const router = useRouter();
 const loginUserStore = useuserLoginStore();
 const userDropdownVisible = ref(false);
+const selectedCourseId = ref("");
 const selectedCourse = ref("");
 const selectedSection = ref("");
 const courses = ref<any[]>([]);
@@ -495,7 +506,7 @@ const handleChangePassword = () => {
 const populateCourseSelect = async () => {
   courses.value = [];
   sections.value = [];
-  selectedCourse.value = "";
+  selectedCourseId.value = "";
   selectedSection.value = "";
   showCourseDetails.value = false;
 
@@ -520,13 +531,13 @@ const populateSectionSelect = async () => {
   selectedSection.value = "";
   showCourseDetails.value = false;
 
-  if (!selectedCourse.value) {
+  if (!selectedCourseId.value) {
     showNotification("请先选择课程", "error");
     return;
   }
 
   try {
-    console.log("选择的课程ID:", selectedCourse.value);
+    console.log("选择的课程ID:", selectedCourseId.value);
 
     // 正确传递参数：
     // 1. 不传递sec_year参数，后端会将其视为null并设为0
@@ -537,7 +548,7 @@ const populateSectionSelect = async () => {
     };
 
     console.log("发送请求参数:", params);
-    const response = await getMyCourseSections(selectedCourse.value, params);
+    const response = await getMyCourseSections(selectedCourseId.value, params);
 
     console.log("获取到的开课数据:", response);
 
@@ -573,8 +584,9 @@ const populateSectionSelect = async () => {
 
 const loadCourseDetails = async () => {
   try {
-    const response = await getCourseDetails(selectedCourse.value);
+    const response = await getCourseDetails(selectedCourseId.value);
     currentCourse.value = response.data.data;
+    selectedCourse.value = response.data.data.course_name;
     showCourseDetails.value = true;
     showNotification(
       `已加载课程《${currentCourse.value.course_name}》的详细信息。`,
@@ -598,7 +610,7 @@ const saveCourseDetails = async () => {
   }
 
   try {
-    showNotification("正在保存开课信息...", "info");
+    showNotification("正在保存课程信息...", "info");
     const response = await updateCourse(currentCourse.value.course_id, {
       course_name: currentCourse.value.course_name,
       course_description: currentCourse.value.course_description,
@@ -606,13 +618,16 @@ const saveCourseDetails = async () => {
       category: currentCourse.value.category,
       hours_per_week: currentCourse.value.hours_per_week,
     });
+    selectedCourse.value = currentCourse.value.course_name;
     showNotification(
-      `课程《${currentCourse.value.course_name}》的开课信息已成功更新！`,
+      `课程《${currentCourse.value.course_name}》的课程信息已成功更新！`,
       "success"
     );
   } catch (error) {
-    showNotification("保存开课信息失败，请稍后重试。", "error");
+    showNotification("保存课程信息失败，请稍后重试。", "error");
     console.error(error);
+  } finally {
+    await populateCourseSelect();
   }
 };
 
@@ -658,6 +673,7 @@ const loadSectionDetails = async () => {
         capacity: Number(sectionData.capacity || 0),
         classroom_id: sectionData.classroomId || sectionData.classroom_id,
         classroom_location: sectionData.classroom_location || "",
+        classroom_capacity: Number(sectionData.classroom_capacity || 0),
         available_capacity: Number(sectionData.available_capacity || 0),
       };
 
@@ -699,6 +715,12 @@ const saveSectionDetails = async () => {
     return;
   }
 
+  if (currentSection.value.capacity > currentSection.value.classroom_capacity) {
+    console.error("开课容量不能大于教室容量");
+    showNotification("课程容量不得超过教室容量", "error");
+    return;
+  }
+
   try {
     showNotification("正在保存开课信息...", "info");
 
@@ -718,10 +740,15 @@ const saveSectionDetails = async () => {
     const response = await updateSection(sectionId, requestData);
 
     console.log("API响应:", response);
-    showNotification(
-      `课程《${currentCourse.value.course_name}》的开课信息已成功更新！`,
-      "success"
-    );
+    if (response.data.code != 200) {
+      await loadSectionDetails();
+      showNotification(`更新失败，发生内部错误`, "error");
+    } else {
+      showNotification(
+        `课程《${currentCourse.value.course_name}》的开课信息已成功更新！`,
+        "success"
+      );
+    }
   } catch (error) {
     showNotification("保存开课信息失败，请稍后重试。", "error");
     console.error("保存开课信息错误:", error);
