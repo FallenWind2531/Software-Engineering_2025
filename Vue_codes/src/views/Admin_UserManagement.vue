@@ -118,7 +118,7 @@
                   <th>姓名</th>
                   <th>角色</th>
                   <th>院系/部门</th>
-                  <th>邮箱</th>
+                  <th>手机号</th>
                   <!--                  <th>账号状态</th>-->
                   <th>操作</th>
                 </tr>
@@ -256,13 +256,13 @@
             />
           </div>
           <div class="form-group">
-            <label for="modalUserEmail">邮箱:</label>
+            <label for="modalUserEmail">手机号:</label>
             <input
               type="text"
               id="modalUserEmail"
               v-model="modalUser.contact"
               required
-              placeholder="请输入邮箱地址"
+              placeholder="请输入手机号码"
             />
           </div>
           <div
@@ -531,7 +531,7 @@ const saveUser = async () => {
     !modalUser.value.role ||
     !modalUser.value.contact
   ) {
-    showMainNotification("姓名、登录ID、角色和邮箱为必填项。", "error");
+    showMainNotification("姓名、登录ID、角色和手机号为必填项。", "error");
     return;
   }
   if (modalMode.value === "add" && !modalUser.value.password) {
@@ -540,7 +540,7 @@ const saveUser = async () => {
   }
   // 定义各字段长度限制
   const MAX_DEPARTMENT_LENGTH = 20;
-  const MAX_EMAIL_LENGTH = 20;
+  const MAX_PHONE_LENGTH = 20;
   const MIN_LOGIN_ID_LENGTH = 6;
   const MAX_LOGIN_ID_LENGTH = 20;
   const MIN_PASSWORD_LENGTH = 8;
@@ -554,10 +554,10 @@ const saveUser = async () => {
     );
     return;
   }
-  // 邮箱长度检查
-  if (modalUser.value.contact.length > MAX_EMAIL_LENGTH) {
+  // 手机号码长度检查
+  if (modalUser.value.contact.length > MAX_PHONE_LENGTH) {
     showMainNotification(
-      `邮箱长度不能超过 ${MAX_EMAIL_LENGTH} 个字符。`,
+      `手机号码长度不能超过 ${MAX_PHONE_LENGTH} 个字符。`,
       "error"
     );
     return;
