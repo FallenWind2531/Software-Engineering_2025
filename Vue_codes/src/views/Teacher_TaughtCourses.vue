@@ -122,6 +122,13 @@
                     <td>{{ course.category }}</td>
                     <td>
                       <button
+                        class="btn btn-sm btn-primary"
+                        @click="openSectionModal(course.course_id)"
+                      >
+                        <FontAwesomeIcon icon="fas fa-circle" />
+                        开课详情
+                      </button>
+                      <button
                         class="btn btn-sm btn-danger"
                         @click="deleteTheCourse(course.course_id)"
                       >
@@ -133,34 +140,35 @@
               </tbody>
             </table>
           </div>
-          <!-- 分页控件 -->
-          <div
-            class="pagination-controls"
-            id="paginationControls"
-            :style="{ display: courses.length > 0 ? 'flex' : 'none' }"
-          >
-            <button
-              class="btn btn-sm btn-default"
-              id="prevPageBtn"
-              :disabled="currentPage === 1"
-              @click="prevPage"
-            >
-              « 上一页
-            </button>
-            <span id="pageInfo"
-              >第 {{ currentPage }} / {{ totalPages }} 页 (共
-              {{ courses.length }} 条)</span
-            >
-            <button
-              class="btn btn-sm btn-default"
-              id="nextPageBtn"
-              :disabled="currentPage === totalPages || totalPages === 0"
-              @click="nextPage"
-            >
-              下一页 »
-            </button>
-          </div>
         </div>
+
+        <div
+          class="pagination-controls"
+          id="paginationControls"
+          :style="{ display: courses.length > 0 ? 'flex' : 'none' }"
+        >
+          <button
+            class="btn btn-sm btn-default"
+            id="prevPageBtn"
+            :disabled="currentPage === 1"
+            @click="prevPage"
+          >
+            « 上一页
+          </button>
+          <span id="pageInfo"
+            >第 {{ currentPage }} / {{ totalPages }} 页 (共
+            {{ courses.length }} 条)</span
+          >
+          <button
+            class="btn btn-sm btn-default"
+            id="nextPageBtn"
+            :disabled="currentPage === totalPages || totalPages === 0"
+            @click="nextPage"
+          >
+            下一页 »
+          </button>
+        </div>
+
         <div class="container">
           <div class="card create-course-card">
             <h2 class="card-title">新建课程</h2>
@@ -240,6 +248,7 @@
             </form>
           </div>
         </div>
+
         <div
           id="notificationArea"
           class="notification"
@@ -250,6 +259,133 @@
         </div>
       </div>
     </main>
+
+    <!-- 开课详情模态框 -->
+    <div
+      class="modal"
+      :style="{ display: showSectionModal ? 'block' : 'none' }"
+      @click.self="showSectionModal = false"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">开课详情</h5>
+            <button
+              type="button"
+              class="close"
+              @click="showSectionModal = false"
+            >
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>学年</th>
+                  <th>学期</th>
+                  <th>上课时间</th>
+                  <th>容量</th>
+                  <th>教室地址</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template
+                  v-for="section in courseSections"
+                  :key="section.sectionId"
+                >
+                  <tr>
+                    <td>{{ section.secYear }}</td>
+                    <td>{{ section.semester }}</td>
+                    <td>{{ section.secTime }}</td>
+                    <td>{{ section.capacity }}</td>
+                    <td>{{ section.classroom_location }}</td>
+                    <td>
+                      <button
+                        class="btn btn-sm btn-danger"
+                        @click="deleteTheSection(section.sectionId)"
+                      >
+                        <FontAwesomeIcon icon="fas fa-trash" /> 删除
+                      </button>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+
+            <h5 class="mt-4">新建开课信息</h5>
+            <form @submit.prevent="createTheSection">
+              <div class="form-group">
+                <label for="newSectionYear">学年:</label>
+                <input
+                  type="number"
+                  id="newSectionYear"
+                  v-model="newSection.sec_year"
+                  placeholder="输入学年"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="newSectionSemester">学期:</label>
+                <select id="newSectionSemester" v-model="newSection.semester">
+                  <option value="春夏">春夏</option>
+                  <option value="秋冬">秋冬</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="newSectionTime">上课时间:</label>
+                <input
+                  type="text"
+                  id="newSectionTime"
+                  v-model="newSection.sec_time"
+                  placeholder="例如: 周一 1-2节;周三 6-8节"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="newSectionCapacity">容量:</label>
+                <input
+                  type="number"
+                  id="newSectionCapacity"
+                  v-model="newSection.capacity"
+                  placeholder="输入容量"
+                  required
+                />
+                <span v-if="capacityError" class="error-message">{{
+                  capacityError
+                }}</span>
+              </div>
+              <div class="form-group">
+                <label for="newSectionClassroom">选择所在教室:</label>
+                <select
+                  id="newSectionClassroom"
+                  name="newSectionClassroom"
+                  v-model="newSection.classroom_id"
+                  required
+                >
+                  <option value="">-- 请选择教室 --</option>
+                  <option
+                    v-for="classroom in classrooms"
+                    :key="classroom.classroom_id || classroom.classroomId"
+                    :value="classroom.classroom_id || classroom.classroomId"
+                  >
+                    {{ classroom.classroom_location }} 最大容量：{{
+                      classroom.classroom_capacity
+                    }}
+                  </option>
+                </select>
+              </div>
+              <div class="form-action-group">
+                <button type="submit" class="btn btn-primary">
+                  <FontAwesomeIcon icon="fas fa-plus" /> 创 建
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Bottom Bar -->
     <div class="bottom-bar">
@@ -263,7 +399,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { getMyCourses, createCourse, deleteCourse } from "@/api/teacher";
+import {
+  getMyCourses,
+  createCourse,
+  deleteCourse,
+  getMyCourseSections,
+  deleteSection,
+  createSection,
+} from "@/api/teacher";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { useuserLoginStore } from "@/store/userLoginStore";
 import { useRouter } from "vue-router";
@@ -276,10 +419,21 @@ type Course = {
   course_name: string;
   course_description: string;
   teacher_id: number;
-  teacher_name: string; // 联查得到
+  teacher_name: string;
   credit: number;
   category: string;
   hours_per_week: number;
+};
+
+type Section = {
+  section_id: number;
+  sec_year: number;
+  semester: string;
+  sec_time: string;
+  capacity: number;
+  classroom_id: number;
+  classroom_location: string;
+  available_capacity: number;
 };
 
 const isUserDropdownVisible = ref(false);
@@ -287,6 +441,7 @@ const filters = ref({
   course_name: "",
   category: "",
 });
+const classrooms = ref<any[]>([]);
 const courses = ref<Course[]>([]);
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
@@ -294,48 +449,18 @@ const isLoading = ref(false);
 const isNotificationVisible = ref(false);
 const notificationMessage = ref("");
 const notificationType = ref("info");
-
-// 计算总页数
 const totalPages = ref(0);
 const paginatedCourses = ref([]);
-
 const showCreateCourseForm = ref(false);
 const newCourse = ref<Partial<Course>>({});
+const showSectionModal = ref(false);
+const currentCourseId = ref<number | null>(null);
+const courseSections = ref<Section[]>([]);
+const newSection = ref<Partial<Section>>({});
+const capacityError = ref("");
 
-// 切换用户下拉菜单显示状态
-const toggleUserDropdown = () => {
-  isUserDropdownVisible.value = !isUserDropdownVisible.value;
-};
-
-const handleLogout = () => {
-  showNotification("正在退出登录...", "info");
-  setTimeout(() => {
-    loginUserStore.setLoginUserUnlogin();
-    window.location.href = "../login";
-  }, 1500);
-};
-
-// 处理修改密码
-const handleChangePassword = () => {
-  //window.location.href = "../change-password";
-  router.push("/change-password");
-};
-
-// 显示通知消息
-const showNotification = (message: string, type = "info") => {
-  notificationMessage.value = message;
-  notificationType.value = type;
-  isNotificationVisible.value = true;
-  setTimeout(() => {
-    isNotificationVisible.value = false;
-  }, 3000);
-};
-
-// 计算分页数据
-const calculatePaginatedCourses = () => {
-  const startIndex = (currentPage.value - 1) * itemsPerPage.value;
-  const endIndex = startIndex + itemsPerPage.value;
-  paginatedCourses.value = courses.value.slice(startIndex, endIndex);
+// 计算总页数
+const calculateTotalPages = () => {
   totalPages.value = Math.ceil(courses.value.length / itemsPerPage.value);
 };
 
@@ -347,6 +472,7 @@ const queryCourses = async () => {
     const response = await getMyCourses(filters.value);
     courses.value = response.data.data.items;
     currentPage.value = 1;
+    calculateTotalPages();
     calculatePaginatedCourses();
     if (courses.value.length > 0) {
       showNotification(
@@ -360,6 +486,72 @@ const queryCourses = async () => {
     showNotification("查询课程失败，请稍后重试。", "error");
     console.error("查询课程失败:", error);
   } finally {
+    isLoading.value = false;
+  }
+};
+
+// 计算分页数据
+const calculatePaginatedCourses = () => {
+  const startIndex = (currentPage.value - 1) * itemsPerPage.value;
+  const endIndex = startIndex + itemsPerPage.value;
+  paginatedCourses.value = courses.value.slice(startIndex, endIndex);
+};
+
+// 上一页
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    calculatePaginatedCourses();
+  }
+};
+
+// 下一页
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+    calculatePaginatedCourses();
+  }
+};
+
+// 删除课程
+const deleteTheCourse = async (courseId: number) => {
+  if (confirm("确定要删除该课程吗？")) {
+    isLoading.value = true;
+    showNotification("正在删除课程...", "info");
+    try {
+      await deleteCourse(courseId);
+      courses.value = courses.value.filter(
+        (course) => course.course_id !== courseId
+      );
+      calculateTotalPages();
+      calculatePaginatedCourses();
+      showNotification("课程删除成功。", "success");
+    } catch (error) {
+      showNotification("删除课程失败，请稍后重试。", "error");
+      console.error("删除课程失败:", error);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+};
+
+// 新建课程
+const createTheCourse = async () => {
+  isLoading.value = true;
+  showNotification("正在创建课程...", "info");
+  try {
+    const response = await createCourse(newCourse.value);
+    courses.value.push(response.data);
+    calculateTotalPages();
+    calculatePaginatedCourses();
+    showCreateCourseForm.value = false;
+    newCourse.value = {};
+    showNotification("课程创建成功。", "success");
+  } catch (error) {
+    showNotification("创建课程失败，请稍后重试。", "error");
+    console.error("创建课程失败:", error);
+  } finally {
+    await queryCourses();
     isLoading.value = false;
   }
 };
@@ -386,60 +578,150 @@ const resetCreateForm = () => {
   showNotification("新建课程已重置。", "info");
 };
 
-// 上一页
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-    calculatePaginatedCourses();
+// 显示通知消息
+const showNotification = (message: string, type = "info") => {
+  notificationMessage.value = message;
+  notificationType.value = type;
+  isNotificationVisible.value = true;
+  setTimeout(() => {
+    isNotificationVisible.value = false;
+  }, 3000);
+};
+
+// 切换用户下拉菜单显示状态
+const toggleUserDropdown = () => {
+  isUserDropdownVisible.value = !isUserDropdownVisible.value;
+};
+
+const handleLogout = () => {
+  showNotification("正在退出登录...", "info");
+  setTimeout(() => {
+    loginUserStore.setLoginUserUnlogin();
+    window.location.href = "../login";
+  }, 1500);
+};
+
+// 处理修改密码
+const handleChangePassword = () => {
+  router.push("/change-password");
+};
+
+// 打开开课详情模态框
+const openSectionModal = async (courseId: number) => {
+  currentCourseId.value = courseId;
+  showSectionModal.value = true;
+  const params = {
+    semester: "",
+    // 不传sec_year参数
+  };
+  try {
+    await populateClassroom();
+    const response = await getMyCourseSections(courseId, params);
+    courseSections.value = response.data.data;
+  } catch (error) {
+    showNotification("获取开课信息失败，请稍后重试。", "error");
+    console.error("获取开课信息失败:", error);
   }
 };
 
-// 下一页
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++;
-    calculatePaginatedCourses();
+const populateClassroom = async () => {
+  //应该用时间筛选？
+  const filter = {
+    sec_year: newSection.value.sec_year,
+    semester: newSection.value.semester,
+    sec_time: newSection.value.sec_time,
+  };
+  try {
+    // 空api
+    // const response = await getAvailableClassroom(filter);
+    // classrooms.value = response.data.data;
+    classrooms.value = [
+      {
+        classroom_id: 0,
+        classroom_location: "东1-102",
+        classroom_capacity: 100,
+      },
+      {
+        classroom_id: 1,
+        classroom_location: "东1-103",
+        classroom_capacity: 100,
+      },
+      {
+        classroom_id: 2,
+        classroom_location: "东1-104",
+        classroom_capacity: 100,
+      },
+    ];
+  } catch (error) {
+    showNotification("获取教室信息失败，请稍后重试。", "error");
+    console.error("获取教室信息失败:", error);
   }
 };
 
-//删除课程
-const deleteTheCourse = async (courseId: number) => {
-  if (confirm("确定要删除该课程吗？")) {
+// 删除开课信息
+const deleteTheSection = async (sectionId: number) => {
+  if (confirm("确定要删除该开课信息吗？")) {
     isLoading.value = true;
-    showNotification("正在删除课程...", "info");
+    showNotification("正在删除开课信息...", "info");
     try {
-      await deleteCourse(courseId);
-      courses.value = courses.value.filter(
-        (course) => course.course_id !== courseId
+      const response = await deleteSection(sectionId);
+      courseSections.value = courseSections.value.filter(
+        (section) => section.section_id !== sectionId
       );
-      calculatePaginatedCourses();
-      showNotification("课程删除成功。", "success");
+      if (response.data.code != 200) {
+        showNotification("开课信息删除失败，存在关联。", "error");
+      } else {
+        showNotification("开课信息删除成功。", "success");
+      }
     } catch (error) {
-      showNotification("删除课程失败，请稍后重试。", "error");
-      console.error("删除课程失败:", error);
+      showNotification("删除开课信息失败，请稍后重试。", "error");
+      console.error("删除开课信息失败:", error);
     } finally {
       isLoading.value = false;
     }
   }
 };
 
-// 新增：新建课程
-const createTheCourse = async () => {
+// 新建开课信息
+const createTheSection = async () => {
+  if (!currentCourseId.value) return;
+
+  const selectedClassroom = classrooms.value.find(
+    (classroom) =>
+      classroom.classroom_id === Number(newSection.value.classroom_id)
+  );
+
+  // 验证容量
+  if (
+    newSection.value.capacity &&
+    selectedClassroom &&
+    newSection.value.capacity > selectedClassroom.classroom_capacity
+  ) {
+    capacityError.value = "输入的容量不能超过所选教室的最大容量。";
+    return;
+  }
+
+  capacityError.value = "";
   isLoading.value = true;
-  showNotification("正在创建课程...", "info");
+  showNotification("正在创建开课信息...", "info");
   try {
-    const response = await createCourse(newCourse.value);
-    courses.value.push(response.data);
-    calculatePaginatedCourses();
-    showCreateCourseForm.value = false;
-    newCourse.value = {};
-    showNotification("课程创建成功。", "success");
+    const response = await createSection(
+      currentCourseId.value,
+      newSection.value
+    );
+    if (response.data.code != 200) {
+      showNotification("开课创建失败，内部错误", "error");
+    } else {
+      courseSections.value.push(response.data.data);
+      newSection.value = {};
+      showNotification("开课信息创建成功。", "success");
+    }
   } catch (error) {
-    showNotification("创建课程失败，请稍后重试。", "error");
-    console.error("创建课程失败:", error);
+    showNotification("创建开课信息失败，请稍后重试。", "error");
+    console.error("创建开课信息失败:", error);
   } finally {
-    await queryCourses();
     isLoading.value = false;
+    await openSectionModal(currentCourseId.value);
   }
 };
 
@@ -654,7 +936,7 @@ router-link:hover {
   margin-bottom: 0;
 } /* grid的gap处理间距 */
 .query-form-grid .form-action-group {
-  //grid-column: 1 / -1; /* 让按钮组横跨所有列，或根据需要调整 */
+  grid-column: auto; /* 让按钮组横跨所有列，或根据需要调整 */
   display: flex;
   justify-content: flex-end; /* 按钮靠右 */
   gap: 10px;
@@ -890,5 +1172,11 @@ tbody tr:hover {
     padding: 10px 8px;
     font-size: 13px;
   }
+}
+.error-message {
+  color: #f56c6c;
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
 }
 </style>
