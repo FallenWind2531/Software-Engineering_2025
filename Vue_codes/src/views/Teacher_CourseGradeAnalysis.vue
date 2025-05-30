@@ -84,6 +84,7 @@
                   :value="section"
                 >
                   {{ section.sec_year }} 学年 {{ section.semester }} 学期
+                  {{ section.sec_time }}
                 </option>
               </select>
             </div>
@@ -258,6 +259,7 @@ interface Section {
   section_id: string;
   sec_year: number;
   semester: string;
+  sec_time: string;
   // 其他可能的属性
 }
 
@@ -504,6 +506,7 @@ const populateSectionSelect = async () => {
         section_id: item.section_id || item.sectionId,
         sec_year: item.sec_year || item.secYear || 0,
         semester: item.semester || "",
+        sec_time: item.sec_time || item.secTime,
       }));
 
       console.log("处理后的开课列表:", sections.value);
