@@ -42,6 +42,58 @@
     <!-- Main Content -->
     <main class="page-main">
       <div class="container request-grade-change-container">
+        <!-- 筛选表单 -->
+        <div class="card filter-card">
+          <h2 class="card-title">
+            <FontAwesomeIcon icon="fas fa-filter" /> 筛选申请列表
+          </h2>
+          <form id="filterForm" class="filter-form-grid">
+            <div class="form-group">
+              <label for="auditStatus">审核状态:</label>
+              <select
+                id="auditStatus"
+                name="audit_status"
+                v-model="auditStatus"
+                @change="fetchGradeApplies"
+              >
+                <option value="">全部</option>
+                <option value="1">待审核</option>
+                <option value="2">已通过</option>
+                <option value="3">已拒绝</option>
+              </select>
+            </div>
+          </form>
+        </div>
+
+        <!-- 申请列表 -->
+        <div class="card grade-apply-list-card">
+          <h2 class="card-title">
+            <FontAwesomeIcon icon="fas fa-list" /> 历史申请列表
+          </h2>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>学生姓名</th>
+                <th>课程名称</th>
+                <th>原成绩</th>
+                <th>新成绩</th>
+                <th>审核状态</th>
+                <th>申请时间</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="apply in gradeApplies" :key="apply.id">
+                <td>{{ apply.student_name }}</td>
+                <td>{{ apply.course_name }}</td>
+                <td>{{ apply.apply.oldScore }}</td>
+                <td>{{ apply.apply.newScore }}</td>
+                <td>{{ mapStatus(apply.apply.auditStatus) }}</td>
+                <td>{{ apply.apply.applyTime }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
         <div class="card course-student-selection-card">
           <h2 class="card-title">
             <FontAwesomeIcon icon="fas fa-list-ol" /> 第一步：选择课程与学生
@@ -231,6 +283,7 @@ import {
   getMyCourseSections,
   getSectionGrades,
   submitGradeApply,
+  getTeacherGradeApplies,
 } from "@/api/teacher";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { useuserLoginStore } from "@/store/userLoginStore";
@@ -263,6 +316,16 @@ interface Student {
   // 其他可能的属性
 }
 
+interface GradeApply {
+  id: number;
+  studentName: string;
+  courseName: string;
+  old_score: number;
+  new_score: number;
+  audit_status: string;
+  apply_time: string;
+}
+
 const router = useRouter();
 const loginUserStore = useuserLoginStore();
 // 响应式数据
@@ -281,70 +344,14 @@ const notificationVisible = ref(false);
 const notificationMessage = ref("");
 const notificationType = ref("info");
 
-//   item: [
-//     {
-//       course_id: "121",
-//       course_name: "课1",
-//     },
-//     {
-//       course_id: "122",
-//       course_name: "课2",
-//     },
-//     {
-//       course_id: "123",
-//       course_name: "课3",
-//     },
-//   ],
-// };
-//
-// const getMyCourses = async (params: any) => {
-//   return MockCourses;
-// };
-//
-// const MockSections = {
-//   data: [
-//     {
-//       section_id: "212",
-//       sec_year: 1999,
-//       semester: "awdawd",
-//     },
-//     {
-//       section_id: "awdwd",
-//       sec_year: 2000,
-//       semester: "aw22awd",
-//     },
-//   ],
-// };
-//
-// const getMyCourseSections = async (params: any) => {
-//   return MockSections;
-// };
-//
-// const MockSectionGrades = {
-//   data: {
-//     student_info: [
-//       {
-//         user_id: "11",
-//         name: "wwad",
-//       },
-//       {
-//         user_id: "12",
-//         name: "wwa123d",
-//       },
-//     ],
-//     grade_info: [
-//       {
-//         grade_base: {
-//           score: 111,
-//         },
-//       },
-//     ],
-//   },
-// };
-//
-// const getSectionGrades = async (params: any) => {
-//   return MockSectionGrades;
-// };
+// 申请列表相关数据
+const gradeApplies = ref<GradeApply[]>([]);
+const auditStatus = ref("");
+const mapStatus = (status: number) => {
+  if (status == 0) return "待审核";
+  else if (status == 1) return "已通过";
+  else return "已拒绝";
+};
 
 // 填充课程列表
 const populateCourseSelect = async () => {
@@ -620,6 +627,9 @@ const submitGradeChangeRequest = async () => {
     selectedGradeInfo.value = null;
     newGrade.value = "";
     modificationReason.value = "";
+
+    // 重新获取申请列表
+    fetchGradeApplies();
   } catch (error) {
     showNotification("提交申请失败，请稍后重试。", "error");
     console.error("提交申请错误:", error);
@@ -646,8 +656,22 @@ const handleChangePassword = () => {
   router.push("/change-password");
 };
 
+// 获取申请列表
+const fetchGradeApplies = async () => {
+  try {
+    const response = await getTeacherGradeApplies({
+      audit_status: auditStatus.value,
+    });
+    gradeApplies.value = response.data.data;
+  } catch (error) {
+    showNotification("获取申请列表失败，请稍后重试。", "error");
+    console.error(error);
+  }
+};
+
 onMounted(() => {
   populateCourseSelect();
+  fetchGradeApplies();
 });
 </script>
 
@@ -863,7 +887,7 @@ router-link:hover {
 }
 .form-group select {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg class='icon' viewBox='0 0 1024 1024' xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M512 714.666667c-8.533333 0-17.066667-2.133333-23.466667-8.533334l-307.2-268.8c-12.8-10.666667-14.933333-29.866667-4.266666-42.666666 10.666667-12.8 29.866667-14.933333 42.666666-4.266667l292.266667 256 292.266667-256c12.8-10.666667 32-8.533333 42.666667 4.266667s8.533333 32-4.266667 42.666666l-307.2 268.8c-6.4 4.266667-12.8 8.533333-21.333333 8.533334z' fill='%23C0C4CC'%3E%3C/path%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg class='icon' viewBox='0 0 1024 1024' xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M512 714.666667c-8.533333 0-17.066667-2.133333-23.466667-8.533334l-307.2-268.8c-12.8-10.666667-14.933333-29.866667-4.266666-42.666666 10.666667-12.8 29.866667-14.933333 42.666667-4.266667l292.266667 256 292.266667-256c12.8-10.666667 32-8.533333 42.666667 4.266667s8.533333 32-4.266667 42.666666l-307.2 268.8c-6.4 4.266667-12.8 8.533333-21.333333 8.533334z' fill='%23C0C4CC'%3E%3C/path%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 12px;
@@ -1040,5 +1064,21 @@ router-link:hover {
   .form-actions {
     justify-content: center;
   }
+}
+
+/* 表格样式 */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th,
+.table td {
+  padding: 8px 12px;
+  border: 1px solid #ebeef5;
+  text-align: left;
+}
+.table th {
+  background-color: #f5f7fa;
+  font-weight: 500;
 }
 </style>
