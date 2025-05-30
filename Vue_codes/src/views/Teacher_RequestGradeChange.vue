@@ -78,6 +78,7 @@
                 <th>原成绩</th>
                 <th>新成绩</th>
                 <th>审核状态</th>
+                <th>审核答复</th>
                 <th>申请时间</th>
               </tr>
             </thead>
@@ -88,6 +89,7 @@
                 <td>{{ apply.apply.oldScore }}</td>
                 <td>{{ apply.apply.newScore }}</td>
                 <td>{{ mapStatus(apply.apply.auditStatus) }}</td>
+                <td>{{ apply.apply.audit_reason }}</td>
                 <td>{{ formatTimestamp(apply.apply.applyTime) }}</td>
               </tr>
             </tbody>
