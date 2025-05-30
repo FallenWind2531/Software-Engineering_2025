@@ -544,6 +544,35 @@ const calculatePaginatedCourses = () => {
 // ];
 // 查询课程
 const queryCourses = async () => {
+  // 长度检查
+  const maxCourseNameLength = 20;
+  const maxTeacherIdLength = 20;
+  const maxTeacherNameLength = 20;
+
+  if (filters.value.course_name.length > maxCourseNameLength) {
+    showNotification(
+      `课程名称长度不能超过 ${maxCourseNameLength} 个字符。`,
+      "error"
+    );
+    return;
+  }
+
+  if (filters.value.teacher_id.length > maxTeacherIdLength) {
+    showNotification(
+      `教师 ID 长度不能超过 ${maxTeacherIdLength} 个字符。`,
+      "error"
+    );
+    return;
+  }
+
+  if (filters.value.teacher_name.length > maxTeacherNameLength) {
+    showNotification(
+      `授课教师姓名长度不能超过 ${maxTeacherNameLength} 个字符。`,
+      "error"
+    );
+    return;
+  }
+
   isLoading.value = true;
   showNotification("正在查询课程...", "info");
   try {

@@ -254,6 +254,20 @@ const saveChanges = async () => {
     contact: studentProfileData.value.contact.trim(),
   };
 
+  // 长度检查
+  if (updatedData.name.length < 2 || updatedData.name.length > 20) {
+    showNotification("姓名长度应在2到20个字符之间！", "error");
+    return;
+  }
+  if (updatedData.department.length < 2 || updatedData.department.length > 20) {
+    showNotification("部门/院系长度应在2到20个字符之间！", "error");
+    return;
+  }
+  if (updatedData.contact.length < 5 || updatedData.contact.length > 20) {
+    showNotification("联系方式长度应在5到20个字符之间！", "error");
+    return;
+  }
+
   // 基本验证
   if (!updatedData.name || !updatedData.department || !updatedData.contact) {
     showNotification("姓名、部门/院系和联系方式不能为空！", "error");
@@ -312,6 +326,21 @@ const handleAvatarUpload = async (event: Event) => {
   const files = (event.target as HTMLInputElement).files;
   if (files && files.length > 0) {
     const file = files[0];
+
+    // 类型检查
+    const allowedTypes = ["image/jpeg", "image/png"];
+    if (!allowedTypes.includes(file.type)) {
+      showNotification("仅支持上传jpg、png格式的图片！", "error");
+      return;
+    }
+
+    // 大小检查
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      showNotification("图片大小不能超过5MB！", "error");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("avatar", file);
     isUploading.value = true;
