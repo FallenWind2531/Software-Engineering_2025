@@ -94,7 +94,7 @@
               <input
                 type="text"
                 id="courseCodeDisplay"
-                :value="currentCourse.course_name"
+                v-model="currentCourse.course_name"
               />
             </div>
             <div class="form-group">
@@ -102,7 +102,7 @@
               <input
                 type="text"
                 id="courseCreditsDisplay"
-                :value="currentCourse.credit"
+                v-model="currentCourse.credit"
               />
             </div>
             <div class="form-group">
