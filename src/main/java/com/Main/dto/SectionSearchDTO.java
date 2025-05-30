@@ -10,12 +10,13 @@ public class SectionSearchDTO {
     private String secTime;
     private int available_capacity;
     private String classroom_location;
+    private int classroom_capacity;
 
     // 构造函数
     public SectionSearchDTO() {
     }
 
-    public SectionSearchDTO(int sectionId, int courseId, int classroomId, int capacity, String semester, int secYear, String secTime, int available_capacity, String classroom_location) {
+    public SectionSearchDTO(int sectionId, int courseId, int classroomId, int capacity, String semester, int secYear, String secTime, int available_capacity, String classroom_location, int classroom_capacity) {
         this.sectionId = sectionId;
         this.courseId = courseId;
         this.classroomId = classroomId;
@@ -25,6 +26,7 @@ public class SectionSearchDTO {
         this.secTime = secTime;
         this.available_capacity = available_capacity;
         this.classroom_location = classroom_location;
+        this.classroom_capacity = classroom_capacity;
     }
 
     // Getter and Setter methods
@@ -99,4 +101,13 @@ public class SectionSearchDTO {
     public void setClassroom_location(String classroom_location) {
         this.classroom_location = classroom_location;
     }
+
+    public int getClassroom_capacity() {
+        return classroom_capacity;
+    }
+
+    public void setClassroom_capacity(int classroom_capacity) {
+        this.classroom_capacity = classroom_capacity;
+    }
+
 }

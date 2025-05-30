@@ -67,8 +67,7 @@ public class SectionService {
         List<Section> sections = jdbcTemplate.query(querySql.toString(), params.toArray(), sectionRowMapper);
         List<SectionSearchDTO> sectionSearchDTOS = new ArrayList<>();
         for (Section section : sections) {
-            String location_querysql = "SELECT location FROM Classroom WHERE classroom_id = ?";
-            String classroomLocation = jdbcTemplate.queryForObject(location_querysql, String.class, section.getClassroomId());
+            Classroom classroom = jdbcTemplate.queryForObject("SELECT * FROM Classroom WHERE classroom_id = ?",classroomRowMapper,section.getClassroomId());
             SectionSearchDTO sectionSearchDTO = new SectionSearchDTO();
             sectionSearchDTO.setSectionId(section.getId());
             sectionSearchDTO.setCourseId(section.getCourseId());
@@ -77,7 +76,8 @@ public class SectionService {
             sectionSearchDTO.setSemester(section.getSemester());
             sectionSearchDTO.setSecYear(section.getSecYear());
             sectionSearchDTO.setSecTime(section.getSecTime());
-            sectionSearchDTO.setClassroom_location(classroomLocation);
+            sectionSearchDTO.setClassroom_location(classroom.getLocation());
+            sectionSearchDTO.setClassroom_capacity(classroom.getCapacity());
             sectionSearchDTO.setAvailable_capacity(section.getCapacity());
             sectionSearchDTOS.add(sectionSearchDTO);
         }
@@ -93,7 +93,7 @@ public class SectionService {
         logger.info("获取课程信息: sectionId={}", sectionId);
         try {
             Section section = jdbcTemplate.queryForObject("SELECT * FROM Section WHERE section_id = ?", new Object[]{sectionId}, sectionRowMapper);
-            String location = jdbcTemplate.queryForObject("SELECT location FROM Classroom WHERE classroom_id = ?", String.class, section.getClassroomId());
+            Classroom classroom = jdbcTemplate.queryForObject("SELECT * FROM Classroom WHERE classroom_id = ?",classroomRowMapper,section.getClassroomId());
             SectionSearchDTO sectionSearchDTO = new SectionSearchDTO();
             sectionSearchDTO.setSectionId(section.getId());
             sectionSearchDTO.setCourseId(section.getCourseId());
@@ -102,9 +102,9 @@ public class SectionService {
             sectionSearchDTO.setSemester(section.getSemester());
             sectionSearchDTO.setSecYear(section.getSecYear());
             sectionSearchDTO.setSecTime(section.getSecTime());
-            sectionSearchDTO.setClassroom_location(location);
+            sectionSearchDTO.setClassroom_location(classroom.getLocation());
             sectionSearchDTO.setAvailable_capacity(section.getAvailableCapacity());
-            sectionSearchDTO.setClassroom_location(location);
+            sectionSearchDTO.setClassroom_capacity(classroom.getCapacity());
             return sectionSearchDTO;
         } catch (DataAccessException e) {
             logger.error("SQL Error: " + e.getMessage(), e);
@@ -227,6 +227,11 @@ public class SectionService {
         if (secTime == null || secTime.isEmpty()) {
             logger.warn("Invalid secTime: {}", secTime);
             throw new IllegalArgumentException("上课时间不能为空");
+        }
+        Classroom classroom = jdbcTemplate.queryForObject("select * from classroom where classroom_id = ?",classroomRowMapper, classroomId);
+        if(capacity < classroom.getCapacity()) {
+            logger.warn("Invalid capacity: {}, 教室容量为: {}", capacity, classroom.getCapacity());
+            throw new IllegalArgumentException("开课容量不能小于教室容量");
         }
 
         String sql = "UPDATE Section SET classroom_id = ?, capacity = ?, semester = ?, sec_year = ?, sec_time = ? , available_capacity = ? WHERE section_id = ?";

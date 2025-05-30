@@ -60,7 +60,7 @@ public class GradeService{
         List<GradeBase> gradeBases = jdbcTemplate.query(sql.toString(), gradeBaseRowMapper, params.toArray());
 
         if (gradeBases.isEmpty()) {
-            throw new DataAccessException("找不到该学生的成绩") {};
+            logger.info("没找到学生的成绩"); // 没有找到成绩，返回空列表
         }
 
         List<StudentGradeDTO> studentGradeDTOList = new ArrayList<>();
