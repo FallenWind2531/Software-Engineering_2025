@@ -438,6 +438,7 @@ const createTheCourse = async () => {
     showNotification("创建课程失败，请稍后重试。", "error");
     console.error("创建课程失败:", error);
   } finally {
+    await queryCourses();
     isLoading.value = false;
   }
 };
