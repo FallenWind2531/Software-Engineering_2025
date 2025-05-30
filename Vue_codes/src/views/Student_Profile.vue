@@ -3,7 +3,7 @@
     <div class="top-bar">
       <div class="left-section">
         <router-link
-          to="../student/dashboard"
+          to="../dashboard"
           class="back-icon"
           id="backToDashboard"
         >
