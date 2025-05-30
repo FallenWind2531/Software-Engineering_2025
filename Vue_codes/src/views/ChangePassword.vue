@@ -123,12 +123,18 @@ const handleSubmit = async () => {
   };
 
   try {
-    await updateCurrentUserPassword(data);
-    showNotificationFunc("密码重置成功！正在跳转到登录页面...", "success");
-    loginUserStore.setLoginUserUnlogin();
-    setTimeout(() => {
-      window.location.href = "../login"; // Redirect to login page
-    }, 2000);
+    const response = await updateCurrentUserPassword(data);
+    if (response.data.code == 400) {
+      showNotificationFunc("旧密码错误", "error");
+    } else if (response.data.code != 200) {
+      showNotificationFunc("密码重置失败，请重试。", "error");
+    } else {
+      showNotificationFunc("密码重置成功！正在跳转到登录页面...", "success");
+      loginUserStore.setLoginUserUnlogin();
+      setTimeout(() => {
+        window.location.href = "../login"; // Redirect to login page
+      }, 2000);
+    }
   } catch (error) {
     console.error("密码重置失败:", error);
     showNotificationFunc("密码重置失败，请重试。", "error");
