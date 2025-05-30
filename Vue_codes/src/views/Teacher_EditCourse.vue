@@ -530,6 +530,7 @@ const populateSectionSelect = async () => {
   sections.value = [];
   selectedSection.value = "";
   showCourseDetails.value = false;
+  showSectionDetails.value = false;
 
   if (!selectedCourseId.value) {
     showNotification("请先选择课程", "error");
@@ -619,6 +620,7 @@ const saveCourseDetails = async () => {
       hours_per_week: currentCourse.value.hours_per_week,
     });
     selectedCourse.value = currentCourse.value.course_name;
+    await populateCourseSelect();
     showNotification(
       `课程《${currentCourse.value.course_name}》的课程信息已成功更新！`,
       "success"
@@ -626,8 +628,6 @@ const saveCourseDetails = async () => {
   } catch (error) {
     showNotification("保存课程信息失败，请稍后重试。", "error");
     console.error(error);
-  } finally {
-    await populateCourseSelect();
   }
 };
 
@@ -744,6 +744,7 @@ const saveSectionDetails = async () => {
       await loadSectionDetails();
       showNotification(`更新失败，发生内部错误`, "error");
     } else {
+      await populateSectionSelect();
       showNotification(
         `课程《${currentCourse.value.course_name}》的开课信息已成功更新！`,
         "success"
