@@ -2,11 +2,7 @@
   <div>
     <div class="top-bar">
       <div class="left-section">
-        <router-link
-          to="../dashboard"
-          class="back-icon"
-          id="backToDashboard"
-        >
+        <router-link to="../dashboard" class="back-icon" id="backToDashboard">
           <FontAwesomeIcon icon="fas fa-arrow-left" />
         </router-link>
         <span class="system-name">教学服务系统</span>
