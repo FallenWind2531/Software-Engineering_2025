@@ -154,7 +154,7 @@
                         @click="openModal(app)"
                         title="查看/审核详情"
                       >
-                        <i class="fas fa-eye"></i> 详情
+                        详情
                       </button>
                     </td>
                   </tr>
@@ -167,7 +167,7 @@
             class="pagination-controls"
             id="approvalPaginationControls"
             :style="{
-              display: filteredApplications.length > 0 ? 'block' : 'none',
+              display: filteredApplications.length > 0 ? 'flex' : 'none',
             }"
           >
             <button
@@ -265,7 +265,7 @@
               </div>
               <hr />
               <div class="form-group" id="adminRemarksGroup">
-                <label for="adminRemarks">审核备注 (驳回时必填):</label>
+                <label for="adminRemarks">审核备注:</label>
                 <textarea
                   id="adminRemarks"
                   v-model="adminRemarks"
@@ -355,8 +355,8 @@ interface Application {
   originalGrade?: number;
   newGrade?: number;
   applicationTime?: string;
-  audit_status: number | string;
   reason?: string;
+  audit_status: number | string;
   adminRemarks?: string;
 }
 
@@ -446,7 +446,7 @@ const filterAndDisplayApplications = async () => {
           newGrade: item.apply.newScore,
           applicationTime: new Date(item.apply.applyTime).toLocaleString(),
           audit_status: item.apply.auditStatus,
-          reason: item.apply.reason,
+          audit_reason: item.apply.reason,
         }))
       : [];
 
@@ -491,8 +491,16 @@ const closeModal = () => {
 const approveApplication = async () => {
   if (!currentEditingApplication.value) return;
   const remarks = adminRemarks.value.trim();
+  if (!remarks) {
+    showNotification("必须填写审核备注！", "error");
+    return;
+  }
+  if (remarks.length > 250) {
+    showNotification("审核理由应当在250字以内", "error");
+    return;
+  }
   try {
-    const data = { audit_status: 1, review_comment: remarks };
+    const data = { audit_status: 1, audit_reason: remarks };
     // 确保apply_id是字符串
     const applyId = String(currentEditingApplication.value.apply_id);
     await reviewGradeApply(applyId, data);
@@ -509,11 +517,15 @@ const rejectApplication = async () => {
   if (!currentEditingApplication.value) return;
   const remarks = adminRemarks.value.trim();
   if (!remarks) {
-    showNotification("驳回申请必须填写审核备注！", "error");
+    showNotification("必须填写审核备注！", "error");
+    return;
+  }
+  if (remarks.length > 250) {
+    showNotification("审核理由应当在250字以内", "error");
     return;
   }
   try {
-    const data = { audit_status: 2, review_comment: remarks };
+    const data = { audit_status: 2, audit_reason: remarks };
     // 确保apply_id是字符串
     const applyId = String(currentEditingApplication.value.apply_id);
     await reviewGradeApply(applyId, data);
@@ -986,10 +998,16 @@ td.actions-cell .btn:last-child {
 
 /* Pagination Controls */
 .pagination-controls {
-  /* ... */
+  margin-top: 20px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
 .pagination-controls #approvalPageInfo {
-  /* ... */
+  font-size: 14px;
+  color: #606266;
 }
 
 /* Modal Styles */
@@ -1136,5 +1154,61 @@ td.actions-cell .btn:last-child {
     display: block;
     margin-bottom: 3px;
   }
+}
+/* Buttons (与之前页面类似) */
+.btn {
+  /* ... (与 submit_grades_style.css 中的 .btn 样式一致) ... */
+  padding: 9px 18px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: 0.1s;
+  text-align: center;
+  user-select: none;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn i {
+  font-size: 1em;
+}
+.btn-primary {
+  background-color: #409eff;
+  border-color: #409eff;
+  color: white;
+}
+.btn-primary:hover {
+  background-color: #66b1ff;
+  border-color: #66b1ff;
+}
+.btn-secondary {
+  background-color: #909399;
+  border-color: #909399;
+  color: white;
+}
+.btn-secondary:hover {
+  background-color: #a6a9ad;
+  border-color: #a6a9ad;
+}
+.btn-default {
+  /* 用于分页按钮 */
+  background-color: #fff;
+  border-color: #dcdfe6;
+  color: #606266;
+}
+.btn-default:hover {
+  border-color: #409eff;
+  color: #409eff;
+}
+.btn[disabled] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 12px;
 }
 </style>

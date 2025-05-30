@@ -758,15 +758,18 @@ td.actions-cell .btn:last-child {
 /* Pagination Controls */
 .pagination-controls {
   margin-top: 20px;
+  text-align: center;
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 10px;
 }
 .pagination-controls button {
   margin: 0 5px;
 }
 .pagination-controls #coursePageInfo {
-  margin: 0 10px;
+  font-size: 14px;
+  color: #606266;
 }
 
 /* Modal Styles - CRITICAL FIXES FOR POSITIONING */
