@@ -2,7 +2,11 @@
   <div>
     <div class="top-bar">
       <div class="left-section">
-        <router-link to="../dashboard" class="back-icon" id="backToDashboard">
+        <router-link
+          to="../teacher/dashboard"
+          class="back-icon"
+          id="backToDashboard"
+        >
           <FontAwesomeIcon icon="fas fa-arrow-left" />
         </router-link>
         <span class="system-name">教学服务系统</span>
@@ -18,7 +22,13 @@
               alt="User Avatar"
               class="avatar-img"
             />
-            <FontAwesomeIcon v-else icon="fas fa-user" />
+            <img
+              v-else
+              :src="defaultAvatar"
+              alt="User Avatar"
+              class="avatar-img"
+            />
+            <!--            <FontAwesomeIcon v-else icon="fas fa-user" />-->
           </div>
           <span class="user-name" id="profileUserName">{{
             studentProfileData.name
@@ -96,7 +106,11 @@
                 <label for="avatarPath">头像:</label>
                 <div class="avatar-wrapper">
                   <img
-                    :src="getAvatarUrl(studentProfileData.avatarPath)"
+                    :src="
+                      !getAvatarUrl(studentProfileData.avatarPath)
+                        ? defaultAvatar
+                        : getAvatarUrl(studentProfileData.avatarPath)
+                    "
                     alt="User Avatar"
                     class="avatar-preview"
                   />
@@ -182,7 +196,10 @@ import {
   uploadAvatar,
 } from "@/api/account";
 import { useuserLoginStore } from "@/store/userLoginStore";
+import { useRouter } from "vue-router";
+import defaultAvatar from "@/assets/defaultAvatar.png";
 
+const router = useRouter();
 const loginUserStore = useuserLoginStore();
 // 响应式数据
 const studentProfileData = ref({
@@ -204,7 +221,7 @@ const userDropdownVisible = ref(false);
 const notificationVisible = ref(false);
 const notificationMessage = ref("");
 const isUploading = ref(false);
-//const defaultAvatar = "path/to/default/avatar.png"; // 替换为默认头像的路径
+// const defaultAvatar = "@/assets/logo.png"; // 替换为默认头像的路径
 const getAvatarUrl = (path: string) => {
   if (!path) return ""; // 如果路径为空，返回空字符串
 
@@ -220,7 +237,8 @@ const getAvatarUrl = (path: string) => {
 const fetchUserProfile = async () => {
   try {
     const response = await getCurrentUserProfile();
-    studentProfileData.value = response.data.data; // 假设响应数据结构为 { data: {...} }
+    studentProfileData.value = response.data.data;
+    studentProfileData.value.role = "教师";
   } catch (error) {
     showNotification("获取用户信息失败，请稍后重试。", "error");
   }
@@ -310,8 +328,8 @@ const handleLogout = () => {
 
 // 处理修改密码
 const handleChangePassword = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  //window.location.href = "../change-password";
+  router.push("/change-password");
 };
 
 const triggerAvatarUpload = () => {
@@ -350,7 +368,7 @@ const handleAvatarUpload = async (event: Event) => {
       showNotification("头像上传成功。", "success");
       console.log("头像上传成功:", response);
       // 假设响应中包含更新后的头像路径
-      studentProfileData.value.avatarPath = response.data.avatarPath;
+      studentProfileData.value.avatarPath = response.data.data.avatarPath;
     } catch (error) {
       showNotification("头像上传失败，请稍后重试。", "error");
       console.error("头像上传失败:", error);
@@ -754,43 +772,33 @@ router-link:hover {
   color: white;
 }
 </style>
-
-<!--<template>-->
+<!--<template>&ndash;&gt;-->
 <!--  <div>-->
 <!--    &lt;!&ndash; Top Bar &ndash;&gt;-->
 <!--    <div class="top-bar">-->
 <!--      <div class="left-section">-->
-<!--        <router-link-->
-<!--          to="../teacher/dashboard"-->
+<!--        <a-->
+<!--          href="../admin/dashboard"-->
 <!--          class="back-icon"-->
 <!--          id="backToTeacherDashboard"-->
 <!--        >-->
 <!--          <FontAwesomeIcon icon="fas fa-arrow-left" />-->
-<!--        </router-link>-->
+<!--        </a>-->
 <!--        <span class="system-name">教学服务系统</span>-->
 <!--        <span class="system-subname">信息管理子系统 - 个人信息</span>-->
 <!--      </div>-->
 <!--      <div class="right-section">-->
-<!--        <div class="user-info" id="userInfoToggle" @click="toggleUserDropdown">-->
+<!--        <div class="user-info" id="userInfoToggle">-->
 <!--          <div class="user-avatar">-->
 <!--            <FontAwesomeIcon icon="fas fa-chalkboard-teacher" />-->
 <!--          </div>-->
-<!--          <span class="user-name" id="profileTeacherName">{{-->
-<!--            JSON.stringify(loginUserStore.loginUser.name)-->
-<!--          }}</span>-->
-<!--          <FontAwesomeIcon-->
-<!--            icon="fas fa-angle-down"-->
-<!--            :class="{ 'is-open': isUserDropdownOpen }"-->
-<!--          />-->
+<!--          <span class="user-name" id="profileTeacherName">管理员姓名</span>-->
+<!--          <FontAwesomeIcon icon="fas fa-angle-down" />-->
 <!--        </div>-->
-<!--        <div-->
-<!--          class="user-dropdown-menu"-->
-<!--          id="userDropdown"-->
-<!--          :style="{ display: isUserDropdownOpen ? 'block' : 'none' }"-->
-<!--        >-->
-<!--          <a @click="handleChangePassword">修改密码</a>-->
+<!--        <div class="user-dropdown-menu" id="userDropdown">-->
+<!--          <a href="#">修改密码</a>-->
 <!--          <div class="divider"></div>-->
-<!--          <a @click="handleLogout">退出登录</a>-->
+<!--          <a href="#" id="logoutLink">退出登录</a>-->
 <!--        </div>-->
 <!--      </div>-->
 <!--    </div>-->
@@ -800,20 +808,10 @@ router-link:hover {
 <!--      <div class="container profile-container">-->
 <!--        <div class="card profile-card">-->
 <!--          <h2 class="card-title">-->
-<!--            <FontAwesomeIcon icon="fas fa-user-tie" /> 教师基本信息-->
+<!--            <FontAwesomeIcon icon="fas fa-user-tie" /> 管理员基本信息-->
 <!--          </h2>-->
 <!--          <form id="teacherProfileForm">-->
 <!--            <div class="profile-grid">-->
-<!--              <div class="form-group">-->
-<!--                <label for="teacherId">教工号:</label>-->
-<!--                <input-->
-<!--                  type="text"-->
-<!--                  id="teacherId"-->
-<!--                  name="teacherId"-->
-<!--                  readonly-->
-<!--                  :value="teacherProfile.teacherId"-->
-<!--                />-->
-<!--              </div>-->
 <!--              <div class="form-group">-->
 <!--                <label for="teacherName">姓名:</label>-->
 <!--                <input-->
@@ -821,7 +819,7 @@ router-link:hover {
 <!--                  id="teacherName"-->
 <!--                  name="teacherName"-->
 <!--                  readonly-->
-<!--                  :value="teacherProfile.name"-->
+<!--                  value="王明"-->
 <!--                />-->
 <!--              </div>-->
 <!--              <div class="form-group">-->
@@ -831,7 +829,7 @@ router-link:hover {
 <!--                  id="gender"-->
 <!--                  name="gender"-->
 <!--                  readonly-->
-<!--                  :value="teacherProfile.gender"-->
+<!--                  value="男"-->
 <!--                />-->
 <!--              </div>-->
 <!--              <div class="form-group">-->
@@ -841,122 +839,20 @@ router-link:hover {
 <!--                  id="idCardNumber"-->
 <!--                  name="idCardNumber"-->
 <!--                  readonly-->
-<!--                  :value="teacherProfile.idCardNumber"-->
-<!--                />-->
-<!--              </div>-->
-<!--              <div class="form-group">-->
-<!--                <label for="department">所属院系:</label>-->
-<!--                <input-->
-<!--                  type="text"-->
-<!--                  id="department"-->
-<!--                  name="department"-->
-<!--                  readonly-->
-<!--                  :value="teacherProfile.department"-->
-<!--                />-->
-<!--              </div>-->
-<!--              <div class="form-group">-->
-<!--                <label for="title">职称:</label>-->
-<!--                <input-->
-<!--                  type="text"-->
-<!--                  id="title"-->
-<!--                  name="title"-->
-<!--                  readonly-->
-<!--                  :value="teacherProfile.title"-->
-<!--                />-->
-<!--              </div>-->
-<!--              <div class="form-group">-->
-<!--                <label for="hireDate">入职日期:</label>-->
-<!--                <input-->
-<!--                  type="text"-->
-<!--                  id="hireDate"-->
-<!--                  name="hireDate"-->
-<!--                  readonly-->
-<!--                  :value="teacherProfile.hireDate"-->
-<!--                />-->
-<!--              </div>-->
-<!--              <div class="form-group">-->
-<!--                <label for="researchArea">研究方向:</label>-->
-<!--                <input-->
-<!--                  type="text"-->
-<!--                  id="researchArea"-->
-<!--                  name="researchArea"-->
-<!--                  readonly-->
-<!--                  :value="teacherProfile.researchArea"-->
-<!--                />-->
-<!--              </div>-->
-
-<!--              <hr class="section-divider" />-->
-
-<!--              <div class="form-group editable-group">-->
-<!--                <label for="email">办公邮箱:</label>-->
-<!--                <input-->
-<!--                  type="email"-->
-<!--                  id="email"-->
-<!--                  name="email"-->
-<!--                  :value="teacherProfile.email"-->
-<!--                  :readonly="!isEditing"-->
-<!--                  @input="handleInputChange('email', $event.target.value)"-->
-<!--                  placeholder="请输入您的办公邮箱"-->
-<!--                />-->
-<!--              </div>-->
-<!--              <div class="form-group editable-group">-->
-<!--                <label for="phoneNumber">办公电话:</label>-->
-<!--                <input-->
-<!--                  type="tel"-->
-<!--                  id="phoneNumber"-->
-<!--                  name="phoneNumber"-->
-<!--                  :value="teacherProfile.phoneNumber"-->
-<!--                  :readonly="!isEditing"-->
-<!--                  @input="handleInputChange('phoneNumber', $event.target.value)"-->
-<!--                  placeholder="请输入您的办公电话"-->
-<!--                />-->
-<!--              </div>-->
-<!--              <div class="form-group editable-group full-width-group">-->
-<!--                <label for="officeLocation">办公地点:</label>-->
-<!--                <input-->
-<!--                  type="text"-->
-<!--                  id="officeLocation"-->
-<!--                  name="officeLocation"-->
-<!--                  :value="teacherProfile.officeLocation"-->
-<!--                  :readonly="!isEditing"-->
-<!--                  @input="-->
-<!--                    handleInputChange('officeLocation', $event.target.value)-->
-<!--                  "-->
-<!--                  placeholder="请输入您的办公地点"-->
-<!--                />-->
-<!--              </div>-->
-<!--              <div class="form-group editable-group full-width-group">-->
-<!--                <label for="personalHomepage">个人主页 (选填):</label>-->
-<!--                <input-->
-<!--                  type="url"-->
-<!--                  id="personalHomepage"-->
-<!--                  name="personalHomepage"-->
-<!--                  :value="teacherProfile.personalHomepage"-->
-<!--                  :readonly="!isEditing"-->
-<!--                  @input="-->
-<!--                    handleInputChange('personalHomepage', $event.target.value)-->
-<!--                  "-->
-<!--                  placeholder="请输入您的个人主页链接"-->
+<!--                  value="330**************X"-->
 <!--                />-->
 <!--              </div>-->
 <!--            </div>-->
 
 <!--            <div class="form-actions">-->
-<!--              <button-->
-<!--                type="button"-->
-<!--                class="btn btn-secondary"-->
-<!--                id="editModeBtn"-->
-<!--                @click="enterEditMode"-->
-<!--                v-if="!isEditing"-->
-<!--              >-->
+<!--              <button type="button" class="btn btn-secondary" id="editModeBtn">-->
 <!--                <FontAwesomeIcon icon="fas fa-edit" /> 编辑信息-->
 <!--              </button>-->
 <!--              <button-->
-<!--                type="button"-->
+<!--                type="submit"-->
 <!--                class="btn btn-primary"-->
 <!--                id="saveChangesBtn"-->
-<!--                @click="saveChanges"-->
-<!--                v-if="isEditing"-->
+<!--                style="display: none"-->
 <!--              >-->
 <!--                <FontAwesomeIcon icon="fas fa-save" /> 保存更改-->
 <!--              </button>-->
@@ -964,8 +860,7 @@ router-link:hover {
 <!--                type="button"-->
 <!--                class="btn btn-default"-->
 <!--                id="cancelEditBtn"-->
-<!--                @click="cancelEdit"-->
-<!--                v-if="isEditing"-->
+<!--                style="display: none"-->
 <!--              >-->
 <!--                <FontAwesomeIcon icon="fas fa-times" /> 取消编辑-->
 <!--              </button>-->
@@ -975,15 +870,8 @@ router-link:hover {
 <!--        <div-->
 <!--          id="notificationArea"-->
 <!--          class="notification"-->
-<!--          :class="{-->
-<!--            success: notificationType === 'success',-->
-<!--            error: notificationType === 'error',-->
-<!--            info: notificationType === 'info',-->
-<!--          }"-->
-<!--          :style="{ display: showNotification ? 'block' : 'none' }"-->
-<!--        >-->
-<!--          {{ notificationMessage }}-->
-<!--        </div>-->
+<!--          style="display: none"-->
+<!--        ></div>-->
 <!--      </div>-->
 <!--    </main>-->
 
@@ -997,165 +885,9 @@ router-link:hover {
 <!--  </div>-->
 <!--</template>-->
 
-<!--<script setup lang="ts">-->
-<!--import { ref, onMounted } from "vue";-->
-<!--import { getCurrentUserProfile, updateCurrentUserProfile } from "@/api/account";-->
-<!--import { useuserLoginStore } from "@/store/userLoginStore";-->
-
-<!--const loginUserStore = useuserLoginStore();-->
-
-<!--type TeacherProfile = {-->
-<!--  name: string;-->
-<!--  title: string;-->
-<!--  teacherId: string;-->
-<!--  gender: string;-->
-<!--  idCardNumber: string;-->
-<!--  department: string;-->
-<!--  hireDate: string;-->
-<!--  researchArea: string;-->
-<!--  email: string;-->
-<!--  phoneNumber: string;-->
-<!--  officeLocation: string;-->
-<!--  personalHomepage: string;-->
-<!--};-->
-
-<!--const teacherProfile = ref<TeacherProfile>({-->
-<!--  name: "",-->
-<!--  title: "",-->
-<!--  teacherId: "",-->
-<!--  gender: "",-->
-<!--  idCardNumber: "",-->
-<!--  department: "",-->
-<!--  hireDate: "",-->
-<!--  researchArea: "",-->
-<!--  email: "",-->
-<!--  phoneNumber: "",-->
-<!--  officeLocation: "",-->
-<!--  personalHomepage: "",-->
-<!--});-->
-<!--const originalEditableData = ref({-->
-<!--  email: "",-->
-<!--  phoneNumber: "",-->
-<!--  officeLocation: "",-->
-<!--  personalHomepage: "",-->
-<!--});-->
-
-<!--const isUserDropdownOpen = ref(false);-->
-<!--const isEditing = ref(false);-->
-<!--const showNotification = ref(false);-->
-<!--const notificationMessage = ref("");-->
-<!--const notificationType = ref("info");-->
-
-<!--const toggleUserDropdown = () => {-->
-<!--  isUserDropdownOpen.value = !isUserDropdownOpen.value;-->
-<!--};-->
-
-<!--const handleChangePassword = () => {-->
-<!--  loginUserStore.setLoginUserUnlogin();-->
-<!--  window.location.href = "../change-password";-->
-<!--};-->
-
-<!--const handleLogout = async () => {-->
-<!--  showNotificationMessage("正在退出登录...", "info");-->
-<!--  setTimeout(() => {-->
-<!--    loginUserStore.setLoginUserUnlogin();-->
-<!--    window.location.href = "../login";-->
-<!--  }, 1500);-->
-<!--};-->
-
-<!--const populateProfileForm = () => {-->
-<!--  if (teacherProfile.value) {-->
-<!--    const profileTeacherNameDisplay =-->
-<!--      document.getElementById("profileTeacherName");-->
-<!--    if (profileTeacherNameDisplay) {-->
-<!--      profileTeacherNameDisplay.textContent = `${teacherProfile.value.name} ${teacherProfile.value.title}`;-->
-<!--    }-->
-<!--  }-->
-<!--};-->
-
-<!--const fetchTeacherProfile = async () => {-->
-<!--  try {-->
-<!--    const res = await getCurrentUserProfile();-->
-<!--    if (res.data.code === 200) {-->
-<!--      teacherProfile.value = res.data;-->
-<!--      populateProfileForm();-->
-<!--    }-->
-<!--  } catch (error) {-->
-<!--    showNotificationMessage("获取教师信息失败", "error");-->
-<!--  }-->
-<!--};-->
-
-<!--const enterEditMode = () => {-->
-<!--  originalEditableData.value = {-->
-<!--    email: teacherProfile.value.email,-->
-<!--    phoneNumber: teacherProfile.value.phoneNumber,-->
-<!--    officeLocation: teacherProfile.value.officeLocation,-->
-<!--    personalHomepage: teacherProfile.value.personalHomepage,-->
-<!--  };-->
-<!--  isEditing.value = true;-->
-<!--  showNotificationMessage("您现在可以编辑联系信息了。", "info");-->
-<!--};-->
-
-<!--const cancelEdit = () => {-->
-<!--  teacherProfile.value.email = originalEditableData.value.email;-->
-<!--  teacherProfile.value.phoneNumber = originalEditableData.value.phoneNumber;-->
-<!--  teacherProfile.value.officeLocation =-->
-<!--    originalEditableData.value.officeLocation;-->
-<!--  teacherProfile.value.personalHomepage =-->
-<!--    originalEditableData.value.personalHomepage;-->
-<!--  isEditing.value = false;-->
-<!--  showNotificationMessage("编辑已取消。", "info");-->
-<!--};-->
-
-<!--const handleInputChange = (field: keyof TeacherProfile, value: string) => {-->
-<!--  teacherProfile.value[field] = value;-->
-<!--};-->
-
-<!--const saveChanges = async () => {-->
-<!--  const updatedData = {-->
-<!--    email: teacherProfile.value.email.trim(),-->
-<!--    phoneNumber: teacherProfile.value.phoneNumber.trim(),-->
-<!--    officeLocation: teacherProfile.value.officeLocation.trim(),-->
-<!--    personalHomepage: teacherProfile.value.personalHomepage.trim(),-->
-<!--  };-->
-
-<!--  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;-->
-<!--  if (!updatedData.email || !emailRegex.test(updatedData.email)) {-->
-<!--    showNotificationMessage("请输入有效的办公邮箱格式。", "error");-->
-<!--    return;-->
-<!--  }-->
-
-<!--  showNotificationMessage("正在保存更改...", "info");-->
-
-<!--  try {-->
-<!--    const res = await updateCurrentUserProfile(updatedData);-->
-<!--    if (res.data.code === 200) {-->
-<!--      showNotificationMessage("个人信息已成功更新！", "success");-->
-<!--      isEditing.value = false;-->
-<!--    } else {-->
-<!--      showNotificationMessage("保存更改失败", "error");-->
-<!--    }-->
-<!--  } catch (error) {-->
-<!--    showNotificationMessage("保存更改失败", "error");-->
-<!--  }-->
-<!--};-->
-
-<!--const showNotificationMessage = (message: string, type: string) => {-->
-<!--  notificationMessage.value = message;-->
-<!--  notificationType.value = type;-->
-<!--  showNotification.value = true;-->
-<!--  setTimeout(() => {-->
-<!--    showNotification.value = false;-->
-<!--  }, 3000);-->
-<!--};-->
-
-<!--onMounted(() => {-->
-<!--  fetchTeacherProfile();-->
-<!--});-->
-<!--</script>-->
+<!--<script setup lang="ts"></script>-->
 
 <!--<style scoped>-->
-<!--/* 样式保持不变 */-->
 <!--/* Global Styles */-->
 <!--body {-->
 <!--  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,-->
@@ -1171,11 +903,11 @@ router-link:hover {
 <!--  display: flex;-->
 <!--  flex-direction: column;-->
 <!--}-->
-<!--router-link {-->
+<!--a {-->
 <!--  text-decoration: none;-->
 <!--  color: #409eff;-->
 <!--}-->
-<!--router-link:hover {-->
+<!--a:hover {-->
 <!--  text-decoration: none;-->
 <!--  color: #1370eb;-->
 <!--}-->

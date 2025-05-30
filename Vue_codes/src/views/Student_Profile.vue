@@ -22,7 +22,13 @@
               alt="User Avatar"
               class="avatar-img"
             />
-            <FontAwesomeIcon v-else icon="fas fa-user" />
+            <img
+              v-else
+              :src="defaultAvatar"
+              alt="User Avatar"
+              class="avatar-img"
+            />
+            <!--            <FontAwesomeIcon v-else icon="fas fa-user" />-->
           </div>
           <span class="user-name" id="profileUserName">{{
             studentProfileData.name
@@ -100,7 +106,11 @@
                 <label for="avatarPath">头像:</label>
                 <div class="avatar-wrapper">
                   <img
-                    :src="getAvatarUrl(studentProfileData.avatarPath)"
+                    :src="
+                      !getAvatarUrl(studentProfileData.avatarPath)
+                        ? defaultAvatar
+                        : getAvatarUrl(studentProfileData.avatarPath)
+                    "
                     alt="User Avatar"
                     class="avatar-preview"
                   />
@@ -186,7 +196,10 @@ import {
   uploadAvatar,
 } from "@/api/account";
 import { useuserLoginStore } from "@/store/userLoginStore";
+import { useRouter } from "vue-router";
+import defaultAvatar from "@/assets/defaultAvatar.png";
 
+const router = useRouter();
 const loginUserStore = useuserLoginStore();
 // 响应式数据
 const studentProfileData = ref({
@@ -208,8 +221,7 @@ const userDropdownVisible = ref(false);
 const notificationVisible = ref(false);
 const notificationMessage = ref("");
 const isUploading = ref(false);
-//const defaultAvatar = "path/to/default/avatar.png"; // 替换为默认头像的路径
-
+// const defaultAvatar = "@/assets/logo.png"; // 替换为默认头像的路径
 const getAvatarUrl = (path: string) => {
   if (!path) return ""; // 如果路径为空，返回空字符串
 
@@ -225,7 +237,7 @@ const getAvatarUrl = (path: string) => {
 const fetchUserProfile = async () => {
   try {
     const response = await getCurrentUserProfile();
-    studentProfileData.value = response.data.data; // 假设响应数据结构为 { data: {...} }
+    studentProfileData.value = response.data.data;
     studentProfileData.value.role = "学生";
   } catch (error) {
     showNotification("获取用户信息失败，请稍后重试。", "error");
@@ -316,8 +328,8 @@ const handleLogout = () => {
 
 // 处理修改密码
 const handleChangePassword = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  //window.location.href = "../change-password";
+  router.push("/change-password");
 };
 
 const triggerAvatarUpload = () => {
@@ -356,7 +368,7 @@ const handleAvatarUpload = async (event: Event) => {
       showNotification("头像上传成功。", "success");
       console.log("头像上传成功:", response);
       // 假设响应中包含更新后的头像路径
-      studentProfileData.value.avatarPath = response.data.avatarPath;
+      studentProfileData.value.avatarPath = response.data.data.avatarPath;
     } catch (error) {
       showNotification("头像上传失败，请稍后重试。", "error");
       console.error("头像上传失败:", error);
@@ -760,3 +772,472 @@ router-link:hover {
   color: white;
 }
 </style>
+<!--<template>&ndash;&gt;-->
+<!--  <div>-->
+<!--    &lt;!&ndash; Top Bar &ndash;&gt;-->
+<!--    <div class="top-bar">-->
+<!--      <div class="left-section">-->
+<!--        <a-->
+<!--          href="../admin/dashboard"-->
+<!--          class="back-icon"-->
+<!--          id="backToTeacherDashboard"-->
+<!--        >-->
+<!--          <FontAwesomeIcon icon="fas fa-arrow-left" />-->
+<!--        </a>-->
+<!--        <span class="system-name">教学服务系统</span>-->
+<!--        <span class="system-subname">信息管理子系统 - 个人信息</span>-->
+<!--      </div>-->
+<!--      <div class="right-section">-->
+<!--        <div class="user-info" id="userInfoToggle">-->
+<!--          <div class="user-avatar">-->
+<!--            <FontAwesomeIcon icon="fas fa-chalkboard-teacher" />-->
+<!--          </div>-->
+<!--          <span class="user-name" id="profileTeacherName">管理员姓名</span>-->
+<!--          <FontAwesomeIcon icon="fas fa-angle-down" />-->
+<!--        </div>-->
+<!--        <div class="user-dropdown-menu" id="userDropdown">-->
+<!--          <a href="#">修改密码</a>-->
+<!--          <div class="divider"></div>-->
+<!--          <a href="#" id="logoutLink">退出登录</a>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; Main Content &ndash;&gt;-->
+<!--    <main class="page-main">-->
+<!--      <div class="container profile-container">-->
+<!--        <div class="card profile-card">-->
+<!--          <h2 class="card-title">-->
+<!--            <FontAwesomeIcon icon="fas fa-user-tie" /> 管理员基本信息-->
+<!--          </h2>-->
+<!--          <form id="teacherProfileForm">-->
+<!--            <div class="profile-grid">-->
+<!--              <div class="form-group">-->
+<!--                <label for="teacherName">姓名:</label>-->
+<!--                <input-->
+<!--                  type="text"-->
+<!--                  id="teacherName"-->
+<!--                  name="teacherName"-->
+<!--                  readonly-->
+<!--                  value="王明"-->
+<!--                />-->
+<!--              </div>-->
+<!--              <div class="form-group">-->
+<!--                <label for="gender">性别:</label>-->
+<!--                <input-->
+<!--                  type="text"-->
+<!--                  id="gender"-->
+<!--                  name="gender"-->
+<!--                  readonly-->
+<!--                  value="男"-->
+<!--                />-->
+<!--              </div>-->
+<!--              <div class="form-group">-->
+<!--                <label for="idCardNumber">身份证号:</label>-->
+<!--                <input-->
+<!--                  type="text"-->
+<!--                  id="idCardNumber"-->
+<!--                  name="idCardNumber"-->
+<!--                  readonly-->
+<!--                  value="330**************X"-->
+<!--                />-->
+<!--              </div>-->
+<!--            </div>-->
+
+<!--            <div class="form-actions">-->
+<!--              <button type="button" class="btn btn-secondary" id="editModeBtn">-->
+<!--                <FontAwesomeIcon icon="fas fa-edit" /> 编辑信息-->
+<!--              </button>-->
+<!--              <button-->
+<!--                type="submit"-->
+<!--                class="btn btn-primary"-->
+<!--                id="saveChangesBtn"-->
+<!--                style="display: none"-->
+<!--              >-->
+<!--                <FontAwesomeIcon icon="fas fa-save" /> 保存更改-->
+<!--              </button>-->
+<!--              <button-->
+<!--                type="button"-->
+<!--                class="btn btn-default"-->
+<!--                id="cancelEditBtn"-->
+<!--                style="display: none"-->
+<!--              >-->
+<!--                <FontAwesomeIcon icon="fas fa-times" /> 取消编辑-->
+<!--              </button>-->
+<!--            </div>-->
+<!--          </form>-->
+<!--        </div>-->
+<!--        <div-->
+<!--          id="notificationArea"-->
+<!--          class="notification"-->
+<!--          style="display: none"-->
+<!--        ></div>-->
+<!--      </div>-->
+<!--    </main>-->
+
+<!--    &lt;!&ndash; Bottom Bar &ndash;&gt;-->
+<!--    <div class="bottom-bar">-->
+<!--      <p class="copyright-text">-->
+<!--        版权所有© Copyright 2025 浙江大学 软件工程基础课程 教学服务系统课程设计-->
+<!--        信息管理子系统-->
+<!--      </p>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</template>-->
+
+<!--<script setup lang="ts"></script>-->
+
+<!--<style scoped>-->
+<!--/* Global Styles */-->
+<!--body {-->
+<!--  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,-->
+<!--    "Helvetica Neue", Arial, "Noto Sans", sans-serif;-->
+<!--  margin: 0;-->
+<!--  background-color: #f4f6f8;-->
+<!--  color: #333;-->
+<!--  line-height: 1.6;-->
+<!--  padding-top: 60px;-->
+<!--  padding-bottom: 50px;-->
+<!--  box-sizing: border-box;-->
+<!--  min-height: 100vh;-->
+<!--  display: flex;-->
+<!--  flex-direction: column;-->
+<!--}-->
+<!--a {-->
+<!--  text-decoration: none;-->
+<!--  color: #409eff;-->
+<!--}-->
+<!--a:hover {-->
+<!--  text-decoration: none;-->
+<!--  color: #1370eb;-->
+<!--}-->
+
+<!--/* Top Bar (Consistent with previous pages) */-->
+<!--.top-bar {-->
+<!--  height: 60px;-->
+<!--  background-color: #409eff;-->
+<!--  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);-->
+<!--  display: flex;-->
+<!--  justify-content: space-between;-->
+<!--  align-items: center;-->
+<!--  padding: 0 30px;-->
+<!--  position: fixed;-->
+<!--  top: 0;-->
+<!--  left: 0;-->
+<!--  right: 0;-->
+<!--  z-index: 1000;-->
+<!--  box-sizing: border-box;-->
+<!--}-->
+<!--.top-bar .left-section {-->
+<!--  display: flex;-->
+<!--  align-items: center;-->
+<!--}-->
+<!--.top-bar .back-icon {-->
+<!--  color: white;-->
+<!--  font-size: 20px;-->
+<!--  margin-right: 20px;-->
+<!--  cursor: pointer;-->
+<!--  transition: opacity 0.2s;-->
+<!--}-->
+<!--.top-bar .back-icon:hover {-->
+<!--  opacity: 0.7;-->
+<!--}-->
+<!--.top-bar .system-name {-->
+<!--  font-size: 24px;-->
+<!--  font-weight: bold;-->
+<!--  color: white;-->
+<!--}-->
+<!--.top-bar .system-subname {-->
+<!--  font-size: 16px;-->
+<!--  color: white;-->
+<!--  margin-left: 15px;-->
+<!--}-->
+
+<!--.top-bar .right-section {-->
+<!--  display: flex;-->
+<!--  align-items: center;-->
+<!--}-->
+<!--.top-bar .user-info {-->
+<!--  display: flex;-->
+<!--  align-items: center;-->
+<!--  cursor: pointer;-->
+<!--  padding: 5px 10px;-->
+<!--  border-radius: 20px;-->
+<!--  transition: background-color 0.2s;-->
+<!--  position: relative;-->
+<!--}-->
+<!--.top-bar .user-info:hover {-->
+<!--  background-color: #3a8ee6;-->
+<!--}-->
+<!--.top-bar .user-avatar {-->
+<!--  width: 32px;-->
+<!--  height: 32px;-->
+<!--  border-radius: 50%;-->
+<!--  background-color: #fff;-->
+<!--  display: flex;-->
+<!--  justify-content: center;-->
+<!--  align-items: center;-->
+<!--  margin-right: 8px;-->
+<!--  overflow: hidden;-->
+<!--}-->
+<!--.top-bar .user-avatar i {-->
+<!--  font-size: 18px;-->
+<!--  color: #409eff;-->
+<!--  line-height: 1;-->
+<!--}-->
+<!--.top-bar .user-name {-->
+<!--  margin: 0 8px 0 0;-->
+<!--  font-size: 14px;-->
+<!--  color: white;-->
+<!--  line-height: 1;-->
+<!--}-->
+<!--.top-bar .user-info .fa-angle-down {-->
+<!--  font-size: 12px;-->
+<!--  color: white;-->
+<!--  margin-left: 5px;-->
+<!--  transition: transform 0.2s;-->
+<!--}-->
+<!--.top-bar .user-info.is-open .fa-angle-down {-->
+<!--  transform: rotate(180deg);-->
+<!--}-->
+<!--.top-bar .user-dropdown-menu {-->
+<!--  display: none;-->
+<!--  position: absolute;-->
+<!--  top: calc(100% + 5px);-->
+<!--  right: 0;-->
+<!--  background-color: white;-->
+<!--  border: 1px solid #ebeef5;-->
+<!--  border-radius: 4px;-->
+<!--  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);-->
+<!--  min-width: 130px;-->
+<!--  z-index: 1001;-->
+<!--}-->
+<!--.top-bar .user-dropdown-menu a {-->
+<!--  display: block;-->
+<!--  padding: 8px 15px;-->
+<!--  color: #606266;-->
+<!--  font-size: 14px;-->
+<!--}-->
+<!--.top-bar .user-dropdown-menu a:hover {-->
+<!--  background-color: #ecf5ff;-->
+<!--  color: #409eff;-->
+<!--}-->
+<!--.top-bar .user-dropdown-menu .divider {-->
+<!--  height: 1px;-->
+<!--  background-color: #ebeef5;-->
+<!--  margin: 5px 0;-->
+<!--}-->
+
+<!--/* Main Content (Similar to student_profile_style.css) */-->
+<!--.page-main {-->
+<!--  flex-grow: 1;-->
+<!--  padding: 25px;-->
+<!--  width: 100%;-->
+<!--  box-sizing: border-box;-->
+<!--}-->
+<!--.container.profile-container {-->
+<!--  max-width: 900px;-->
+<!--  margin: 0 auto;-->
+<!--}-->
+
+<!--.card.profile-card {-->
+<!--  background-color: white;-->
+<!--  border-radius: 8px;-->
+<!--  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);-->
+<!--  padding: 25px 30px;-->
+<!--}-->
+<!--.card-title {-->
+<!--  font-size: 20px;-->
+<!--  color: #303133;-->
+<!--  margin-top: 0;-->
+<!--  margin-bottom: 25px;-->
+<!--  font-weight: 500;-->
+<!--  display: flex;-->
+<!--  align-items: center;-->
+<!--  padding-bottom: 15px;-->
+<!--  border-bottom: 1px solid #ebeef5;-->
+<!--}-->
+<!--.card-title i {-->
+<!--  margin-right: 10px;-->
+<!--  color: #409eff;-->
+<!--}-->
+
+<!--.profile-grid {-->
+<!--  display: grid;-->
+<!--  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));-->
+<!--  gap: 20px 30px;-->
+<!--}-->
+<!--.form-group {-->
+<!--  margin-bottom: 0;-->
+<!--}-->
+<!--.form-group label {-->
+<!--  display: block;-->
+<!--  margin-bottom: 6px;-->
+<!--  font-weight: 500;-->
+<!--  color: #606266;-->
+<!--  font-size: 14px;-->
+<!--}-->
+<!--.form-group input[type="text"],-->
+<!--.form-group input[type="email"],-->
+<!--.form-group input[type="tel"],-->
+<!--.form-group input[type="url"] {-->
+<!--  /* Added type="url" */-->
+<!--  width: 100%;-->
+<!--  padding: 9px 12px;-->
+<!--  border: 1px solid #dcdfe6;-->
+<!--  border-radius: 4px;-->
+<!--  box-sizing: border-box;-->
+<!--  font-size: 14px;-->
+<!--  color: #606266;-->
+<!--  transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);-->
+<!--  background-color: #fff;-->
+<!--}-->
+<!--.form-group input[readonly] {-->
+<!--  background-color: #f5f7fa;-->
+<!--  color: #909399;-->
+<!--  cursor: default;-->
+<!--  border-color: #e4e7ed;-->
+<!--}-->
+<!--.form-group input:not([readonly]):focus {-->
+<!--  border-color: #409eff;-->
+<!--  outline: 0;-->
+<!--}-->
+<!--.full-width-group {-->
+<!--  grid-column: 1 / -1;-->
+<!--}-->
+<!--.section-divider {-->
+<!--  grid-column: 1 / -1;-->
+<!--  border: none;-->
+<!--  border-top: 1px dashed #ebeef5;-->
+<!--  margin: 15px 0;-->
+<!--}-->
+
+<!--.form-actions {-->
+<!--  margin-top: 30px;-->
+<!--  padding-top: 20px;-->
+<!--  border-top: 1px solid #ebeef5;-->
+<!--  text-align: right;-->
+<!--  display: flex;-->
+<!--  justify-content: flex-end;-->
+<!--  gap: 10px;-->
+<!--}-->
+<!--.btn {-->
+<!--  padding: 9px 18px;-->
+<!--  border: 1px solid transparent;-->
+<!--  border-radius: 4px;-->
+<!--  cursor: pointer;-->
+<!--  font-size: 14px;-->
+<!--  font-weight: 500;-->
+<!--  transition: 0.1s;-->
+<!--  text-align: center;-->
+<!--  user-select: none;-->
+<!--  white-space: nowrap;-->
+<!--  display: inline-flex;-->
+<!--  align-items: center;-->
+<!--  gap: 6px;-->
+<!--}-->
+<!--.btn i {-->
+<!--  font-size: 1em;-->
+<!--}-->
+<!--.btn-primary {-->
+<!--  background-color: #409eff;-->
+<!--  border-color: #409eff;-->
+<!--  color: white;-->
+<!--}-->
+<!--.btn-primary:hover {-->
+<!--  background-color: #66b1ff;-->
+<!--  border-color: #66b1ff;-->
+<!--}-->
+<!--.btn-secondary {-->
+<!--  background-color: #909399;-->
+<!--  border-color: #909399;-->
+<!--  color: white;-->
+<!--}-->
+<!--.btn-secondary:hover {-->
+<!--  background-color: #a6a9ad;-->
+<!--  border-color: #a6a9ad;-->
+<!--}-->
+<!--.btn-default {-->
+<!--  background-color: #fff;-->
+<!--  border-color: #dcdfe6;-->
+<!--  color: #606266;-->
+<!--}-->
+<!--.btn-default:hover {-->
+<!--  border-color: #409eff;-->
+<!--  color: #409eff;-->
+<!--}-->
+
+<!--/* Notification Area */-->
+<!--.notification {-->
+<!--  padding: 10px 15px;-->
+<!--  margin-top: 20px;-->
+<!--  border-radius: 4px;-->
+<!--  text-align: center;-->
+<!--  font-size: 14px;-->
+<!--  border: 1px solid transparent;-->
+<!--}-->
+<!--.notification.success {-->
+<!--  background-color: #f0f9eb;-->
+<!--  color: #67c23a;-->
+<!--  border-color: #e1f3d8;-->
+<!--}-->
+<!--.notification.error {-->
+<!--  background-color: #fef0f0;-->
+<!--  color: #f56c6c;-->
+<!--  border-color: #fde2e2;-->
+<!--}-->
+<!--.notification.info {-->
+<!--  background-color: #edf2fc;-->
+<!--  color: #909399;-->
+<!--  border-color: #e4e7ed;-->
+<!--}-->
+
+<!--/* Bottom Bar */-->
+<!--.bottom-bar {-->
+<!--  background-color: #f5f5f5b7;-->
+<!--  padding: 12px 0;-->
+<!--  text-align: center;-->
+<!--  width: 100%;-->
+<!--  position: fixed;-->
+<!--  bottom: 0;-->
+<!--  left: 0;-->
+<!--  z-index: 999;-->
+<!--  box-sizing: border-box;-->
+<!--}-->
+<!--.copyright-text {-->
+<!--  color: #666;-->
+<!--  font-size: 12.5px;-->
+<!--  margin: 0;-->
+<!--  line-height: 1.5;-->
+<!--}-->
+
+<!--/* Responsive Adjustments */-->
+<!--@media (max-width: 768px) {-->
+<!--  .top-bar {-->
+<!--    padding: 0 15px;-->
+<!--    height: 50px;-->
+<!--  }-->
+<!--  body {-->
+<!--    padding-top: 50px;-->
+<!--  }-->
+<!--  .top-bar .system-name {-->
+<!--    font-size: 18px;-->
+<!--  }-->
+<!--  .top-bar .system-subname {-->
+<!--    display: none;-->
+<!--  }-->
+<!--  .page-main {-->
+<!--    padding: 15px;-->
+<!--  }-->
+<!--  .profile-grid {-->
+<!--    grid-template-columns: 1fr;-->
+<!--  }-->
+<!--  .form-actions {-->
+<!--    justify-content: center;-->
+<!--  }-->
+<!--  .form-actions .btn {-->
+<!--    flex-grow: 1;-->
+<!--    max-width: 150px;-->
+<!--  }-->
+<!--}-->
+<!--</style>-->
