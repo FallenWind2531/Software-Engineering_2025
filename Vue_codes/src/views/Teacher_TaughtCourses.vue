@@ -195,16 +195,16 @@
                   placeholder="输入课程描述"
                 ></textarea>
               </div>
-              <div class="form-group">
-                <label for="newCourseTeacher">授课教师:</label>
-                <input
-                  type="text"
-                  id="newCourseTeacher"
-                  v-model="newCourse.teacher_name"
-                  placeholder="输入授课教师姓名"
-                  required
-                />
-              </div>
+              <!--              <div class="form-group">-->
+              <!--                <label for="newCourseTeacher">授课教师:</label>-->
+              <!--                <input-->
+              <!--                  type="text"-->
+              <!--                  id="newCourseTeacher"-->
+              <!--                  v-model="newCourse.teacher_name"-->
+              <!--                  placeholder="输入授课教师姓名"-->
+              <!--                  required-->
+              <!--                />-->
+              <!--              </div>-->
               <div class="form-group">
                 <label for="newCourseTeacher">学分:</label>
                 <input
