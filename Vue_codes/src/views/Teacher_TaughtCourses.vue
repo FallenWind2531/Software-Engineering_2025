@@ -519,13 +519,19 @@ const deleteTheCourse = async (courseId: number) => {
     isLoading.value = true;
     showNotification("正在删除课程...", "info");
     try {
-      await deleteCourse(courseId);
-      courses.value = courses.value.filter(
-        (course) => course.course_id !== courseId
-      );
-      calculateTotalPages();
-      calculatePaginatedCourses();
-      showNotification("课程删除成功。", "success");
+      const response = await deleteCourse(courseId);
+      if (response.data.code == 400) {
+        showNotification("存在开课信息，无法删除。", "error");
+      } else if (response.data.code != 200) {
+        showNotification("内部错误。", "error");
+      } else {
+        courses.value = courses.value.filter(
+          (course) => course.course_id !== courseId
+        );
+        calculateTotalPages();
+        calculatePaginatedCourses();
+        showNotification("课程删除成功。", "success");
+      }
     } catch (error) {
       showNotification("删除课程失败，请稍后重试。", "error");
       console.error("删除课程失败:", error);
