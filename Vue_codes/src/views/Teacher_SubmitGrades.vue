@@ -133,20 +133,12 @@
                     <input
                       type="number"
                       v-model="studentGrade.score"
-                      min="0"
-                      max="100"
                       :disabled="studentGrade.submit_status === 1"
+                      @input="validateScoreInput(studentGrade)"
                     />
                   </td>
                   <td>
-                    <input
-                      type="number"
-                      v-model="studentGrade.gpa"
-                      min="0"
-                      max="4"
-                      step="0.1"
-                      :disabled="studentGrade.submit_status === 1"
-                    />
+                    <input type="number" v-model="studentGrade.gpa" readonly />
                   </td>
                   <td>
                     <span
@@ -223,6 +215,7 @@ import {
 } from "@/api/teacher";
 import { useuserLoginStore } from "@/store/userLoginStore";
 import { useRouter } from "vue-router";
+import { isNullOrUndef } from "chart.js/helpers";
 
 const router = useRouter();
 const loginUserStore = useuserLoginStore();
@@ -246,6 +239,26 @@ const studentGrades = ref<any[]>([]);
 onMounted(() => {
   populateCourseSelect();
 });
+
+const validateScoreInput = (studentGrade: any) => {
+  const gradeValue = parseInt(studentGrade.score);
+  if (gradeValue > 100) {
+    studentGrade.score = 100;
+  } else if (gradeValue < 0) {
+    studentGrade.score = 0;
+  }
+  if (gradeValue >= 90) {
+    studentGrade.gpa = 4.0;
+  } else if (gradeValue >= 80) {
+    studentGrade.gpa = 3.0;
+  } else if (gradeValue >= 70) {
+    studentGrade.gpa = 2.0;
+  } else if (gradeValue >= 60) {
+    studentGrade.gpa = 1.0;
+  } else {
+    studentGrade.gpa = 0.0;
+  }
+};
 
 // 检查是否有选中的成绩
 const hasSelectedGrades = computed(() => {
@@ -524,6 +537,11 @@ const submitSelectedGrades = async () => {
 
     for (const studentGrade of selectedGrades) {
       // 将数据包装在数组中，符合后端期望的格式
+      console.log(`${studentGrade.score === ""}`);
+      if (studentGrade.score === "") {
+        showNotification("总评成绩不能为空", "info");
+        return;
+      }
       const data = [
         {
           student_id: studentGrade.student_id,
