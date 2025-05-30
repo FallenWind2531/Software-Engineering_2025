@@ -546,7 +546,7 @@ const calculatePaginatedCourses = () => {
 const queryCourses = async () => {
   // 长度检查
   const maxCourseNameLength = 20;
-  const maxTeacherIdLength = 20;
+  const maxTeacherIdLength = 10;
   const maxTeacherNameLength = 20;
 
   if (filters.value.course_name.length > maxCourseNameLength) {

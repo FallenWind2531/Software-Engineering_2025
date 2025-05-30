@@ -1,6 +1,7 @@
 package com.Main.web.information;
 
 import com.Main.dto.*;
+import com.Main.entity.Classroom;
 import com.Main.entity.Course;
 import com.Main.entity.Section;
 import com.Main.service.information.ClassroomService;
@@ -214,6 +215,10 @@ public class CourseAndSectionManagerController {
                 return ResponseEntity.ok(ApiResponseDTO.error(403, "无权限修改开课信息"));
             }
             // 计算容量变化
+            if (capacity < oldsection.getCapacity() - oldsection.getAvailable_capacity()) {
+                logger.warn("修改后的容量小于已选学生数量，无法修改开课信息: section_id={}, new_capacity={}", section_id, capacity);
+                return ResponseEntity.ok(ApiResponseDTO.error(400, "修改后的容量小于已选学生数量，无法修改开课信息"));
+            }
             int offset = capacity - oldsection.getCapacity();
             int available_capacity = oldsection.getAvailable_capacity() + offset;
             // 修改开课信息
