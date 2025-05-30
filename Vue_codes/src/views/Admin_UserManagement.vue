@@ -543,7 +543,7 @@ const saveUser = async () => {
   const MAX_PHONE_LENGTH = 20;
   const MIN_LOGIN_ID_LENGTH = 6;
   const MAX_LOGIN_ID_LENGTH = 20;
-  const MIN_PASSWORD_LENGTH = 8;
+  const MIN_PASSWORD_LENGTH = 6;
   const MAX_PASSWORD_LENGTH = 20;
 
   // 院系/部门长度检查
