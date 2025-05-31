@@ -167,7 +167,7 @@ import { ref, onMounted } from "vue";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { useuserLoginStore } from "@/store/userLoginStore";
-
+import { useRouter } from "vue-router";
 // 响应式数据
 
 const loginUserStore = useuserLoginStore();
@@ -177,6 +177,7 @@ const userDropdownOpen = ref(false);
 const showNotification = ref(false);
 const notificationMessage = ref("");
 const notificationType = ref("");
+const router = useRouter();
 
 // 切换用户下拉菜单
 const toggleUserDropdown = () => {
@@ -193,8 +194,8 @@ const logout = () => {
 };
 
 const logChange = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  //window.location.href = "../change-password";
+  router.push("/change-password");
 };
 
 // 显示通知消息

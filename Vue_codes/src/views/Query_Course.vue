@@ -214,8 +214,9 @@ import { ref, onMounted } from "vue";
 import { getCourses } from "@/api/course";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { useuserLoginStore } from "@/store/userLoginStore";
-
+import { useRouter } from "vue-router";
 const loginUserStore = useuserLoginStore();
+const router = useRouter();
 
 type Course = {
   course_id: number;
@@ -277,8 +278,8 @@ const handleLogout = () => {
 
 // 处理修改密码
 const handleChangePassword = () => {
-  loginUserStore.setLoginUserUnlogin();
-  window.location.href = "../change-password";
+  //window.location.href = "../change-password";
+  router.push("/change-password");
 };
 
 // 显示通知消息
