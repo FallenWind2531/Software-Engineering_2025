@@ -224,7 +224,12 @@
               v-model="modalUser.name"
               required
               placeholder="请输入用户姓名"
+              maxlength="20"
             />
+            <small
+              >姓名长度不能超过20个字符 (当前:
+              {{ modalUser.name ? modalUser.name.length : 0 }}/20)</small
+            >
           </div>
           <div class="form-group">
             <label for="modalUserLoginId">登录ID (学/工号):</label>
@@ -539,12 +544,22 @@ const saveUser = async () => {
     return;
   }
   // 定义各字段长度限制
+  const MAX_NAME_LENGTH = 20;
   const MAX_DEPARTMENT_LENGTH = 20;
   const MAX_PHONE_LENGTH = 20;
   const MIN_LOGIN_ID_LENGTH = 6;
   const MAX_LOGIN_ID_LENGTH = 20;
   const MIN_PASSWORD_LENGTH = 6;
   const MAX_PASSWORD_LENGTH = 20;
+
+  // 用户名称长度检查
+  if (modalUser.value.name.length > MAX_NAME_LENGTH) {
+    showMainNotification(
+      `用户姓名长度不能超过 ${MAX_NAME_LENGTH} 个字符。`,
+      "error"
+    );
+    return;
+  }
 
   // 院系/部门长度检查
   if (modalUser.value.department.length > MAX_DEPARTMENT_LENGTH) {
