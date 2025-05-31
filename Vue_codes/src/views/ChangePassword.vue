@@ -3,8 +3,7 @@
     <!-- Top Bar -->
     <div class="top-bar">
       <div class="left-section">
-        <a href="../login" class="back-icon" id="backToLogin">
-          <!-- 假设登录页路径 -->
+        <a @click="backToDashboard" class="back-icon" id="backToDashboard">
           <FontAwesomeIcon icon="fas fa-arrow-left" />
         </a>
         <span class="system-name">教学服务系统</span>
@@ -77,8 +76,10 @@
 import { ref } from "vue";
 import { updateCurrentUserPassword } from "@/api/account";
 import { useuserLoginStore } from "@/store/userLoginStore";
+import { useRouter } from "vue-router";
 
 const loginUserStore = useuserLoginStore();
+const router = useRouter();
 
 // 表单数据
 const oldPassword = ref("");
@@ -139,6 +140,23 @@ const handleSubmit = async () => {
     console.error("密码重置失败:", error);
     showNotificationFunc("密码重置失败，请重试。", "error");
   }
+};
+
+const backToDashboard = () => {
+  const userRole = loginUserStore.loginUser.role;
+
+  // 根据角色决定跳转的dashboard
+  let dashboardPath = "/";
+  if (userRole === "s") {
+    dashboardPath = "/student/dashboard";
+  } else if (userRole === "t") {
+    dashboardPath = "/teacher/dashboard";
+  } else if (userRole === "a") {
+    dashboardPath = "/admin/dashboard";
+  }
+
+  // 使用router进行导航
+  router.push(dashboardPath);
 };
 </script>
 
