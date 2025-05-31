@@ -96,6 +96,20 @@
                 id="courseCodeDisplay"
                 v-model="currentCourse.course_name"
               />
+              <span
+                class="character-count"
+                :class="{
+                  'near-limit':
+                    currentCourse.course_name &&
+                    currentCourse.course_name.length > 60,
+                }"
+              >
+                {{
+                  currentCourse.course_name
+                    ? currentCourse.course_name.length
+                    : 0
+                }}/80
+              </span>
             </div>
             <div class="form-group">
               <label for="courseCreditsDisplay">学分:</label>
@@ -104,6 +118,15 @@
                 id="courseCreditsDisplay"
                 v-model="currentCourse.credit"
               />
+              <span
+                class="character-count"
+                :class="{
+                  'near-limit':
+                    currentCourse.credit && Number(currentCourse.credit) > 15,
+                }"
+              >
+                最大值: 20
+              </span>
             </div>
             <div class="form-group">
               <label for="courseIntroduction">课程类别:</label>
@@ -131,6 +154,20 @@
                 v-model="currentCourse.course_description"
                 placeholder="请输入课程简介..."
               ></textarea>
+              <span
+                class="character-count"
+                :class="{
+                  'near-limit':
+                    currentCourse.course_description &&
+                    currentCourse.course_description.length > 800,
+                }"
+              >
+                {{
+                  currentCourse.course_description
+                    ? currentCourse.course_description.length
+                    : 0
+                }}/1000
+              </span>
             </div>
 
             <div class="form-actions">
@@ -610,6 +647,22 @@ const saveCourseDetails = async () => {
     return;
   }
 
+  // 检查输入限制
+  if (currentCourse.value.course_name.length > 80) {
+    showNotification("课程名称不能超过80个字符", "error");
+    return;
+  }
+
+  if (Number(currentCourse.value.credit) > 20) {
+    showNotification("课程学分不能超过20", "error");
+    return;
+  }
+
+  if (currentCourse.value.course_description.length > 1000) {
+    showNotification("课程简介不能超过1000个字符", "error");
+    return;
+  }
+
   try {
     showNotification("正在保存课程信息...", "info");
     const response = await updateCourse(currentCourse.value.course_id, {
@@ -798,6 +851,19 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+/* 新增样式：字符计数 */
+.character-count {
+  display: block;
+  text-align: right;
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
+}
+
+.character-count.near-limit {
+  color: #e6a23c;
 }
 
 router-link {
