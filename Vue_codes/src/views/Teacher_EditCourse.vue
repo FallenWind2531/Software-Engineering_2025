@@ -114,9 +114,11 @@
             <div class="form-group">
               <label for="courseCreditsDisplay">学分:</label>
               <input
-                type="text"
+                type="number"
                 id="courseCreditsDisplay"
                 v-model="currentCourse.credit"
+                min="0.1"
+                step="0.1"
               />
               <span
                 class="character-count"
@@ -125,7 +127,7 @@
                     currentCourse.credit && Number(currentCourse.credit) > 15,
                 }"
               >
-                最大值: 20
+                可输入小数，最小值: 0.1，最大值: 20
               </span>
             </div>
             <div class="form-group">
@@ -653,7 +655,13 @@ const saveCourseDetails = async () => {
     return;
   }
 
-  if (Number(currentCourse.value.credit) > 20) {
+  const creditValue = Number(currentCourse.value.credit);
+  if (creditValue <= 0) {
+    showNotification("课程学分必须大于0", "error");
+    return;
+  }
+
+  if (creditValue > 20) {
     showNotification("课程学分不能超过20", "error");
     return;
   }
