@@ -80,6 +80,7 @@
                 id="filterCourseNameAdmin"
                 v-model="filter.course_name"
                 placeholder="输入课程名称关键词"
+                maxlength="80"
               />
             </div>
             <div class="form-action-group">
@@ -418,6 +419,19 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+/* 字符计数样式 */
+.character-count {
+  display: block;
+  text-align: right;
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
+}
+
+.character-count.near-limit {
+  color: #e6a23c;
 }
 
 router-link {
