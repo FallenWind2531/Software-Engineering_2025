@@ -943,6 +943,16 @@ router-link:hover {
   display: block;
   margin-top: 4px;
 }
+.form-group input[readonly] {
+  background-color: #f5f7fa; /* Readonly fields slightly different background */
+  color: #909399;
+  cursor: default;
+  border-color: #e4e7ed;
+}
+.form-group input:not([readonly]):focus {
+  border-color: #409eff;
+  outline: 0;
+}
 
 /* Buttons - Corrected to match Element Plus style more closely */
 .btn {
