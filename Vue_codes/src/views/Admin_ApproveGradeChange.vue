@@ -356,6 +356,7 @@ interface Application {
   newGrade?: number;
   applicationTime?: string;
   reason?: string;
+  audit_reason?: string;
   audit_status: number | string;
   adminRemarks?: string;
 }
@@ -370,6 +371,7 @@ interface ApplyItem {
     oldScore: number;
     newScore: number;
     reason: string;
+    audit_reason: string;
     auditStatus: number;
     applyTime: number;
     reviewTime: number | null;
@@ -446,7 +448,8 @@ const filterAndDisplayApplications = async () => {
           newGrade: item.apply.newScore,
           applicationTime: new Date(item.apply.applyTime).toLocaleString(),
           audit_status: item.apply.auditStatus,
-          audit_reason: item.apply.reason,
+          audit_reason: item.apply.audit_reason,
+          reason: item.apply.reason,
         }))
       : [];
 
