@@ -1,4 +1,4 @@
-package com.Main.service;
+package com.Main.service.exam;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;

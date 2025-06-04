@@ -1,9 +1,9 @@
-package com.Main.service;
+package com.Main.service.exam;
 
-import com.Main.entity.QuestionBank;
-import com.Main.entity.Course;
-import com.Main.RowMapper.QuestionBankRowMapper;
-import com.Main.RowMapper.CourseRowMapper;
+import com.Main.entity.exam.QuestionBank;
+import com.Main.entity.exam.Course;
+import com.Main.RowMapper.exam.QuestionBankRowMapper;
+import com.Main.RowMapper.exam.CourseRowMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;

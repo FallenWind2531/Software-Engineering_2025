@@ -1,7 +1,7 @@
 package com.Main.web.exam;
 
-import com.Main.service.TestPublishService;
-import com.Main.entity.TestPublish;
+import com.Main.service.exam.TestPublishService;
+import com.Main.entity.exam.TestPublish;
 import com.Main.dto.exam.TestPublishCreateDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

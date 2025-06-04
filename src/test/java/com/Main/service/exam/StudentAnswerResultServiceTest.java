@@ -1,4 +1,4 @@
-package com.Main.service;
+package com.Main.service.exam;
 
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,7 +1,7 @@
 package com.Main.web.exam;
 
-import com.Main.entity.StudentAnswerResult;
-import com.Main.service.StudentAnswerResultService;
+import com.Main.entity.exam.StudentAnswerResult;
+import com.Main.service.exam.StudentAnswerResultService;
 import com.Main.web.exam.StudentAnswerResultController;
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,6 +1,6 @@
 package com.Main.web.exam;
 
-import com.Main.entity.information.User;
+import com.Main.entity.exam.information.User;
 import com.Main.service.information.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;

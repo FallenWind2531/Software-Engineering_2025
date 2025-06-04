@@ -1,4 +1,4 @@
-package com.Main.entity;
+package com.Main.entity.exam;
 
 import java.time.LocalDateTime;
 import java.util.List;

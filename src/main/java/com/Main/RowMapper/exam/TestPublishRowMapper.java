@@ -1,5 +1,5 @@
-package com.Main.RowMapper;
-import com.Main.entity.TestPublish;
+package com.Main.RowMapper.exam;
+import com.Main.entity.exam.TestPublish;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.jdbc.core.RowMapper;

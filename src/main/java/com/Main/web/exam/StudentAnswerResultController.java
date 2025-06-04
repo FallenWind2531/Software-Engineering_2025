@@ -1,9 +1,9 @@
 package com.Main.web.exam;
 
-import com.Main.RowMapper.StudentAnswerResultRowMapper;
-import com.Main.entity.StudentAnswerResult;
+import com.Main.RowMapper.exam.StudentAnswerResultRowMapper;
+import com.Main.entity.exam.StudentAnswerResult;
 import com.Main.dto.exam.StudentAnswerDTO;
-import com.Main.service.StudentAnswerResultService;
+import com.Main.service.exam.StudentAnswerResultService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;

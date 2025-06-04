@@ -1,4 +1,4 @@
-package com.Main.entity;
+package com.Main.entity.exam;
 
 public class Course {
     private int courseId;

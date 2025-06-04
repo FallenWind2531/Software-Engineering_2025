@@ -1,6 +1,6 @@
-package com.Main.RowMapper;
+package com.Main.RowMapper.exam;
 
-import com.Main.entity.StudentAnswerResult;
+import com.Main.entity.exam.StudentAnswerResult;
 import org.springframework.jdbc.core.RowMapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;

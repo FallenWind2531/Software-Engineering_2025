@@ -1,6 +1,6 @@
-package com.Main.RowMapper;
+package com.Main.RowMapper.exam;
 
-import com.Main.entity.QuestionBank;
+import com.Main.entity.exam.QuestionBank;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.jdbc.core.RowMapper;

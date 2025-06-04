@@ -1,4 +1,4 @@
-package com.Main.service;
+package com.Main.service.exam;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 
-import com.Main.entity.TestPublish;
+import com.Main.entity.exam.TestPublish;
 
 @Service
 public class TestPublishService {

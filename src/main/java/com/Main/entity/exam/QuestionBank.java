@@ -1,4 +1,4 @@
-package com.Main.entity;
+package com.Main.entity.exam;
 
 import java.sql.Timestamp;
 import java.util.List;

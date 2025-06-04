@@ -1,4 +1,4 @@
-package com.Main.entity;
+package com.Main.entity.exam;
 
 public class Classroom {
     private int classroomId = -1;
