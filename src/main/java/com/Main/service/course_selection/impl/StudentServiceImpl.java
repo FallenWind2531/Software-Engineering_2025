@@ -372,7 +372,7 @@ public class StudentServiceImpl implements StudentService {
      */
     private String getTeacherNameById(Integer teacherId) {
         try {
-            String sql = "SELECT name FROM user WHERE user_id = ? AND role = '教师'";
+            String sql = "SELECT name FROM user WHERE user_id = ? AND role = 't'";
             String name = jdbcTemplate.queryForObject(sql, String.class, teacherId);
             // logger.info("Teacher name query: ID={}, Name={}", teacherId, name);
             return name;

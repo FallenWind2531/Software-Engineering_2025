@@ -28,7 +28,7 @@ public class TeacherDaoImpl implements TeacherDao {
     
     @Override
     public boolean existsById(Integer teacherId) {
-        String sql = "SELECT COUNT(1) FROM user WHERE user_id = ? AND role = '教师'";
+        String sql = "SELECT COUNT(1) FROM user WHERE user_id = ? AND role = 't'";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, teacherId);
         return count != null && count > 0;
     }

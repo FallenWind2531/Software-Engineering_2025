@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter;
     name VARCHAR(20) NOT NULL,
     account VARCHAR(100) NOT NULL,
     password VARCHAR(100) NOT NULL,
-    role ENUM('学生', '教师', '管理员') NOT NULL DEFAULT '学生',
+    role ENUM('s', 't', 'a') NOT NULL DEFAULT 's',
     department VARCHAR(20) NOT NULL,
     contact VARCHAR(50) NOT NULL,
     avatar_path VARCHAR(200)

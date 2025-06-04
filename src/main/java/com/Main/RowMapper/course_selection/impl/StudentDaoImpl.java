@@ -14,7 +14,7 @@ public class StudentDaoImpl implements StudentDao {
 
     @Override
     public boolean existsById(Integer studentId) {
-        String sql = "SELECT COUNT(1) FROM user WHERE user_id = ? AND role = '学生'";
+        String sql = "SELECT COUNT(1) FROM user WHERE user_id = ? AND role = 's'";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, studentId);
         return count != null && count > 0;
     }

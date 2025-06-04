@@ -92,7 +92,7 @@ public class TeacherServiceImpl implements TeacherService {
                 // 3. 根据section_id查询选课学生
                 String studentSql = "SELECT u.* FROM user u " +
                                    "JOIN course_selection cs ON u.user_id = cs.student_id " +
-                                   "WHERE cs.section_id = ? AND u.role = '学生'";
+                                   "WHERE cs.section_id = ? AND u.role = 's'";
                 
                 List<Student> students = jdbcTemplate.query(
                     studentSql, 
