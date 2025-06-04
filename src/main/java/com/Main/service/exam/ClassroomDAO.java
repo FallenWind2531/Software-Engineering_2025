@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import com.Main.RowMapper.exam.ClassroomRowMapper;
-import com.Main.entity.exam.Classroom;
+import com.Main.RowMapper.information.ClassroomRowMapper;
+import com.Main.entity.information.Classroom;
 
 //FIXME: used for test only
 @Component

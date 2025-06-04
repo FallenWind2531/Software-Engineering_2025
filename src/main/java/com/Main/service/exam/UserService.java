@@ -1,7 +1,7 @@
 package com.Main.service.exam;
 
-import com.Main.RowMapper.exam.UserRowMapper;
-import com.Main.entity.exam.User;
+import com.Main.RowMapper.information.UserRowMapper;
+import com.Main.entity.information.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

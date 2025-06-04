@@ -2,7 +2,7 @@ package com.Main.RowMapper.exam;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import com.Main.entity.exam.Classroom;
+import com.Main.entity.information.Classroom;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.lang.NonNull;
 
