@@ -11,15 +11,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 
+import com.Main.dto.information.ApiResponseDTO;
 import com.Main.entity.arrange.Classroom;
 import com.Main.entity.arrange.Section;
 import com.Main.entity.arrange.LessonScheduleFilter;
 import com.Main.service.arrange.LessonScheduler;
+import com.Main.service.information.AdminUserService;
+
 import java.util.Map;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.servlet.http.HttpServletRequest;
+
 
 @RestController
 public class AdminLessonController {
@@ -28,10 +33,20 @@ public class AdminLessonController {
 
     @Autowired
     private LessonScheduler lessonScheduler;
+    
+    @Autowired
+    private AdminUserService adminUserService;
 
     // 管理员权限：添加教室
     @PostMapping("/arrange/api/classrooms")
-    public ResponseEntity<?> addClassroom(@RequestBody Classroom classroom) {
+    public ResponseEntity<?> addClassroom(@RequestBody Classroom classroom, HttpServletRequest request) {
+        String userRole = (String) request.getAttribute("userRole");
+            
+        // 检查权限
+        if (!adminUserService.isAdmin(userRole)) {
+            logger.warn("非管理员尝试访问管理接口: userRole={}", userRole);
+            return ResponseEntity.ok(ApiResponseDTO.error(403, "权限不足"));
+        }
         try {
             logger.debug("admin controller add classroom: " + classroom);
             lessonScheduler.addClassroom(classroom);
@@ -46,7 +61,14 @@ public class AdminLessonController {
 
     // 管理员权限：更新教室
     @PutMapping("/arrange/api/classrooms/{classroom_id}")
-    public ResponseEntity<?> updateClassroom(@PathVariable("classroom_id") int classroomId, @RequestBody Classroom updateInfo) {
+    public ResponseEntity<?> updateClassroom(@PathVariable("classroom_id") int classroomId, @RequestBody Classroom updateInfo, HttpServletRequest request) {
+        String userRole = (String) request.getAttribute("userRole");
+            
+        // 检查权限
+        if (!adminUserService.isAdmin(userRole)) {
+            logger.warn("非管理员尝试访问管理接口: userRole={}", userRole);
+            return ResponseEntity.ok(ApiResponseDTO.error(403, "权限不足"));
+        }
         try {
             logger.debug("admin controller update classroom: " + updateInfo);
             lessonScheduler.updateClassroom(classroomId, updateInfo);
@@ -61,7 +83,14 @@ public class AdminLessonController {
 
     // 管理员权限：删除教室
     @DeleteMapping("/arrange/api/classrooms/{classroom_id}")
-    public ResponseEntity<?> deleteClassroom(@PathVariable("classroom_id") int classroomId) {
+    public ResponseEntity<?> deleteClassroom(@PathVariable("classroom_id") int classroomId, HttpServletRequest request) {
+        String userRole = (String) request.getAttribute("userRole");
+            
+        // 检查权限
+        if (!adminUserService.isAdmin(userRole)) {
+            logger.warn("非管理员尝试访问管理接口: userRole={}", userRole);
+            return ResponseEntity.ok(ApiResponseDTO.error(403, "权限不足"));
+        }
         try {
             logger.debug("admin controller delete classroom: " + classroomId);
             lessonScheduler.deleteClassroom(classroomId);
@@ -76,7 +105,14 @@ public class AdminLessonController {
 
     // 管理员权限：生成课表
     @PostMapping("/arrange/api/schedules/generate")
-    public ResponseEntity<?> generateSchedule(@RequestBody LessonScheduleFilter filter) {
+    public ResponseEntity<?> generateSchedule(@RequestBody LessonScheduleFilter filter, HttpServletRequest request) {
+        String userRole = (String) request.getAttribute("userRole");
+            
+        // 检查权限
+        if (!adminUserService.isAdmin(userRole)) {
+            logger.warn("非管理员尝试访问管理接口: userRole={}", userRole);
+            return ResponseEntity.ok(ApiResponseDTO.error(403, "权限不足"));
+        }
         try {   
             logger.debug("admin controller generate schedule: " + filter);
             lessonScheduler.generateSchedule(filter);
@@ -91,7 +127,14 @@ public class AdminLessonController {
 
     // 管理员权限：添加课程安排
     @PostMapping("/arrange/api/sections")
-    public ResponseEntity<?> addSchedule(@RequestBody Section section) {
+    public ResponseEntity<?> addSchedule(@RequestBody Section section, HttpServletRequest request) {
+        String userRole = (String) request.getAttribute("userRole");
+            
+        // 检查权限
+        if (!adminUserService.isAdmin(userRole)) {
+            logger.warn("非管理员尝试访问管理接口: userRole={}", userRole);
+            return ResponseEntity.ok(ApiResponseDTO.error(403, "权限不足"));
+        }
         try {
             logger.debug("admin controller add schedule: " + section);
             lessonScheduler.addSchedule(section);
@@ -106,7 +149,14 @@ public class AdminLessonController {
 
     // 管理员权限：更新课程安排
     @PutMapping("/arrange/api/sections/{section_id}")
-    public ResponseEntity<?> updateSchedule(@PathVariable("section_id") int sectionId, @RequestBody Section updateInfo) {
+    public ResponseEntity<?> updateSchedule(@PathVariable("section_id") int sectionId, @RequestBody Section updateInfo, HttpServletRequest request) {
+        String userRole = (String) request.getAttribute("userRole");
+            
+        // 检查权限
+        if (!adminUserService.isAdmin(userRole)) {
+            logger.warn("非管理员尝试访问管理接口: userRole={}", userRole);
+            return ResponseEntity.ok(ApiResponseDTO.error(403, "权限不足"));
+        }
         try {
             logger.debug("admin controller update section: " + updateInfo);
             lessonScheduler.updateSchedule(sectionId, updateInfo);
@@ -121,7 +171,14 @@ public class AdminLessonController {
     
     // 管理员权限：删除课程安排
     @DeleteMapping("/arrange/api/sections/{section_id}")
-    public ResponseEntity<?> deleteSchedule(@PathVariable("section_id") int sectionId) {
+    public ResponseEntity<?> deleteSchedule(@PathVariable("section_id") int sectionId, HttpServletRequest request) {
+        String userRole = (String) request.getAttribute("userRole");
+            
+        // 检查权限
+        if (!adminUserService.isAdmin(userRole)) {
+            logger.warn("非管理员尝试访问管理接口: userRole={}", userRole);
+            return ResponseEntity.ok(ApiResponseDTO.error(403, "权限不足"));
+        }
         try {
             logger.debug("admin controller delete schedule: " + sectionId);
             lessonScheduler.deleteSchedule(sectionId);
@@ -136,7 +193,14 @@ public class AdminLessonController {
 
     // 管理员权限：检查课表
     @GetMapping("/arrange/api/sections/check")
-    public ResponseEntity<?> checkSchedule(@RequestParam(required = true) String semester, @RequestParam(required = true) int year) {        
+    public ResponseEntity<?> checkSchedule(@RequestParam(required = true) String semester, @RequestParam(required = true) int year, HttpServletRequest request) {
+        String userRole = (String) request.getAttribute("userRole");
+            
+        // 检查权限
+        if (!adminUserService.isAdmin(userRole)) {
+            logger.warn("非管理员尝试访问管理接口: userRole={}", userRole);
+            return ResponseEntity.ok(ApiResponseDTO.error(403, "权限不足"));
+        }
         try {
             String decodedSemester = URLDecoder.decode(semester, "UTF-8");
             logger.debug("admin controller check schedule: " + decodedSemester + " " + year);
