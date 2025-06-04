@@ -159,7 +159,9 @@ public class AppConfig  implements WebMvcConfigurer {
     // 添加 ObjectMapper bean
     @Bean
     public ObjectMapper objectMapper() {
-        return new ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+        return mapper;
     }
 
 }
