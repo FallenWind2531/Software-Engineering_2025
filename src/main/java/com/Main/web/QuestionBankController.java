@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import com.Main.entity.QuestionBank;
+import com.Main.dto.exam.QuestionCreateDTO;
 
 @RestController
 @RequestMapping("/test/questions")
@@ -15,7 +16,18 @@ public class QuestionBankController {
     private QuestionBankService questionBankService;
 
     @PostMapping("/addQuestion")
-    public void addBank(@RequestBody QuestionBank questionBank) {
+    public void addBank(@RequestBody QuestionCreateDTO dto) {
+        QuestionBank questionBank = new QuestionBank();
+        questionBank.setCourseId(dto.getCourseId());
+        questionBank.setChapterId(dto.getChapterId());
+        if (dto.getQuestionType() != null) {
+            questionBank.setQuestionType(QuestionBank.QuestionType.valueOf(dto.getQuestionType()));
+        }
+        questionBank.setContent(dto.getContent());
+        questionBank.setOptions(dto.getOptions());
+        questionBank.setAnswer(dto.getAnswer());
+        questionBank.setScore(dto.getScore());
+        questionBank.setDifficulty(dto.getDifficulty());
         questionBankService.add_question(questionBank);
     }
 
