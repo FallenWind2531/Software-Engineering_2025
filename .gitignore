@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 *.md
 tomcat.8080
+test_final.bat

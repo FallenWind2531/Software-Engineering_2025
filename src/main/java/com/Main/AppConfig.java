@@ -81,6 +81,16 @@ public class AppConfig  implements WebMvcConfigurer {
                 // 日志拦截器
                 registry.addInterceptor(interceptors[1])
                         .addPathPatterns("/**");
+                
+                // Course Selection JWT拦截器
+                registry.addInterceptor(interceptors[2])
+                        .addPathPatterns("/course_selection/**")
+                        .excludePathPatterns(
+                            "/course_selection/search_course",
+                            "/course_selection/search_course_table", 
+                            "/course_selection/get_curriculum",
+                            "/course_selection/permit/**"
+                        );
             }
         };
     }
