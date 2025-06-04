@@ -1,13 +1,14 @@
 package com.Main.service.information;
 
-import com.Main.RowMapper.ClassroomRowMapper;
-import com.Main.RowMapper.SectionRowMapper;
-import com.Main.dto.ApiResponseDTO;
-import com.Main.dto.PageResponseDTO;
-import com.Main.dto.SectionSearchDTO;
-import com.Main.dto.SectionSearchListDTO;
-import com.Main.entity.Classroom;
-import com.Main.entity.Section;
+import com.Main.RowMapper.information.ClassroomRowMapper;
+import com.Main.RowMapper.information.SectionRowMapper;
+import com.Main.dto.information.ApiResponseDTO;
+import com.Main.dto.information.PageResponseDTO;
+import com.Main.dto.information.SectionSearchDTO;
+import com.Main.dto.information.SectionSearchListDTO;
+import com.Main.entity.information.Classroom;
+import com.Main.entity.information.Section;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

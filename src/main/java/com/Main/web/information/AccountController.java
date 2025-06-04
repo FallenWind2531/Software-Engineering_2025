@@ -1,12 +1,13 @@
 package com.Main.web.information;
 
-import com.Main.dto.ApiResponseDTO;
-import com.Main.dto.AvatarResponseDTO;
-import com.Main.dto.PasswordUpdateDTO;
-import com.Main.dto.UserUpdateDTO;
-import com.Main.entity.User;
-import com.Main.service.UserService;
+import com.Main.dto.information.ApiResponseDTO;
+import com.Main.dto.information.AvatarResponseDTO;
+import com.Main.dto.information.PasswordUpdateDTO;
+import com.Main.dto.information.UserUpdateDTO;
+import com.Main.entity.information.User;
 import com.Main.service.information.UserProfileService;
+import com.Main.service.information.UserService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

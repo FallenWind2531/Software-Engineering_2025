@@ -1,10 +1,10 @@
 package com.Main.service.information;
 
-import com.Main.dto.LoginRequestDTO;
-import com.Main.dto.LoginResponseDTO;
-import com.Main.entity.User;
-import com.Main.service.UserService;
-import com.Main.util.JwtTokenUtil;
+import com.Main.dto.information.LoginRequestDTO;
+import com.Main.dto.information.LoginResponseDTO;
+import com.Main.entity.information.User;
+import com.Main.util.information.JwtTokenUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

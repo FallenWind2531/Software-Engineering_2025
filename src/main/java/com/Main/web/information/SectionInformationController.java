@@ -1,9 +1,9 @@
 package com.Main.web.information;
 
-import com.Main.dto.ApiResponseDTO;
-import com.Main.dto.ApiResponseListDTO;
-import com.Main.dto.SectionSearchDTO;
-import com.Main.dto.SectionSearchListDTO;
+import com.Main.dto.information.ApiResponseDTO;
+import com.Main.dto.information.ApiResponseListDTO;
+import com.Main.dto.information.SectionSearchDTO;
+import com.Main.dto.information.SectionSearchListDTO;
 import com.Main.service.information.SectionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

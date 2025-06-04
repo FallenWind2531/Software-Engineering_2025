@@ -1,9 +1,9 @@
 package com.Main.web.information;
 
-import com.Main.dto.ApiResponseDTO;
-import com.Main.dto.PageResponseDTO;
-import com.Main.dto.ReturnCourseDTO;
-import com.Main.entity.Course;
+import com.Main.dto.information.ApiResponseDTO;
+import com.Main.dto.information.PageResponseDTO;
+import com.Main.dto.information.ReturnCourseDTO;
+import com.Main.entity.information.Course;
 import com.Main.service.information.CourseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

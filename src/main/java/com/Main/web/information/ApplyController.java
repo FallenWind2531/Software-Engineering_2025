@@ -1,15 +1,23 @@
 package com.Main.web.information;
 
 import com.Main.dto.*;
-import com.Main.entity.Apply;
-import com.Main.entity.Course;
-import com.Main.entity.GradeBase;
-import com.Main.entity.User;
-import com.Main.service.UserService;
+import com.Main.dto.information.ApiResponseDTO;
+import com.Main.dto.information.ApiResponseListDTO;
+import com.Main.dto.information.ApplyRequestDTO;
+import com.Main.dto.information.ApplySearchDTO;
+import com.Main.dto.information.GradeDTO;
+import com.Main.dto.information.ReturnCourseDTO;
+import com.Main.dto.information.ReviewApplyDTO;
+import com.Main.entity.information.Apply;
+import com.Main.entity.information.Course;
+import com.Main.entity.information.GradeBase;
+import com.Main.entity.information.User;
 import com.Main.service.information.ApplyService;
 import com.Main.service.information.CourseService;
 import com.Main.service.information.GradeService;
 import com.Main.service.information.SectionService;
+import com.Main.service.information.UserService;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

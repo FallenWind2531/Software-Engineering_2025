@@ -1,11 +1,11 @@
 package com.Main.web.information;
 
-import com.Main.dto.AdminUserUpdateDTO;
-import com.Main.dto.ApiResponseDTO;
-import com.Main.dto.PageResponseDTO;
-import com.Main.dto.PasswordResetDTO;
-import com.Main.dto.UserCreateDTO;
-import com.Main.entity.User;
+import com.Main.dto.information.AdminUserUpdateDTO;
+import com.Main.dto.information.ApiResponseDTO;
+import com.Main.dto.information.PageResponseDTO;
+import com.Main.dto.information.PasswordResetDTO;
+import com.Main.dto.information.UserCreateDTO;
+import com.Main.entity.information.User;
 import com.Main.service.information.AdminUserService;
 
 import jakarta.servlet.http.HttpServletRequest;

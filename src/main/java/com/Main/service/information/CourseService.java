@@ -1,11 +1,12 @@
 package com.Main.service.information;
 
-import com.Main.RowMapper.CourseRowMapper;
-import com.Main.RowMapper.UserRowMapper;
-import com.Main.dto.PageResponseDTO;
-import com.Main.dto.ReturnCourseDTO;
-import com.Main.entity.Course;
-import com.Main.entity.User;
+import com.Main.RowMapper.information.CourseRowMapper;
+import com.Main.RowMapper.information.UserRowMapper;
+import com.Main.dto.information.PageResponseDTO;
+import com.Main.dto.information.ReturnCourseDTO;
+import com.Main.entity.information.Course;
+import com.Main.entity.information.User;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

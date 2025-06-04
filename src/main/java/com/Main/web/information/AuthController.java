@@ -1,8 +1,8 @@
 package com.Main.web.information;
 
-import com.Main.dto.ApiResponseDTO;
-import com.Main.dto.LoginRequestDTO;
-import com.Main.dto.LoginResponseDTO;
+import com.Main.dto.information.ApiResponseDTO;
+import com.Main.dto.information.LoginRequestDTO;
+import com.Main.dto.information.LoginResponseDTO;
 import com.Main.service.information.AuthService;
 
 import org.slf4j.Logger;

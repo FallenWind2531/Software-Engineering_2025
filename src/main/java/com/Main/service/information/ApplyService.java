@@ -1,7 +1,8 @@
 package com.Main.service.information;
 
-import com.Main.RowMapper.ApplyRowMapper;
-import com.Main.entity.Apply;
+import com.Main.RowMapper.information.ApplyRowMapper;
+import com.Main.entity.information.Apply;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
