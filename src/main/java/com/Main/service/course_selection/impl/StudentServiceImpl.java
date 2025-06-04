@@ -64,7 +64,7 @@ public class StudentServiceImpl implements StudentService {
                    "JOIN user u ON c.teacher_id = u.user_id " +
                    "JOIN section s ON c.course_id = s.course_id " +
                    "JOIN classroom cl ON s.classroom_id = cl.classroom_id " +
-                   "WHERE u.role = '教师'");
+                   "WHERE u.role = 't'");
 
         List<Object> params = new ArrayList<>();
         
