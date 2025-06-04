@@ -1,12 +1,12 @@
 package com.Main.service.information;
 
-import com.Main.RowMapper.*;
+import com.Main.RowMapper.information.*;
 import com.Main.RowMapper.information.CourseRowMapper;
 import com.Main.RowMapper.information.GradeBaseRowMapper;
 import com.Main.RowMapper.information.GradeComponentRowMapper;
 import com.Main.RowMapper.information.SectionRowMapper;
 import com.Main.RowMapper.information.UserRowMapper;
-import com.Main.dto.*;
+import com.Main.dto.information.*;
 import com.Main.dto.information.GradeDTO;
 import com.Main.dto.information.GradeDistributionDTO;
 import com.Main.dto.information.GradeDistributionSegmentDTO;
@@ -16,7 +16,6 @@ import com.Main.dto.information.SectionAnalyseDTO;
 import com.Main.dto.information.SectionGradeDTO;
 import com.Main.dto.information.StudentAnalyseDTO;
 import com.Main.dto.information.StudentGradeDTO;
-import com.Main.entity.*;
 import com.Main.entity.information.Course;
 import com.Main.entity.information.GradeBase;
 import com.Main.entity.information.GradeComponent;

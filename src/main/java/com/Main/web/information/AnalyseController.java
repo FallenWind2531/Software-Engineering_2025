@@ -1,6 +1,6 @@
 package com.Main.web.information;
 
-import com.Main.dto.*;
+import com.Main.dto.information.*;
 import com.Main.dto.information.ApiResponseDTO;
 import com.Main.dto.information.SectionAnalyseDTO;
 import com.Main.dto.information.StudentAnalyseDTO;
