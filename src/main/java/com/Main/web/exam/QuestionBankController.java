@@ -1,4 +1,4 @@
-package com.Main.web;
+package com.Main.web.exam;
 
 import com.Main.service.QuestionBankService;
 import org.springframework.beans.factory.annotation.Autowired;

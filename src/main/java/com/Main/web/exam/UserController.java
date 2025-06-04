@@ -1,7 +1,7 @@
-package com.Main.web;
+package com.Main.web.exam;
 
-import com.Main.entity.User;
-import com.Main.service.UserService;
+import com.Main.entity.information.User;
+import com.Main.service.information.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

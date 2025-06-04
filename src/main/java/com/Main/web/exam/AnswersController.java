@@ -1,4 +1,4 @@
-package com.Main.web;
+package com.Main.web.exam;
 
 public class AnswersController {
 }
