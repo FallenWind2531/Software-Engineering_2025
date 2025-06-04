@@ -25,3 +25,7 @@ dist-ssr
 *.md
 tomcat.8080
 test_final.bat
+
+.classpath
+.project
+.settings
