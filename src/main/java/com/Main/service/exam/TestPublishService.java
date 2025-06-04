@@ -218,7 +218,7 @@ public class TestPublishService {
 
     public List<Map<String, Object>> getStudentCourses(int studentId) {
         String sql = "SELECT DISTINCT c.course_id, c.course_name " +
-                     "FROM selection_course sc " +
+                     "FROM course_selection sc " +
                      "INNER JOIN section s ON sc.section_id = s.section_id " +
                      "INNER JOIN course c ON s.course_id = c.course_id " +
                      "WHERE sc.student_id = ? " +
