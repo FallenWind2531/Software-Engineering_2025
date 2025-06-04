@@ -64,6 +64,7 @@ public class TestPublishController {
         testPublish.setQuestionCount(dto.getQuestionCount());
         testPublish.setRandom(dto.getRandom());
         testPublish.setQuestionIds(dto.getQuestionIds());
+
         return testPublishService.createTest(testPublish);
     }
 
