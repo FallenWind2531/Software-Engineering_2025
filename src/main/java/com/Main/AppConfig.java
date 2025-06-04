@@ -24,7 +24,7 @@ import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.multipart.MultipartResolver;
 
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -140,11 +140,16 @@ public class AppConfig  implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // 允许所有路径
-                .allowedOrigins("http://localhost:5174", "null") // 允许的前端地址
-                .allowedMethods("GET", "POST", "PUT", "DELETE") // 允许的请求方式
+                .allowedOrigins("http://localhost:5174", "http://localhost:5431", "http://localhost:3000", "null") // 指定前端地址
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // 允许的请求方式
                 .allowedHeaders("*") // 允许的请求头
                 .allowCredentials(true);
+    }
 
+    // 添加 ObjectMapper bean
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 
 }
