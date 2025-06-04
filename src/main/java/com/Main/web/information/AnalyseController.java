@@ -1,12 +1,16 @@
 package com.Main.web.information;
 
-import com.Main.dto.*;
-import com.Main.entity.Course;
-import com.Main.entity.User;
-import com.Main.service.UserService;
+import com.Main.dto.information.*;
+import com.Main.dto.information.ApiResponseDTO;
+import com.Main.dto.information.SectionAnalyseDTO;
+import com.Main.dto.information.StudentAnalyseDTO;
+import com.Main.entity.information.Course;
+import com.Main.entity.information.User;
 import com.Main.service.information.CourseService;
 import com.Main.service.information.GradeService;
 import com.Main.service.information.SectionService;
+import com.Main.service.information.UserService;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,8 +1,27 @@
 package com.Main.service.information;
 
-import com.Main.RowMapper.*;
-import com.Main.dto.*;
-import com.Main.entity.*;
+import com.Main.RowMapper.information.*;
+import com.Main.RowMapper.information.CourseRowMapper;
+import com.Main.RowMapper.information.GradeBaseRowMapper;
+import com.Main.RowMapper.information.GradeComponentRowMapper;
+import com.Main.RowMapper.information.SectionRowMapper;
+import com.Main.RowMapper.information.UserRowMapper;
+import com.Main.dto.information.*;
+import com.Main.dto.information.GradeDTO;
+import com.Main.dto.information.GradeDistributionDTO;
+import com.Main.dto.information.GradeDistributionSegmentDTO;
+import com.Main.dto.information.PerformanceTrendDTO;
+import com.Main.dto.information.ScoreRankingDTO;
+import com.Main.dto.information.SectionAnalyseDTO;
+import com.Main.dto.information.SectionGradeDTO;
+import com.Main.dto.information.StudentAnalyseDTO;
+import com.Main.dto.information.StudentGradeDTO;
+import com.Main.entity.information.Course;
+import com.Main.entity.information.GradeBase;
+import com.Main.entity.information.GradeComponent;
+import com.Main.entity.information.Section;
+import com.Main.entity.information.User;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

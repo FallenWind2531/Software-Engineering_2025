@@ -1,9 +1,16 @@
 package com.Main.web.information;
 
-import com.Main.dto.*;
-import com.Main.entity.Classroom;
-import com.Main.entity.Course;
-import com.Main.entity.Section;
+import com.Main.dto.information.*;
+import com.Main.dto.information.ApiResponseDTO;
+import com.Main.dto.information.ApiResponseListDTO;
+import com.Main.dto.information.CourseManagerDTO;
+import com.Main.dto.information.PageResponseDTO;
+import com.Main.dto.information.ReturnCourseDTO;
+import com.Main.dto.information.SectionManagerDTO;
+import com.Main.dto.information.SectionSearchDTO;
+import com.Main.entity.information.Classroom;
+import com.Main.entity.information.Course;
+import com.Main.entity.information.Section;
 import com.Main.service.information.ClassroomService;
 import com.Main.service.information.CourseService;
 import com.Main.service.information.SectionService;
