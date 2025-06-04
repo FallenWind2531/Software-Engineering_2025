@@ -1,6 +1,6 @@
 package com.Main.web.exam;
 
-import com.Main.service.QuestionBankService;
+import com.Main.service.exam.QuestionBankService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
