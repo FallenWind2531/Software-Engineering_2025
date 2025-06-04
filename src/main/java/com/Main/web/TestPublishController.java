@@ -54,7 +54,16 @@ public class TestPublishController {
     }
 
     @PostMapping("/generate")
-    public int generate(@RequestBody TestPublish testPublish) {
+    public int generate(@RequestBody TestPublishCreateDTO dto) {
+        TestPublish testPublish = new TestPublish();
+        testPublish.setTeacherId(dto.getTeacherId());
+        testPublish.setCourseId(dto.getCourseId());
+        testPublish.setTestName(dto.getTestName());
+        testPublish.setPublishTime(dto.getPublishTime());
+        testPublish.setDeadline(dto.getDeadline());
+        testPublish.setQuestionCount(dto.getQuestionCount());
+        testPublish.setRandom(dto.getRandom());
+        testPublish.setQuestionIds(dto.getQuestionIds());
         return testPublishService.createTest(testPublish);
     }
 
