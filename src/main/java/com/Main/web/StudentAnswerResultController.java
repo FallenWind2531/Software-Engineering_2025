@@ -2,6 +2,7 @@ package com.Main.web;
 
 import com.Main.RowMapper.StudentAnswerResultRowMapper;
 import com.Main.entity.StudentAnswerResult;
+import com.Main.dto.exam.StudentAnswerDTO;
 import com.Main.service.StudentAnswerResultService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,32 +33,32 @@ public class StudentAnswerResultController {
 
     /** 单题提交 */
     @PostMapping("/submit")
-    public StudentAnswerResult submit(@RequestBody StudentAnswerResult answer) {
+    public StudentAnswerResult submit(@RequestBody StudentAnswerDTO dto) {
         service.submitAnswer(
-                answer.getTestId(),
-                answer.getStudentId(),
-                answer.getQuestionId(),
-                answer.getStudentAnswer());
+                dto.getTestId(),
+                dto.getStudentId(),
+                dto.getQuestionId(),
+                dto.getStudentAnswer());
 
         String sql = "SELECT * FROM student_answer_result " +
                      "WHERE test_id = ? AND student_id = ? AND question_id = ?";
         return jdbcTemplate.queryForObject(
                 sql,
                 new StudentAnswerResultRowMapper(),
-                answer.getTestId(),
-                answer.getStudentId(),
-                answer.getQuestionId());
+                dto.getTestId(),
+                dto.getStudentId(),
+                dto.getQuestionId());
     }
 
     /** 批量提交 */
     @PostMapping("/submitBatch")
-    public List<StudentAnswerResult> submitBatch(@RequestBody List<StudentAnswerResult> answers) {
+    public List<StudentAnswerResult> submitBatch(@RequestBody List<StudentAnswerDTO> answers) {
         List<StudentAnswerResult> saved = new ArrayList<>();
 
         String sql = "SELECT * FROM student_answer_result " +
                      "WHERE test_id = ? AND student_id = ? AND question_id = ?";
 
-        for (StudentAnswerResult ans : answers) {
+        for (StudentAnswerDTO ans : answers) {
             service.submitAnswer(
                     ans.getTestId(),
                     ans.getStudentId(),
