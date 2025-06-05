@@ -22,6 +22,7 @@ public class TestPublishRowMapper implements RowMapper<TestPublish> {
         testPublish.setDeadline(rs.getObject("deadline", LocalDateTime.class));
         testPublish.setQuestionCount(rs.getInt("question_count"));
         testPublish.setRandom(rs.getBoolean("is_random"));
+        testPublish.setRatio(rs.getInt("ratio"));
 
         // 处理JSON格式的questionIds
         try {

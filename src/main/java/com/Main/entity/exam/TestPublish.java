@@ -13,6 +13,7 @@ public class TestPublish {
     private Integer questionCount;
     private Boolean isRandom;
     private List<Integer> questionIds;
+    private Integer ratio; // 考试成绩占总成绩的比例
 
     // Getters and Setters
     public Integer getTestId() {
@@ -86,6 +87,14 @@ public class TestPublish {
     public void setQuestionIds(List<Integer> questionIds) {
         this.questionIds = questionIds;
     }
+    
+    public Integer getRatio() {
+        return ratio;
+    }
+    
+    public void setRatio(Integer ratio) {
+        this.ratio = ratio;
+    }
 
     // toString
     @Override
@@ -100,6 +109,7 @@ public class TestPublish {
                 ", questionCount=" + questionCount +
                 ", isRandom=" + isRandom +
                 ", questionIds=" + questionIds +
+                ", ratio=" + ratio +
                 '}';
     }
 
