@@ -205,7 +205,7 @@ public class GradeService{
 
         try {
             // 1. 首先获取该section下所有学生的成绩记录
-            String gradeSql = "SELECT * FROM GradeBase WHERE section_id = ? AND SUBMIT_STATUS = '1' ";
+            String gradeSql = "SELECT * FROM GradeBase WHERE section_id = ? ";
             List<Object> gradeParams = new ArrayList<>();
             gradeParams.add(sectionId);
             
