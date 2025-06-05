@@ -418,11 +418,16 @@ public class StudentServiceImpl implements StudentService {
                 return curriculumDTO;
             }
             
-            // 查询专业培养方案
+            // 设置专业名称（无论是否有培养方案都要设置）
+            curriculumDTO.setMajorName(majorName);
+            
+            // 查询专业培养方案 - 使用queryForList来避免EmptyResultDataAccessException
             String curriculumSql = "SELECT curriculum_json FROM curriculum WHERE major_id = ?";
-            try {
-                String curriculumJson = jdbcTemplate.queryForObject(curriculumSql, String.class, majorId);
-                if (curriculumJson != null) {
+            List<String> curriculumResults = jdbcTemplate.queryForList(curriculumSql, String.class, majorId);
+            
+            if (!curriculumResults.isEmpty()) {
+                String curriculumJson = curriculumResults.get(0);
+                if (curriculumJson != null && !curriculumJson.trim().isEmpty()) {
                     // 反序列化JSON到CurriculumDTO对象
                     ObjectMapper objectMapper = new ObjectMapper();
                     try {
@@ -433,19 +438,24 @@ public class StudentServiceImpl implements StudentService {
                                 List.class, CurriculumDTO.SectionDTO.class)
                         );
                         curriculumDTO.setSections(sections);
-                        curriculumDTO.setMajorName(majorName);
                         logger.info("Successfully fetched curriculum for major: {}", majorName);
                     } catch (Exception e) {
                         logger.error("Failed to parse curriculum JSON: {}", e.getMessage());
+                        // JSON解析失败时，保持sections为null，但仍返回包含专业名称的对象
                     }
                 } else {
-                    logger.info("No curriculum data found for major: {}", majorName);
+                    logger.info("Curriculum JSON is empty for major: {}", majorName);
                 }
-            } catch (Exception e) {
-                logger.error("Error fetching curriculum for major {}: {}", majorName, e.getMessage());
+            } else {
+                logger.info("No curriculum data found for major: {}, returning curriculum with major name only", majorName);
+                // 没有培养方案数据，但专业存在，返回只包含专业名称的对象
             }
         } catch (Exception e) {
             logger.error("Exception in getCurriculum: {}", e.getMessage());
+            // 发生异常时，如果专业名称已设置，仍返回包含专业名称的对象
+            if (curriculumDTO.getMajorName() == null) {
+                curriculumDTO.setMajorName(majorName);
+            }
         }
 
         return curriculumDTO;
