@@ -35,6 +35,7 @@ public class CourseSelectionJwtInterceptor implements HandlerInterceptor {
         if (requestURI.equals("/course_selection/search_course") || 
             requestURI.equals("/course_selection/search_course_table") ||
             requestURI.equals("/course_selection/get_curriculum") ||
+            requestURI.contains("/course_selection") ||
             requestURI.contains("/course_selection/permit")) {
             logger.info("无需JWT验证的路径: {}", requestURI);
             return true;
