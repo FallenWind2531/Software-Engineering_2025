@@ -3,12 +3,14 @@ package com.Main.service.course_selection.impl;
 import com.Main.RowMapper.course_selection.CourseDao;
 import com.Main.RowMapper.course_selection.CourseSelectionDao;
 import com.Main.RowMapper.course_selection.CourseSupplementDao;
+import com.Main.RowMapper.course_selection.GradeBaseDao;
 import com.Main.RowMapper.course_selection.StudentDao;
 import com.Main.dto.course_selection.CurriculumDTO;
 import com.Main.dto.course_selection.SupplementListDTO;
 import com.Main.entity.course_selection.Course;
 import com.Main.entity.course_selection.CourseSelection;
 import com.Main.entity.course_selection.CourseSupplementApplication;
+import com.Main.entity.course_selection.Section;
 import com.Main.entity.course_selection.SelectionTime;
 import com.Main.entity.course_selection.Student;
 import com.Main.service.course_selection.ManagerService;
@@ -52,6 +54,8 @@ public class ManagerServiceImpl implements ManagerService {
     @Autowired private SelectionTimeDao selectionTimeDao;
 
     @Autowired private SectionDao sectionDao;
+    
+    @Autowired private GradeBaseDao gradeBaseDao;
     
     @Autowired private ConcurrentSelectionConfig concurrentSelectionConfig;
 
@@ -139,10 +143,20 @@ public class ManagerServiceImpl implements ManagerService {
             return "学生已选该开课"; // 学生已选该开课
         }
         
-        // 4. 插入选课记录
+        // 4. 获取真正的课程ID
+        Section section = sectionDao.findById(courseId);
+        if (section == null) {
+            return "开课信息不存在";
+        }
+        Integer realCourseId = section.getCourseId();
+        
+        // 5. 插入选课记录
         courseSelectionDao.insertSelection(studentId, courseId);
         
-        // 5. 更新开课可用容量
+        // 6. 插入初始成绩记录到GradeBase表
+        gradeBaseDao.insertInitialGrade(studentId, realCourseId, courseId);
+        
+        // 7. 更新开课可用容量
         sectionDao.decreaseAvailableCapacity(courseId);
         
         return "success"; // 选课成功
@@ -226,11 +240,21 @@ public class ManagerServiceImpl implements ManagerService {
                 return "success"; // 学生已经选过该开课，直接返回成功
             }
             
+            // 获取真正的课程ID
+            Section section = sectionDao.findById(sectionId);
+            if (section == null) {
+                return "开课信息不存在";
+            }
+            Integer realCourseId = section.getCourseId();
+            
             // 为学生选课
             boolean courseSelectionSuccess = courseSelectionDao.saveSelection(application.getStudentId(), sectionId);
             if (!courseSelectionSuccess) {
                 return "选课失败"; // 选课失败
             }
+            
+            // 插入初始成绩记录到GradeBase表
+            gradeBaseDao.insertInitialGrade(application.getStudentId(), realCourseId, sectionId);
 
             // 使用sectionDao减少对应开课的可用容量
             if(sectionDao.decreaseAvailableCapacity(sectionId)) {
