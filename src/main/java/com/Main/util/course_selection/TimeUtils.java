@@ -1,6 +1,7 @@
 package com.Main.util.course_selection;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -15,6 +16,7 @@ public class TimeUtils {
     
     private static final Logger logger = LoggerFactory.getLogger(TimeUtils.class);
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_ZONED_DATE_TIME;
     
     /**
      * 检查当前时间是否在指定的时间段内
@@ -36,8 +38,8 @@ public class TimeUtils {
                 String startTimeStr = timeList.get(i);
                 String endTimeStr = timeList.get(i + 1);
                 
-                LocalDateTime startTime = LocalDateTime.parse(startTimeStr, FORMATTER);
-                LocalDateTime endTime = LocalDateTime.parse(endTimeStr, FORMATTER);
+                LocalDateTime startTime = parseDateTime(startTimeStr);
+                LocalDateTime endTime = parseDateTime(endTimeStr);
                 
                 logger.info("Checking time range: {} to {}", startTimeStr, endTimeStr);
                 
@@ -52,5 +54,43 @@ public class TimeUtils {
         
         logger.info("Current time is not within any range");
         return false;
+    }
+    
+    /**
+     * 解析时间字符串，支持多种格式
+     * 
+     * @param timeStr 时间字符串
+     * @return LocalDateTime对象
+     * @throws DateTimeParseException 如果无法解析时间格式
+     */
+    private static LocalDateTime parseDateTime(String timeStr) throws DateTimeParseException {
+        if (timeStr == null || timeStr.trim().isEmpty()) {
+            throw new DateTimeParseException("Time string is null or empty", timeStr, 0);
+        }
+        
+        // 尝试解析ISO 8601格式 (2025-05-26T16:00:00.000Z)
+        try {
+            ZonedDateTime zonedDateTime = ZonedDateTime.parse(timeStr, ISO_FORMATTER);
+            return zonedDateTime.toLocalDateTime();
+        } catch (DateTimeParseException e) {
+            logger.debug("Failed to parse as ISO format: {}", timeStr);
+        }
+        
+        // 尝试解析标准格式 (yyyy-MM-dd HH:mm:ss)
+        try {
+            return LocalDateTime.parse(timeStr, FORMATTER);
+        } catch (DateTimeParseException e) {
+            logger.debug("Failed to parse as standard format: {}", timeStr);
+        }
+        
+        // 尝试解析简化的ISO格式 (2025-05-26T16:00:00)
+        try {
+            return LocalDateTime.parse(timeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        } catch (DateTimeParseException e) {
+            logger.debug("Failed to parse as ISO local format: {}", timeStr);
+        }
+        
+        // 如果所有格式都失败，抛出异常
+        throw new DateTimeParseException("Unable to parse time string with any supported format", timeStr, 0);
     }
 } 
