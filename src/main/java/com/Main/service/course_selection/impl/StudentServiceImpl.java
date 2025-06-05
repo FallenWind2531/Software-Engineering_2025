@@ -304,8 +304,8 @@ public class StudentServiceImpl implements StudentService {
                           course.getCourseId(), course.getCourseName(), course.getTeacherId());
                 
                 CourseListDTO.CourseDTO dto = new CourseListDTO.CourseDTO();
-                // 正确设置courseId和sectionId
-                dto.setCourseId(course.getCourseId()); // 真正的course_id
+                // 设置courseId字段为sectionId（字段名保持courseId，但内容实际是sectionId）
+                dto.setCourseId(selection.getSectionId()); // section_id
                 dto.setSectionId(selection.getSectionId()); // section_id
                 dto.setCourseName(course.getCourseName());
                 dto.setCourseDescription(course.getCourseDescription());
@@ -337,7 +337,7 @@ public class StudentServiceImpl implements StudentService {
                 logger.warn("Course not found for course_id={}. Creating minimal course info.", section.getCourseId());
                 // 即使找不到课程信息，也创建一个最小的课程DTO，以便前端显示
                 CourseListDTO.CourseDTO dto = new CourseListDTO.CourseDTO();
-                dto.setCourseId(section.getCourseId()); // 真正的course_id
+                dto.setCourseId(selection.getSectionId()); // section_id（字段名保持courseId，但内容实际是sectionId）
                 dto.setSectionId(selection.getSectionId()); // section_id
                 dto.setCourseName("Unknown Course (ID: " + section.getCourseId() + ")");
                 dto.setCourseDescription("Course information unavailable");
