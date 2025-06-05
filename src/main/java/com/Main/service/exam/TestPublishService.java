@@ -42,8 +42,8 @@ public class TestPublishService {
     public int createTest(TestPublish testPublish) {
         String sql = "INSERT INTO TestPublish " +
                      "(teacher_id, course_id, test_name, publish_time, deadline, " +
-                     "question_count, is_random, question_ids) " +
-                     "VALUES (?,?,?,?,?,?,?,?)";
+                     "question_count, is_random, question_ids, ratio) " +
+                     "VALUES (?,?,?,?,?,?,?,?,?)";
 
         KeyHolder holder = new GeneratedKeyHolder();
 
@@ -67,6 +67,7 @@ public class TestPublishService {
             } catch (Exception e) {
                 throw new RuntimeException("Failed to serialize question ids", e);
             }
+            ps.setObject(9, testPublish.getRatio());
             return ps;
         }, holder);
 
@@ -89,10 +90,10 @@ public class TestPublishService {
     }
 
     public List<Map<String, Object>> getTestByCourseId(int courseId) {
-        String sql = "SELECT test_id, teacher_id, course_id, " +
+        String sql = "SELECT test_id, test_name, teacher_id, course_id, " +
                      "DATE_FORMAT(publish_time, '%Y-%m-%d %H:%i:%s') AS publish_time, " +
                      "DATE_FORMAT(deadline, '%Y-%m-%d %H:%i:%s') AS deadline, " +
-                     "question_count, is_random " +
+                     "question_count, is_random, ratio " +
                      "FROM TestPublish WHERE course_id = ?";
         return jdbcTemplate.queryForList(sql, courseId);
     }
@@ -238,7 +239,7 @@ public class TestPublishService {
         String sql = "SELECT test_id, test_name, teacher_id, course_id, " +
                      "DATE_FORMAT(publish_time, '%Y-%m-%d %H:%i:%s') AS publish_time, " +
                      "DATE_FORMAT(deadline, '%Y-%m-%d %H:%i:%s') AS deadline, " +
-                     "question_count, is_random, question_ids " +
+                     "question_count, is_random, question_ids, ratio " +
                      "FROM TestPublish WHERE test_id = ?";
         return jdbcTemplate.queryForList(sql, testId);
     }
