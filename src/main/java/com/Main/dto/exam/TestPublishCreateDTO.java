@@ -12,6 +12,7 @@ public class TestPublishCreateDTO {
     private Integer questionCount;
     private Boolean random;
     private List<Integer> questionIds;
+    private Integer ratio; // 考试成绩占总成绩的比例
 
     public Integer getTeacherId() {
         return teacherId;
@@ -75,5 +76,13 @@ public class TestPublishCreateDTO {
 
     public void setQuestionIds(List<Integer> questionIds) {
         this.questionIds = questionIds;
+    }
+    
+    public Integer getRatio() {
+        return ratio;
+    }
+    
+    public void setRatio(Integer ratio) {
+        this.ratio = ratio;
     }
 }

@@ -17,7 +17,7 @@ import java.util.Map;
  * 学生控制器
  */
 @RestController
-@RequestMapping("/course_selection/student")
+@RequestMapping("/api/course_selection/student")
 public class StudentController {
 
     @Autowired

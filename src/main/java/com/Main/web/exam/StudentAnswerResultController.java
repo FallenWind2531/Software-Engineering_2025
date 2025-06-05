@@ -40,7 +40,7 @@ public class StudentAnswerResultController {
                 dto.getQuestionId(),
                 dto.getStudentAnswer());
 
-        String sql = "SELECT * FROM student_answer_result " +
+        String sql = "SELECT * FROM StudentAnswerResult " +
                      "WHERE test_id = ? AND student_id = ? AND question_id = ?";
         return jdbcTemplate.queryForObject(
                 sql,
@@ -55,7 +55,7 @@ public class StudentAnswerResultController {
     public List<StudentAnswerResult> submitBatch(@RequestBody List<StudentAnswerDTO> answers) {
         List<StudentAnswerResult> saved = new ArrayList<>();
 
-        String sql = "SELECT * FROM student_answer_result " +
+        String sql = "SELECT * FROM StudentAnswerResult " +
                      "WHERE test_id = ? AND student_id = ? AND question_id = ?";
 
         for (StudentAnswerDTO ans : answers) {

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.Main.RowMapper.course_selection.CourseDao;
 import com.Main.RowMapper.course_selection.CourseSelectionDao;
 import com.Main.RowMapper.course_selection.CourseSupplementDao;
+import com.Main.RowMapper.course_selection.GradeBaseDao;
 import com.Main.RowMapper.course_selection.SectionDao;
 import com.Main.RowMapper.course_selection.StudentDao;
 import com.Main.RowMapper.course_selection.CurriculumDao;
@@ -51,6 +52,8 @@ public class StudentServiceImpl implements StudentService {
     @Autowired private CurriculumDao curriculumDao;
     
     @Autowired private SelectionTimeService selectionTimeService;
+    
+    @Autowired private GradeBaseDao gradeBaseDao;
 
     @Override
     public CourseListDTO searchCourse(String courseName, String teacherName, Integer courseId, Integer studentId, Boolean needAvailable) {
@@ -247,7 +250,11 @@ public class StudentServiceImpl implements StudentService {
         if (!insertSuccess) {
             return "插入选课记录失败";
         }
-        // 8. 更新开课可用容量
+        
+        // 8. 插入初始成绩记录到GradeBase表
+        gradeBaseDao.insertInitialGrade(studentId, realCourseId, courseId);
+        
+        // 9. 更新开课可用容量
         boolean updateSuccess = sectionDao.decreaseAvailableCapacity(courseId);
         return updateSuccess ? "success" : "容量更新失败";
     }

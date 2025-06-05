@@ -56,7 +56,7 @@ public class GradeService{
      */
     public List<StudentGradeDTO> getStudentGradeList(int studentId, String semester, int secYear, String courseName) {
         List<Object> params = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("SELECT gb.* FROM GradeBase gb WHERE gb.student_id = ?");
+        StringBuilder sql = new StringBuilder("SELECT gb.* FROM GradeBase gb WHERE gb.student_id = ? AND gb.submit_status = '1' ");
         params.add(studentId);
 
         if (semester != null && !semester.isEmpty()) {
@@ -205,7 +205,7 @@ public class GradeService{
 
         try {
             // 1. 首先获取该section下所有学生的成绩记录
-            String gradeSql = "SELECT * FROM GradeBase WHERE section_id = ?";
+            String gradeSql = "SELECT * FROM GradeBase WHERE section_id = ? ";
             List<Object> gradeParams = new ArrayList<>();
             gradeParams.add(sectionId);
             
@@ -426,7 +426,7 @@ public class GradeService{
         Section section = jdbcTemplate.queryForObject("SELECT * FROM Section WHERE section_id = ?", new Object[]{sectionId}, sectionRowMapper);//根据 sectionId 获取所有 student_id
         sectionAnalyseDTO.setSection(section);
 
-        String studentIdSql = "SELECT * FROM GradeBase WHERE section_id = ?";
+        String studentIdSql = "SELECT * FROM GradeBase WHERE section_id = ? AND SUBMIT_STATUS = '1' ";
         List<GradeBase> gradeBases = jdbcTemplate.query(studentIdSql, new Object[]{sectionId}, gradeBaseRowMapper);
 
         List<StudentGradeDTO> StudentGradeListDTO = new ArrayList<>();

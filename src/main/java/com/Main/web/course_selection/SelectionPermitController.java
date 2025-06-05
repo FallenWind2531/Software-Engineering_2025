@@ -16,7 +16,7 @@ import java.util.Map;
  * 选课权限控制器
  */
 @RestController
-@RequestMapping("/course_selection/permit")
+@RequestMapping("/api/course_selection/permit")
 public class SelectionPermitController {
 
     private static final Logger logger = LoggerFactory.getLogger(SelectionPermitController.class);

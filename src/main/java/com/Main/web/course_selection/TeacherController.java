@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * 教师控制器
  */
 @RestController
-@RequestMapping("/course_selection/teacher")
+@RequestMapping("/api/course_selection/teacher")
 public class TeacherController {
 
     @Autowired
