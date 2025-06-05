@@ -22,6 +22,9 @@ public class TestPublishService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    
+    @Autowired
+    private ObjectMapper objectMapper;
 
     /**
      * Setter used for injecting JdbcTemplate in tests.
@@ -43,7 +46,6 @@ public class TestPublishService {
                      "VALUES (?,?,?,?,?,?,?,?)";
 
         KeyHolder holder = new GeneratedKeyHolder();
-        ObjectMapper mapper = new ObjectMapper();
 
         jdbcTemplate.update(conn -> {
             var ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -61,7 +63,7 @@ public class TestPublishService {
             try {
                 ps.setString(8, testPublish.getQuestionIds() == null
                                    ? null
-                                   : mapper.writeValueAsString(testPublish.getQuestionIds()));
+                                   : objectMapper.writeValueAsString(testPublish.getQuestionIds()));
             } catch (Exception e) {
                 throw new RuntimeException("Failed to serialize question ids", e);
             }
