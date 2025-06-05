@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
  * 课程公共控制器，处理不依赖于特定用户角色的API
  */
 @RestController
-@RequestMapping("/course_selection")
+@RequestMapping("/api/course_selection")
 public class CourseController {
 
     @Autowired

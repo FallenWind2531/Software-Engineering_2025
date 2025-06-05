@@ -18,7 +18,7 @@ import java.util.Map;
  * 管理员控制器
  */
 @RestController
-@RequestMapping("/course_selection/manager")
+@RequestMapping("/api/course_selection/manager")
 public class ManagerController {
 
     @Autowired
