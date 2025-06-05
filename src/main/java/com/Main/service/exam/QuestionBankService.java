@@ -49,6 +49,38 @@ public class QuestionBankService {
     }
 
     /**
+     * 更新题目
+     * @param questionBank 题目对象，包含要更新的字段
+     * @return 更新的记录数，通常为1表示更新成功，0表示未找到题目
+     */
+    public int update_question(QuestionBank questionBank) {
+        String sql = "UPDATE QuestionBank SET " +
+                     "course_id = ?, chapter_id = ?, question_type = ?, " +
+                     "content = ?, options = ?, answer = ?, " +
+                     "score = ?, difficulty = ? " +
+                     "WHERE question_id = ?";
+        
+        try {
+            String optionsJson = questionBank.getOptions() != null ? 
+                objectMapper.writeValueAsString(questionBank.getOptions()) : null;
+            
+            return jdbcTemplate.update(sql,
+                questionBank.getCourseId(),
+                questionBank.getChapterId(),
+                questionBank.getQuestionType() != null ? questionBank.getQuestionType().name() : null,
+                questionBank.getContent(),
+                optionsJson,
+                questionBank.getAnswer(),
+                questionBank.getScore(),
+                questionBank.getDifficulty(),
+                questionBank.getQuestionId() // WHERE条件
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update question bank", e);
+        }
+    }
+
+    /**
      * 删除题目
      * @param question_id 题目ID
      */

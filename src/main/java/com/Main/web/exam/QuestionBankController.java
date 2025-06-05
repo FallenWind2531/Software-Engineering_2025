@@ -31,6 +31,33 @@ public class QuestionBankController {
         questionBankService.add_question(questionBank);
     }
 
+    @PutMapping("/updateQuestion")
+    public Map<String, Object> updateQuestion(@RequestBody QuestionCreateDTO dto) {
+        if (dto.getQuestionId() == null || dto.getQuestionId() <= 0) {
+            return Map.of("success", false, "message", "题目ID不能为空");
+        }
+        
+        QuestionBank questionBank = new QuestionBank();
+        questionBank.setQuestionId(dto.getQuestionId());
+        questionBank.setCourseId(dto.getCourseId());
+        questionBank.setChapterId(dto.getChapterId());
+        if (dto.getQuestionType() != null) {
+            questionBank.setQuestionType(QuestionBank.QuestionType.valueOf(dto.getQuestionType()));
+        }
+        questionBank.setContent(dto.getContent());
+        questionBank.setOptions(dto.getOptions());
+        questionBank.setAnswer(dto.getAnswer());
+        questionBank.setScore(dto.getScore());
+        questionBank.setDifficulty(dto.getDifficulty());
+        
+        int updated = questionBankService.update_question(questionBank);
+        if (updated > 0) {
+            return Map.of("success", true, "message", "题目更新成功");
+        } else {
+            return Map.of("success", false, "message", "题目不存在或更新失败");
+        }
+    }
+
     @DeleteMapping("/delQuestion")
     public void deleteBank(@RequestParam int question_id) {
         questionBankService.del_question(question_id);

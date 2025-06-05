@@ -3,6 +3,7 @@ package com.Main.dto.exam;
 import java.util.List;
 
 public class QuestionCreateDTO {
+    private Integer questionId;
     private Integer courseId;
     private Integer chapterId;
     private String questionType;
@@ -11,6 +12,14 @@ public class QuestionCreateDTO {
     private String answer;
     private Integer score;
     private Integer difficulty;
+
+    public Integer getQuestionId() {
+        return questionId;
+    }
+
+    public void setQuestionId(Integer questionId) {
+        this.questionId = questionId;
+    }
 
     public Integer getCourseId() {
         return courseId;
@@ -75,5 +84,4 @@ public class QuestionCreateDTO {
     public void setDifficulty(Integer difficulty) {
         this.difficulty = difficulty;
     }
-
-    }
+}
