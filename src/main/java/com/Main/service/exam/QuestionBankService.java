@@ -25,7 +25,7 @@ public class QuestionBankService {
      * @param questionBank 题目对象，包含所有必要字段
      */
     public void add_question(QuestionBank questionBank) {
-        String sql = "INSERT INTO question_bank (course_id, chapter_id, question_type, content, options, answer, score, difficulty, created_at) " +
+        String sql = "INSERT INTO QuestionBank (course_id, chapter_id, question_type, content, options, answer, score, difficulty, created_at) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         try {
@@ -53,7 +53,7 @@ public class QuestionBankService {
      * @param question_id 题目ID
      */
     public void del_question(int question_id) {
-        String sql = "DELETE FROM question_bank WHERE question_id = ?";
+        String sql = "DELETE FROM QuestionBank WHERE question_id = ?";
         jdbcTemplate.update(sql, question_id);
     }
 
@@ -74,7 +74,7 @@ public class QuestionBankService {
      * @return 题目列表
      */
     public List<Map<String, Object>> get_question_by_course(int courseId, int chapterId) {
-        StringBuilder sql = new StringBuilder("SELECT question_id, course_id, chapter_id, question_type, content, options, answer, score, difficulty, created_at FROM question_bank WHERE course_id = ?");
+        StringBuilder sql = new StringBuilder("SELECT question_id, course_id, chapter_id, question_type, content, options, answer, score, difficulty, created_at FROM QuestionBank WHERE course_id = ?");
         
         if (chapterId > 0) {
             sql.append(" AND chapter_id = ?");
@@ -92,7 +92,7 @@ public class QuestionBankService {
      * @return 题目列表
      */
     public List<Map<String, Object>> search_que(int courseId, int chapterId, String content, String questionType) {
-        StringBuilder sql = new StringBuilder("SELECT question_id, course_id, chapter_id, question_type, content, options, answer, score, difficulty, created_at FROM question_bank WHERE course_id = ? AND chapter_id = ?");
+        StringBuilder sql = new StringBuilder("SELECT question_id, course_id, chapter_id, question_type, content, options, answer, score, difficulty, created_at FROM QuestionBank WHERE course_id = ? AND chapter_id = ?");
         
         if (content != null && !content.isEmpty()) {
             sql.append(" AND content LIKE ?");

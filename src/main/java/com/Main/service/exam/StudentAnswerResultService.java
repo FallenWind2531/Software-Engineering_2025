@@ -33,7 +33,7 @@ public class StudentAnswerResultService {
      * @return generated result_id when inserting or number of affected rows when updating
      */
     public int submitAnswer(int testId, int studentId, int questionId, String studentAnswer) {
-        String queryQuestion = "SELECT answer, score FROM question_bank WHERE question_id = ?";
+        String queryQuestion = "SELECT answer, score FROM QuestionBank WHERE question_id = ?";
         Map<String, Object> question = jdbcTemplate.queryForMap(queryQuestion, questionId);
         String correctAnswer = (String) question.get("answer");
         Integer score = ((Number) question.get("score")).intValue();
@@ -41,7 +41,7 @@ public class StudentAnswerResultService {
         boolean isCorrect = studentAnswer != null && studentAnswer.equals(correctAnswer);
         int scoreObtained = isCorrect ? score : 0;
 
-        String checkSql = "SELECT result_id FROM student_answer_result " +
+        String checkSql = "SELECT result_id FROM StudentAnswerResult " +
                           "WHERE test_id = ? AND student_id = ? AND question_id = ?";
         var existing = jdbcTemplate.query(checkSql,
                 (rs, rowNum) -> rs.getInt("result_id"),
@@ -49,14 +49,14 @@ public class StudentAnswerResultService {
 
         if (!existing.isEmpty()) {
             String updateSql =
-                "UPDATE student_answer_result SET student_answer = ?, is_correct = ?, " +
+                "UPDATE StudentAnswerResult SET student_answer = ?, is_correct = ?, " +
                 "score_obtained = ?, answer_time = NOW() " +
                 "WHERE test_id = ? AND student_id = ? AND question_id = ?";
             return jdbcTemplate.update(updateSql,
                     studentAnswer, isCorrect, scoreObtained,
                     testId, studentId, questionId);
         } else {
-            String insertSql = "INSERT INTO student_answer_result " +
+            String insertSql = "INSERT INTO StudentAnswerResult " +
                                "(test_id, student_id, question_id, student_answer, " +
                                "is_correct, score_obtained, answer_time) " +
                                "VALUES (?,?,?,?,?,?,NOW())";

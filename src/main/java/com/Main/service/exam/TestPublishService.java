@@ -37,7 +37,7 @@ public class TestPublishService {
      * @return generated test_id
      */
     public int createTest(TestPublish testPublish) {
-        String sql = "INSERT INTO test_publish " +
+        String sql = "INSERT INTO TestPublish " +
                      "(teacher_id, course_id, test_name, publish_time, deadline, " +
                      "question_count, is_random, question_ids) " +
                      "VALUES (?,?,?,?,?,?,?,?)";
@@ -81,7 +81,7 @@ public class TestPublishService {
      * @return number of affected rows
      */
     public int publishTest(int testId, LocalDateTime publishTime) {
-        String sql = "UPDATE test_publish SET publish_time = ? WHERE test_id = ?";
+        String sql = "UPDATE TestPublish SET publish_time = ? WHERE test_id = ?";
         Timestamp ts = publishTime == null ? null : Timestamp.valueOf(publishTime);
         return jdbcTemplate.update(sql, ts, testId);
     }
@@ -91,12 +91,12 @@ public class TestPublishService {
                      "DATE_FORMAT(publish_time, '%Y-%m-%d %H:%i:%s') AS publish_time, " +
                      "DATE_FORMAT(deadline, '%Y-%m-%d %H:%i:%s') AS deadline, " +
                      "question_count, is_random " +
-                     "FROM test_publish WHERE course_id = ?";
+                     "FROM TestPublish WHERE course_id = ?";
         return jdbcTemplate.queryForList(sql, courseId);
     }
 
     public List<Map<String, Object>> getQuestionsByTestId(int testId, boolean isTeacher) {
-        String checkTestSql = "SELECT question_ids FROM test_publish WHERE test_id = ?";
+        String checkTestSql = "SELECT question_ids FROM TestPublish WHERE test_id = ?";
         List<Map<String, Object>> testInfo = jdbcTemplate.queryForList(checkTestSql, testId);
 
         if (testInfo.isEmpty()) {
@@ -110,7 +110,7 @@ public class TestPublishService {
         String[] ids = cleanIds.split(",");
         List<String> existingIds = new ArrayList<>();
         for (String id : ids) {
-            String chk = "SELECT COUNT(*) FROM question_bank WHERE question_id = ?";
+            String chk = "SELECT COUNT(*) FROM QuestionBank WHERE question_id = ?";
             int count  = jdbcTemplate.queryForObject(chk, Integer.class, id.trim());
             if (count > 0) existingIds.add(id.trim());
         }
@@ -120,32 +120,32 @@ public class TestPublishService {
         String existingIdsStr = String.join(",", existingIds);
 
         if (isTeacher) {
-            String sql = "SELECT q.* FROM question_bank q " +
+            String sql = "SELECT q.* FROM QuestionBank q " +
                          "WHERE FIND_IN_SET(q.question_id, ?) > 0";
             return jdbcTemplate.queryForList(sql, existingIdsStr);
         } else {
             String sql = "SELECT q.question_id, q.question_type, q.content, q.options, " +
                          "q.score, q.difficulty " +
-                         "FROM question_bank q " +
+                         "FROM QuestionBank q " +
                          "WHERE FIND_IN_SET(q.question_id, ?) > 0";
             return jdbcTemplate.queryForList(sql, existingIdsStr);
         }
     }
 
     public List<Map<String, Object>> getQuestionsByTestIdIfAnswered(int testId, int studentId) {
-        String chkAns = "SELECT COUNT(*) FROM student_answer_result " +
+        String chkAns = "SELECT COUNT(*) FROM StudentAnswerResult " +
                         "WHERE test_id = ? AND student_id = ?";
         int answered  = jdbcTemplate.queryForObject(chkAns, Integer.class, testId, studentId);
         if (answered == 0) return List.of();
 
-        String idsSql = "SELECT question_ids FROM test_publish WHERE test_id = ?";
+        String idsSql = "SELECT question_ids FROM TestPublish WHERE test_id = ?";
         String qIds   = (String) jdbcTemplate.queryForMap(idsSql, testId).get("question_ids");
         String clean  = qIds.replace("[", "").replace("]", "");
 
         String[] ids  = clean.split(",");
         List<String> present = new ArrayList<>();
         for (String id : ids) {
-            String chk = "SELECT COUNT(*) FROM question_bank WHERE question_id = ?";
+            String chk = "SELECT COUNT(*) FROM QuestionBank WHERE question_id = ?";
             int cnt    = jdbcTemplate.queryForObject(chk, Integer.class, id.trim());
             if (cnt > 0) present.add(id.trim());
         }
@@ -154,22 +154,22 @@ public class TestPublishService {
         String presentIds = String.join(",", present);
 
         String sql = "SELECT q.*, sar.student_answer, sar.is_correct, sar.score_obtained " +
-                     "FROM question_bank q " +
-                     "JOIN student_answer_result sar ON q.question_id = sar.question_id " +
+                     "FROM QuestionBank q " +
+                     "JOIN StudentAnswerResult sar ON q.question_id = sar.question_id " +
                      "AND sar.test_id = ? AND sar.student_id = ? " +
                      "WHERE FIND_IN_SET(q.question_id, ?) > 0";
         return jdbcTemplate.queryForList(sql, testId, studentId, presentIds);
     }
 
     public List<Map<String, Object>> getScoresByTestId(int testId) {
-        String chk = "SELECT COUNT(*) FROM test_publish WHERE test_id = ?";
+        String chk = "SELECT COUNT(*) FROM TestPublish WHERE test_id = ?";
         if (jdbcTemplate.queryForObject(chk, Integer.class, testId) == 0) return List.of();
 
         String sql = "SELECT sar.student_id, u.name AS student_name, " +
                      "SUM(sar.score_obtained) AS total_score, " +
                      "COUNT(sar.question_id) AS answered_questions, " +
                      "MAX(sar.answer_time) AS last_answer_time " +
-                     "FROM student_answer_result sar " +
+                     "FROM StudentAnswerResult sar " +
                      "JOIN user u ON sar.student_id = u.user_id " +
                      "WHERE sar.test_id = ? " +
                      "GROUP BY sar.student_id, u.name " +
@@ -178,17 +178,17 @@ public class TestPublishService {
     }
 
     public List<Map<String, Object>> getTestForStudent(int studentId, int courseId) {
-        String selChk = "SELECT COUNT(*) FROM selection_course sc " +
+        String selChk = "SELECT COUNT(*) FROM course_selection sc " +
                         "INNER JOIN section s ON sc.section_id = s.section_id " +
                         "WHERE sc.student_id = ? AND s.course_id = ?";
         int selCnt    = jdbcTemplate.queryForObject(selChk, Integer.class, studentId, courseId);
         System.out.println("选课记录数量 : " + selCnt);
 
-        String testChk = "SELECT COUNT(*) FROM test_publish WHERE course_id = ?";
+        String testChk = "SELECT COUNT(*) FROM TestPublish WHERE course_id = ?";
         int testCnt    = jdbcTemplate.queryForObject(testChk, Integer.class, courseId);
         System.out.println("课程测试数量 : " + testCnt);
 
-        String validChk = "SELECT COUNT(*) FROM test_publish WHERE course_id = ? " +
+        String validChk = "SELECT COUNT(*) FROM TestPublish WHERE course_id = ? " +
                           "AND publish_time <= NOW() " +
                           "AND (deadline IS NULL OR deadline >= NOW())";
         int validCnt    = jdbcTemplate.queryForObject(validChk, Integer.class, courseId);
@@ -200,11 +200,11 @@ public class TestPublishService {
                      "  DATE_FORMAT(tp.deadline, '%Y-%m-%d %H:%i:%s') AS deadline, " +
                      "  u.name AS teacher_name, c.course_name, " +
                      "  DATE_FORMAT(tp.publish_time, '%Y-%m-%d %H:%i:%s') AS sort_time " +
-                     " FROM test_publish tp " +
+                     " FROM TestPublish tp " +
                      " LEFT JOIN user u ON tp.teacher_id = u.user_id " +
                      " LEFT JOIN course c ON tp.course_id = c.course_id " +
                      " INNER JOIN section s ON tp.course_id = s.course_id " +
-                     " INNER JOIN selection_course sc ON s.section_id = sc.section_id " +
+                     " INNER JOIN course_selection sc ON s.section_id = sc.section_id " +
                      " WHERE sc.student_id = ? AND tp.course_id = ? " +
                      " AND tp.publish_time <= NOW() " +
                      " AND (tp.deadline IS NULL OR tp.deadline >= NOW()) " +
@@ -237,7 +237,7 @@ public class TestPublishService {
                      "DATE_FORMAT(publish_time, '%Y-%m-%d %H:%i:%s') AS publish_time, " +
                      "DATE_FORMAT(deadline, '%Y-%m-%d %H:%i:%s') AS deadline, " +
                      "question_count, is_random, question_ids " +
-                     "FROM test_publish WHERE test_id = ?";
+                     "FROM TestPublish WHERE test_id = ?";
         return jdbcTemplate.queryForList(sql, testId);
     }
 }
