@@ -129,6 +129,13 @@
       <version>2.14.0</version>
     </dependency>
 
+    <!-- 添加对Java 8日期时间API的支持 -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+      <version>2.14.0</version>
+    </dependency>
+
     <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
