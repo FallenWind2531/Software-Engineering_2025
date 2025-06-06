@@ -25,38 +25,10 @@ public class ManagerController {
     private ManagerService managerService;
 
     /**
-     * 验证管理员权限的辅助方法
-     */
-    private ResponseDTO<?> checkAdminPermission(HttpServletRequest request) {
-        // 为了集成测试，暂时注释掉身份验证
-        /*
-        Integer userId = (Integer) request.getAttribute("userId");
-        String userRole = (String) request.getAttribute("userRole");
-        
-        if (userId == null || userRole == null) {
-            return ResponseDTO.fail("无法获取用户身份信息");
-        }
-        
-        if (!"a".equals(userRole)) {
-            return ResponseDTO.fail("权限不足，需要管理员权限");
-        }
-        */
-        
-        return null; // 验证通过
-    }
-
-    /**
      * 8. 管理员设计选课系统时间
      */
     @PostMapping("/update_time")
     public ResponseDTO<?> updateTime(@RequestBody SelectionTime selectionTime, HttpServletRequest request) {
-        // 验证管理员权限 - 为了集成测试暂时注释掉
-        /*
-        ResponseDTO<?> permissionCheck = checkAdminPermission(request);
-        if (permissionCheck != null) {
-            return permissionCheck;
-        }
-        */
         
         // 调用服务层更新选课系统时间
         boolean success = managerService.updateSelectionTime(selectionTime);
@@ -75,13 +47,6 @@ public class ManagerController {
      */
     @PostMapping("/set_curriculum")
     public ResponseDTO<?> setCurriculum(@RequestBody CurriculumDTO curriculumDTO, HttpServletRequest request) {
-        // 验证管理员权限 - 为了集成测试暂时注释掉
-        /*
-        ResponseDTO<?> permissionCheck = checkAdminPermission(request);
-        if (permissionCheck != null) {
-            return permissionCheck;
-        }
-        */
         
         // 调用服务层设置培养方案
         String message = managerService.setCurriculum(curriculumDTO);
@@ -97,13 +62,6 @@ public class ManagerController {
      */
     @GetMapping("/get_time")
     public ResponseDTO<SelectionTime> getTime(HttpServletRequest request) {
-        // 验证管理员权限 - 为了集成测试暂时注释掉
-        /*
-        ResponseDTO<?> permissionCheck = checkAdminPermission(request);
-        if (permissionCheck != null) {
-            return (ResponseDTO<SelectionTime>) permissionCheck;
-        }
-        */
         
         // 调用服务层获取选课系统时间
         SelectionTime selectionTime = managerService.getSelectionTime();
@@ -115,13 +73,6 @@ public class ManagerController {
      */
     @PostMapping("/choose_course")
     public ResponseDTO<?> chooseCourse(@RequestBody StudentCourseRequest request, HttpServletRequest httpRequest) {
-        // 验证管理员权限 - 为了集成测试暂时注释掉
-        /*
-        ResponseDTO<?> permissionCheck = checkAdminPermission(httpRequest);
-        if (permissionCheck != null) {
-            return permissionCheck;
-        }
-        */
         
         // 调用服务层为学生选课
         String response = managerService.chooseCourseForStudent(request.getStudentId(), request.getCourseId());
@@ -137,13 +88,6 @@ public class ManagerController {
      */
     @GetMapping("/get_supplement")
     public ResponseDTO<SupplementListDTO> getSupplement(@RequestParam(name = "course_id", required = false) Integer courseId, HttpServletRequest request) {
-        // 验证管理员权限 - 为了集成测试暂时注释掉
-        /*
-        ResponseDTO<?> permissionCheck = checkAdminPermission(request);
-        if (permissionCheck != null) {
-            return (ResponseDTO<SupplementListDTO>) permissionCheck;
-        }
-        */
         
         // 调用服务层获取补选申请列表
         SupplementListDTO supplementListDTO = managerService.getSupplementApplications(courseId);
@@ -155,13 +99,6 @@ public class ManagerController {
      */
     @PostMapping("/submit_supplement")
     public ResponseDTO<?> submitSupplement(@RequestBody SupplementResultDTO supplementResultDTO, HttpServletRequest request) {
-        // 验证管理员权限 - 为了集成测试暂时注释掉
-        /*
-        ResponseDTO<?> permissionCheck = checkAdminPermission(request);
-        if (permissionCheck != null) {
-            return permissionCheck;
-        }
-        */
         
         // 调用服务层处理补选申请
         String message = managerService.processSupplementApplication(

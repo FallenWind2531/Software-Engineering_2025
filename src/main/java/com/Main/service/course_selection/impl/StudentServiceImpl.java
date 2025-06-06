@@ -282,6 +282,19 @@ public class StudentServiceImpl implements StudentService {
     public CourseListDTO getSelectedCourses(Integer studentId) {
         // logger.info("Starting to fetch selected courses for student {}", studentId);
         
+        // 验证用户是否为学生（通过数据库查询）
+        try {
+            String sql = "SELECT role FROM user WHERE user_id = ?";
+            String userRole = jdbcTemplate.queryForObject(sql, String.class, studentId);
+            if (!"s".equals(userRole)) {
+                logger.warn("User {} is not a student, role: {}", studentId, userRole);
+                return null; // 返回null表示错误
+            }
+        } catch (Exception e) {
+            logger.error("Failed to verify user role for user_id: {}, Error: {}", studentId, e.getMessage());
+            return null; // 用户不存在或查询失败，返回null
+        }
+        
         // 实现查询学生已选课程逻辑
         // 根据学生ID查询所有已选课程
         List<CourseSelection> selections = courseSelectionDao.findByStudentId(studentId);
